@@ -6,3 +6,12 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+# Android Studio / IntelliJ IDE files
+.idea/
+
+# Local SDK/NDK paths (machine-specific)
+local.properties
+
+# Java heap dumps
+*.hprof

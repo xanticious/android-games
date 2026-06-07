@@ -6,12 +6,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ru.nsk.kstatemachine.createStateMachine
+import ru.nsk.kstatemachine.statemachine.createStateMachineBlocking
+import ru.nsk.kstatemachine.statemachine.processEventByLaunch
 import ru.nsk.kstatemachine.event.Event
-import ru.nsk.kstatemachine.state.DefaultState
-import ru.nsk.kstatemachine.state.addInitialState
-import ru.nsk.kstatemachine.state.addState
-import ru.nsk.kstatemachine.transition
+import ru.nsk.kstatemachine.state.*
+import ru.nsk.kstatemachine.transition.onTriggered
 
 sealed interface AppScreen {
     data object Splash : AppScreen
@@ -51,7 +50,7 @@ class AppStateMachine {
     private val _screen = MutableStateFlow<AppScreen>(AppScreen.Splash)
     val screen: StateFlow<AppScreen> = _screen.asStateFlow()
 
-    private val machine = createStateMachine(scope = scope) {
+    private val machine = createStateMachineBlocking(scope = scope) {
         addInitialState(NavState.Splash) {
             transition<NavEvent.SplashFinished> {
                 targetState = NavState.Lobby
@@ -126,16 +125,16 @@ class AppStateMachine {
         }
     }
 
-    fun onSplashFinished() = machine.processEvent(NavEvent.SplashFinished)
-    fun openProfiles() = machine.processEvent(NavEvent.OpenProfiles)
-    fun openAppSettings() = machine.processEvent(NavEvent.OpenSettings)
+    fun onSplashFinished() = machine.processEventByLaunch(NavEvent.SplashFinished)
+    fun openProfiles() = machine.processEventByLaunch(NavEvent.OpenProfiles)
+    fun openAppSettings() = machine.processEventByLaunch(NavEvent.OpenSettings)
     fun openGameSettings(gameId: String) {
         selectedGameId = gameId
-        machine.processEvent(NavEvent.OpenGameSettings)
+        machine.processEventByLaunch(NavEvent.OpenGameSettings)
     }
 
-    fun openHowToPlay() = machine.processEvent(NavEvent.OpenHowToPlay)
-    fun startGame() = machine.processEvent(NavEvent.StartGame)
-    fun backToLobby() = machine.processEvent(NavEvent.BackToLobby)
-    fun backToGameSettings() = machine.processEvent(NavEvent.BackToGameSettings)
+    fun openHowToPlay() = machine.processEventByLaunch(NavEvent.OpenHowToPlay)
+    fun startGame() = machine.processEventByLaunch(NavEvent.StartGame)
+    fun backToLobby() = machine.processEventByLaunch(NavEvent.BackToLobby)
+    fun backToGameSettings() = machine.processEventByLaunch(NavEvent.BackToGameSettings)
 }
