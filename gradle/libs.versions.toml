@@ -25,6 +25,7 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 kstatemachine = { group = "io.github.nsk90", name = "kstatemachine", version.ref = "kstatemachine" }
 kstatemachine-coroutines = { group = "io.github.nsk90", name = "kstatemachine-coroutines", version.ref = "kstatemachine" }
 
