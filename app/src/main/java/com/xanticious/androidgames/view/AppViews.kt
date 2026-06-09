@@ -353,31 +353,31 @@ private fun GameCategory.initial(): String = when (this) {
     GameCategory.MEMORY -> "M"
     GameCategory.PUZZLE -> "P"
     GameCategory.QUEUE_STRATEGY_ACTION -> "Q"
-    GameCategory.RHYTHM -> "R"
-    GameCategory.RTS -> "R"
-    GameCategory.SEARCH -> "S"
-    GameCategory.STRATEGY -> "S"
+    GameCategory.RHYTHM -> "RY"
+    GameCategory.RTS -> "RT"
+    GameCategory.SEARCH -> "SC"
+    GameCategory.STRATEGY -> "ST"
     GameCategory.TOWER_DEFENSE -> "T"
     GameCategory.WORD -> "W"
 }
 
 private fun GameCategory.cardColor(): Color = when (this) {
-    GameCategory.ACTION -> Color(0xFF7B1515)
-    GameCategory.BOARD -> Color(0xFF1A237E)
-    GameCategory.CARD -> Color(0xFF4A148C)
-    GameCategory.DICE -> Color(0xFF0D47A1)
-    GameCategory.EDUCATIONAL -> Color(0xFF1B5E20)
-    GameCategory.EXPLORATION_CREATIVE -> Color(0xFFBF360C)
-    GameCategory.IDLE -> Color(0xFF33691E)
-    GameCategory.MEMORY -> Color(0xFF880E4F)
-    GameCategory.PUZZLE -> Color(0xFF006064)
-    GameCategory.QUEUE_STRATEGY_ACTION -> Color(0xFF311B92)
-    GameCategory.RHYTHM -> Color(0xFFAD1457)
-    GameCategory.RTS -> Color(0xFF37474F)
-    GameCategory.SEARCH -> Color(0xFF004D40)
-    GameCategory.STRATEGY -> Color(0xFF1565C0)
-    GameCategory.TOWER_DEFENSE -> Color(0xFF2E7D32)
-    GameCategory.WORD -> Color(0xFF6A1B9A)
+    GameCategory.ACTION -> Color(0xFFC92A2A)               // Open Color Red 9
+    GameCategory.BOARD -> Color(0xFF364FC7)                // Open Color Indigo 9
+    GameCategory.CARD -> Color(0xFF862E9C)                 // Open Color Grape 8
+    GameCategory.DICE -> Color(0xFF1864AB)                 // Open Color Blue 9
+    GameCategory.EDUCATIONAL -> Color(0xFF2B8A3E)          // Open Color Green 9
+    GameCategory.EXPLORATION_CREATIVE -> Color(0xFFD9480F) // Open Color Orange 9
+    GameCategory.IDLE -> Color(0xFF087F5B)                 // Open Color Teal 9
+    GameCategory.MEMORY -> Color(0xFFA61E4D)               // Open Color Pink 9
+    GameCategory.PUZZLE -> Color(0xFF0B7285)               // Open Color Cyan 9
+    GameCategory.QUEUE_STRATEGY_ACTION -> Color(0xFF5F3DC4) // Open Color Violet 9
+    GameCategory.RHYTHM -> Color(0xFFC2255C)               // Open Color Pink 8
+    GameCategory.RTS -> Color(0xFF343A40)                  // Open Color Gray 8
+    GameCategory.SEARCH -> Color(0xFF099268)               // Open Color Teal 8
+    GameCategory.STRATEGY -> Color(0xFF1971C2)             // Open Color Blue 8
+    GameCategory.TOWER_DEFENSE -> Color(0xFF2F9E44)        // Open Color Green 8
+    GameCategory.WORD -> Color(0xFF6741D9)                 // Open Color Violet 8
 }
 
 @Composable
