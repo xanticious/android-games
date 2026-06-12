@@ -6,7 +6,7 @@
 - A digital pegging board is the primary score display, with both players' pegs advancing along the track.
 - The dealer alternates each hand; "his heels" scores two for the dealer when the starter is a Jack.
 - The game emphasizes calm, readable scoring with explicit confirmation of every count so the player learns the combinations.
-- An optional **Show Combos Sheet** reference panel teaches and reminds players which card combinations score.
+- An optional **Show Combos Sheet** is a cheat sheet for novice players who have not yet memorized the scoring combinations: it lists every combination of cards, suits, and colors that scores and how many points each is worth, so players can reference it while deciding which cards to discard or play.
 - All match results, fastest wins, and skunk records stay local to the device.
 - The board is always the visual anchor; the hand, crib, and count messaging live outside the playable card area.
 - AI turns resolve quickly with visible peg movement and a short count breakdown so the player can follow the math.
@@ -40,7 +40,7 @@
 - Portrait-first. Tablet layouts widen the board and place the combos sheet as a side panel instead of a bottom sheet.
 
 ## Settings
-- **Show Combos Sheet** (on/off, default on): adds a persistent "Combos" button that opens a reference of all scoring combinations (see How to Play). When off, the button is hidden.
+- **Show Combos Sheet** (on/off, default on): adds a persistent "Combos" button that opens the cheat sheet of every scoring combination and its point value (see How to Play), so novice players never have to memorize the combos before deciding what to discard or play. When off, the button is hidden.
 - **Opponent difficulty**: Easy, Medium, Hard.
 - **Target score**: 121 (default) or 61 (short game).
 - **Skunk line shown** (on/off): highlights the 90-point skunk line on the board.
@@ -48,7 +48,7 @@
 - Settings are presented on the per-game Settings screen before play begins.
 
 ## How to Play (and Combos Sheet)
-The How to Play screen explains the four phases: deal, discard, play, show. The **Combos Sheet** lists every scoring combination so players never have to leave the table to remember a rule:
+The How to Play screen explains the four phases: deal, discard, play, show. The **Combos Sheet** is a quick-reference cheat sheet for players who have not memorized cribbage scoring; it lists every scoring combination and its point value so novices can choose discards and plays with confidence:
 
 | Combination | Points |
 |-------------|--------|
