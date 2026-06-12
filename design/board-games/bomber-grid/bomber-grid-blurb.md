@@ -1,5 +1,5 @@
-# Bomber Grid
+# Bombers
 
 Category: Board Games
 
-A strategic grid-based game where players take turns placing bombs on a board, trying to eliminate opponents' pieces through chain explosions. Time your detonations to create the biggest cascades.
+A turn-based, side-scrolling artillery duel where squads of tiny bombers scramble across destructible dirt platforms and lob cartoon explosives through wind and gravity. Rotate through three fighters, crack the terrain out from under the enemy, and be the last team with anyone still standing above the abyss.
