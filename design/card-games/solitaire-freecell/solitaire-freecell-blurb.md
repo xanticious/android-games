@@ -1,4 +1,4 @@
-# FreeCell
+# Solitaire (FreeCell)
 
 Category: Card Games
 
