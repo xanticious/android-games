@@ -2,4 +2,4 @@
 
 Category: Casual Games
 
-A casual exploration game where you fly a small spacecraft to procedurally generated planets, scan alien flora and fauna, collect samples, and document your discoveries in an ever-growing field journal.
+A no-fail casual exploration game where you pilot a spacecraft through a procedurally generated solar system. Land on planets, scan alien flora and fauna, and fill an ever-growing field journal with every unique specimen you discover.

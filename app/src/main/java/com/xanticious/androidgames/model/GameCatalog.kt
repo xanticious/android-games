@@ -19,7 +19,7 @@ object GameCatalog {
         game("checkers", "Checkers", GameCategory.STRATEGY),
         game("chess", "Chess", GameCategory.STRATEGY),
         game("connect-four", "Connect Four", GameCategory.STRATEGY),
-        game("creative-sandbox", "Creative Sandbox", GameCategory.EXPLORATION_CREATIVE),
+        game("dot-art", "Dot Art", GameCategory.EXPLORATION_CREATIVE),
         game("cribbage", "Cribbage", GameCategory.CARD),
         game("crossword-mini", "Crossword Mini", GameCategory.WORD),
         game("dominoes", "Dominoes", GameCategory.BOARD),

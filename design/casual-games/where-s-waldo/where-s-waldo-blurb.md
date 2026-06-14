@@ -2,4 +2,4 @@
 
 Category: Casual Games
 
-A seek-and-find casual game inspired by the classic book series. Scan busy, detailed illustrations to find Waldo and his companions hidden among hundreds of lookalikes and visual distractions.
+A seek-and-find game where large, densely illustrated crowd scenes hide a handful of distinctive characters among hundreds of lookalikes and visual distractions. Pinch to zoom, scan the chaos, and spot them all.
