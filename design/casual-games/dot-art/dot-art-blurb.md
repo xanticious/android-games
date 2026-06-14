@@ -2,4 +2,4 @@
 
 Category: Casual Games
 
-A three-phase creative canvas game. First, connect randomly placed dots with lines to build a graph of shapes. Second, fill the enclosed and open regions with colors using a paint-bucket tool. Third, add freehand brush strokes to finish your artwork. No win conditions — just a blank canvas and your imagination.
+A three-phase creative canvas with no goals and no score. Connect randomly placed dots to sculpt shapes, flood-fill the regions with vibrant colors, then finish with freehand brushwork. Turn dots into monsters, mandalas, or anything your imagination conjures.
