@@ -2,4 +2,4 @@
 
 Category: Casual Games
 
-A casual memory-training game where you watch sequences of highlighted tiles and recreate them exactly from memory. Sequences grow longer with each level, testing how far your short-term memory can stretch.
+A sequence-memory game where one new tile is revealed at a time. Watch each tile appear, then reproduce the full sequence so far by tapping tiles from a personal bank. Each correct round adds one more tile to remember, testing how deep your memory lane can grow.
