@@ -49,7 +49,7 @@ Only `Text` content types are supported in this version. Future versions may add
 |---------|------|-------|------|-------|
 | `world_capitals` | World Capitals | Country | Capital City | 195 |
 | `periodic_table_symbols` | Periodic Table — Symbols | Chemical Symbol | Element Name | 118 |
-| `us_presidents` | US Presidents | Ordinal (e.g., "16th President") | President's Name | 47 |
+| `us_presidents` | US Presidents | Ordinal (e.g., "16th President") | President's Name | 47 (Grover Cleveland counted once despite serving non-consecutively as 22nd and 24th) |
 | `literary_terms` | Literary Terms | Term | Definition | 50 |
 | `geometry_formulas` | Geometry Formulas | Shape + Property (e.g., "Area of a Circle") | Formula | 30 |
 

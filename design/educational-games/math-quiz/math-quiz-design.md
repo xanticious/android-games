@@ -74,7 +74,7 @@ How many minutes the countdown starts from. Range: 1–30 minutes. Default: 5.
 ```
 
 - The answer field is read-only text driven by the keypad; the system soft keyboard is never shown.
-- The `−` key on the keypad allows negative answers (Hard/Expert only; hidden at Easy/Medium).
+- The `-` (hyphen-minus, U+002D) key on the keypad allows negative answers (Hard/Expert only; hidden at Easy/Medium). Display it as a minus sign (−) visually, but the implementation should use the standard hyphen-minus character in the answer string.
 - Pressing `✓` or the check key submits the answer.
 - The `.` (decimal) key is hidden unless a question can produce a fractional answer.
 
