@@ -1,118 +1,123 @@
 # Treasure Mapper — Design Document
 
 ## Overview
-- Treasure Mapper is a single-player casual exploration game structured as a series of layered map puzzles.
-- Each level presents a hand-drawn map of a location (jungle, desert ruins, undersea cave, mountain pass, etc.). The map contains riddles, symbols, and directional clues that guide the player to one or more buried treasure caches.
-- The player follows the map, solves a small environmental puzzle at the dig site, and uncovers the cache to complete the level.
-- Levels are grouped by location; each location has 3–5 maps of increasing complexity.
-- There are no time limits and no lives. The experience is unhurried exploration and puzzle solving.
+- Treasure Mapper is a single-player puzzle game about reading procedurally generated treasure map instructions and identifying the correct cell in a 2D top-down world grid.
+- Each round presents a freshly generated world with identifiable landmarks (trees, rocks, water, clearings) and a treasure map clue written in plain directional prose (e.g., "Starting at the tall pine, walk 7 paces east, 4 paces north. Dig here.").
+- The player reads the clue, studies the world, selects the cell they believe is correct, and taps **Dig Here**.
+- The player has three attempts per round. On each wrong dig the cell is marked (wrong), a try is consumed, and the player may try again.
+- After three failed attempts, the correct cell is revealed. Then a new world and new clue are generated.
+- There is no timer and no persistent fail state — every game is a fresh puzzle.
 - The game is fully offline, single-device, and local-stat only.
 
 ## Visual Style
 - Material 3 surfaces using the underwater palette from `ui/theme/Color.kt`.
-- Map view: parchment-toned background (`#F5E6C8` warm cream, defined in `ui/theme/Color.kt`) with sepia ink illustrations.
-- Map symbols: compass rose, X-marks, dotted trail lines, landmark icons (tree, rock, arch, well).
-- Location environment view (exploration): a top-down pixel-art scene matching the map's setting.
-- Player character: a small explorer sprite with a lantern.
-- Dig sites: marked with a glowing shovel icon when the player is adjacent.
-- Treasure cache reveal: a sparkle burst animation followed by the cache opening with the contents shown.
-- All colors for UI chrome and action chips derive from `ui/theme/Color.kt`; no hex values outside that file.
+- 2D top-down world grid rendered with a flat, clean tile aesthetic.
+- Landmark tiles:
+  - **Big Tree**: dark green canopy circle on a lighter green base.
+  - **Small Tree**: smaller version of the above.
+  - **Rock**: grey rounded boulder icon.
+  - **Water**: animated blue shimmer tile.
+  - **Clearing**: light sand/grass open cell.
+  - **Fence Post**: small wooden post icon (used as reference markers).
+- Grid cells are lightly outlined; the selected cell highlights with a `Teal3` border.
+- Correct dig: cell reveals a treasure chest icon with a golden sparkle burst.
+- Wrong dig: cell shows an `X` icon with a brief `Coral` pulse; the marker remains for the rest of the round.
+- Revealed treasure (after 3 failures): the correct cell pulses with a golden glow and shows the chest.
+- Clue text is displayed in a parchment-toned strip below the world grid.
 
 ## Screen Layout
-
-### Map View
 ```
 ┌─────────────────────────────────────┐
-│  Treasure Mapper   Location 2  ⚙    │  ← Top bar
+│  Treasure Mapper   Tries: ❤❤❤   ⚙  │  ← Top bar (remaining tries, settings)
 ├─────────────────────────────────────┤
 │                                     │
-│     [parchment map illustration]    │  ← Zoomable map image (pinch to zoom)
-│    ↓ N     🌊  🌴  🗿  X?           │
+│  🌲 🪨 〰️ 〰️ 🌲 🌲 🪨            │
+│  🌲 🌳 〰️ 🌿 🌿 🌲 🌿            │  ← World grid (scrollable/zoomable)
+│  🌿 🌿 🪨 🌿 🌳 🌿 🌿            │
+│  🌿 🌿 🌿 🌿 🌿 🪨 🌿            │
+│  🌿 🪨 🌿 🌿 🌿 🌿 🌿            │
 │                                     │
 ├─────────────────────────────────────┤
-│  Clue: "Three paces east of the     │
-│  stone arch, where the roots part." │  ← Clue strip (scrollable for multi-line)
-│  [Explore →]                        │  ← Button to enter exploration view
+│  "Start at the big rock, walk       │
+│   8 paces east, 3 paces south."     │  ← Clue strip (parchment style)
+├─────────────────────────────────────┤
+│           [ Dig Here ]              │  ← Dig button (enabled when a cell is selected)
 └─────────────────────────────────────┘
 ```
-
-### Exploration View
-```
-┌─────────────────────────────────────┐
-│  Jungle Ruins   Caches: 0/2    ⚙    │  ← Top bar (cache progress)
-├─────────────────────────────────────┤
-│                                     │
-│   🌴 🗿  👤  🌴                     │  ← Top-down tile scene (scrollable)
-│   🌿      ⛏← dig site              │
-│        🌴     🗿                    │
-│                                     │
-├─────────────────────────────────────┤
-│  [←][↑][↓][→]         [Map / Clue] │  ← Move controls + map toggle
-└─────────────────────────────────────┘
-```
+- After all 3 tries are used, the **Dig Here** button changes to **New Map** and the correct cell is revealed.
+- On a correct find, the result (tries used, record) appears below the grid; a **New Map** button advances to the next round.
 
 ## Settings
-- **Move control style**: D-pad (default), Swipe gestures.
-- **Show footprints** (on/off, default on): faint trail marks showing where the player has walked.
-- **Clue font size**: Small, Medium (default), Large.
-- **Map overlay** (on/off, default on): a tap-to-view map button always visible in the exploration view.
+- **Grid size**: Small (10×10), Medium (14×14, default), Large (18×18).
+- **Clue complexity**: Simple (1 step: one landmark + one direction), Standard (2 steps, default), Tricky (3 steps with a turn).
+- **Landmark density**: Sparse, Normal (default), Dense.
+- **Show compass** (on/off, default on): a compass rose overlay on the map showing cardinal directions.
+- **Show step guide** (on/off, default off): highlights the landmark named in the clue when the player taps it (accessibility aid).
 
 ## How to Play
-- Start in the Map View for the current level. Study the map and the clue to understand where the treasure is.
-- Tap **Explore** to enter the environment.
-- Walk to the indicated dig site (follow map landmarks and clue directions).
-- When adjacent to a dig site, a shovel icon appears. Tap it to start the dig puzzle.
-- Solve the small dig puzzle (see Dig Puzzles below) to uncover the cache.
-- Some levels have multiple caches; collect all caches to complete the level.
-- Tap **Map / Clue** at any time to review the map and current clue without leaving the environment.
+- Read the clue in the strip below the world.
+- Identify the named landmark on the grid.
+- Follow the directional steps in the clue (counting grid cells as "paces").
+- Tap the cell you believe the treasure is buried in. It highlights with a selection border.
+- Tap **Dig Here** to submit your guess.
+  - Correct: treasure chest revealed, result panel shows, **New Map** advances.
+  - Wrong: that cell is marked with an X, you lose one try, try again.
+- After 3 wrong tries, the correct cell is revealed and **New Map** starts a fresh round.
 
-## Dig Puzzles
-- Each cache is protected by one of three puzzle types chosen based on location theme:
-  - **Pattern Trace**: follow a sequence of directional arrows shown briefly (2 seconds), then reproduce the sequence by tapping arrows. Sequence length scales with level difficulty.
-  - **Symbol Match**: a small 3×3 grid of symbols; rearrange them to match the pattern shown on the map. (Sliding-tile variant for harder levels.)
-  - **Key Sequence**: a lock with 4–6 tumblers; each tumbler cycles through symbols; tap tumblers to match the combination shown in the clue. Tumblers can be reset freely.
-- Dig puzzles have no time limit and no fail state — the player may retry indefinitely.
+## Clue Generation
 
-## Level Progression
-- Locations unlock in order (Location 1 → 2 → 3 → …); within a location, maps unlock in sequence.
-- A location is fully explored when all its maps are completed (all caches found).
-- Replay any completed map at any time from the location menu.
-- Future locations are shown as locked with a silhouette preview.
+### Landmarks
+- Each world has a set of named landmarks generated from the landmark tiles present on the grid. Landmarks that are unique on the grid are eligible as clue starting points (e.g., "the big oak" only if there is exactly one big-tree tile).
+- If no unique landmark is present, the generator ensures at least one is placed.
+
+### Clue Structure
+- **Simple** (1 step): "Starting at [Landmark], walk [N] paces [Direction]."
+- **Standard** (2 steps): "Starting at [Landmark], walk [N] paces [Direction1], then [M] paces [Direction2]."
+- **Tricky** (3 steps): "Starting at [Landmark], walk [N] paces [Direction1], [M] paces [Direction2], then [P] paces [Direction3]."
+- Directions are cardinal: north, south, east, west. Diagonal directions are not used.
+- Paces are in whole grid cells (1 pace = 1 cell). The treasure always lands within the grid boundary.
+- The generator verifies that the clue uniquely identifies exactly one cell on the current map (no accidental ambiguity where two different readings land on the same cell).
+
+### World Generation
+- Each new map generates a fresh world from a random seed using a simple noise-based tile placement algorithm.
+- Landmark types and positions are deterministic from the seed. The clue and treasure position are computed from the seed after world generation.
+- The player never sees the same world twice (unless they replay via the stats screen).
 
 ## State Machine
 - A dedicated `TreasureMapperStateMachine` in `state/` exposes `StateFlow<TreasureMapperState>`.
 ```
 Idle
- └─ StartLevel → MapView
-MapView
- ├─ MapZoomed → MapView (view state updated)
- └─ ExploreSelected → ExplorationView
-ExplorationView
- ├─ ExplorerMoved → ExplorationView (position updated)
- ├─ DigSiteReached → DigPuzzle
- ├─ MapToggled → MapView (returns to ExplorationView on close)
- └─ AllCachesFound → LevelComplete
-DigPuzzle
- ├─ PuzzleSolved → ExplorationView (cache collected, count updated)
- └─ PuzzleRetried → DigPuzzle (reset puzzle state)
-LevelComplete
- ├─ NextMap → MapView (next map in location)
- ├─ NextLocation → MapView (first map of next location)
- └─ BackToMenu → Idle
+ └─ StartGame → GeneratingMap
+GeneratingMap
+ └─ MapReady → WaitingForGuess
+WaitingForGuess
+ ├─ CellSelected → WaitingForGuess (selection updated)
+ ├─ CellDeselected → WaitingForGuess (selection cleared)
+ └─ DigSubmitted → Evaluating
+Evaluating
+ ├─ CorrectDig → RoundComplete (treasure revealed)
+ ├─ WrongDig [tries remaining] → WaitingForGuess (cell marked, try consumed)
+ └─ WrongDig [no tries remaining] → RoundFailed (correct cell revealed)
+RoundComplete
+ └─ NewMap → GeneratingMap
+RoundFailed
+ └─ NewMap → GeneratingMap
 ```
 
 ## Scoring & Stats (local)
 | Stat | Stored |
 |------|--------|
-| Maps completed per location | yes |
-| Total caches found (lifetime) | yes |
-| Locations fully explored | yes |
-| Dig puzzle retries (fewest for a completion) | yes |
-| Total exploration tiles walked | yes |
+| Rounds solved on first try | yes |
+| Rounds solved on second try | yes |
+| Rounds solved on third try | yes |
+| Rounds failed (treasure revealed) | yes |
+| Current win streak (consecutive solves without reveal) | yes |
+| Best win streak | yes |
 
 ## HUD
-- Map view: top bar with location name and settings; clue strip below map; Explore button.
-- Exploration view: top bar with location name and cache progress; move controls; map toggle.
-- Dig site indicator: shovel icon appears above the player sprite when adjacent to a dig site.
-- Dig puzzle: occupies the lower portion of the screen over the exploration view; the exploration scene remains partially visible above it.
-- Level complete panel below the exploration scene: caches found, puzzle retries, next actions.
+- Top bar: title, remaining tries (3 heart/shovel icons), settings.
+- World grid: full-width scrollable/zoomable; selected cell highlighted.
+- Compass rose (if enabled): overlaid on the top-right corner of the grid.
+- Clue strip: parchment-styled text below the grid; tappable to expand for long clues.
+- Dig button: prominent CTA below the clue strip; enabled only when a cell is selected; changes to **New Map** after round end.
+- Result panel: appears below the grid after a correct dig or after three failures. Shows tries used, personal bests, and the **New Map** button. Never covers the world grid.
