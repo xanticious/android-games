@@ -2,7 +2,7 @@
 
 ## Overview
 - Hidden Object is a seek-and-find game where each round presents a single illustrated scene and exactly one hidden object to locate.
-- The scene is generated at runtime from a background asset and an object pool (using the same generation system as Hidden Objects), but only one item is selected and placed each round.
+- The scene is generated at runtime from a background asset and an object pool (using the same generation system as the multi-target **Hidden Objects** game — see `design/casual-games/hidden-objects/`), but only one item is selected and placed each round.
 - The object shifts position and orientation each round — even the same scene offers a new search every time.
 - There is no find-list, no multiple targets. The player must find the single named object.
 - The generator guarantees solvability: the object always has enough visible pixels to be distinguishable.
@@ -61,7 +61,7 @@
 ## Scene Generation
 
 ### Assets
-Scene and object assets reuse the same `SceneDefinition` and `ObjectAsset` data classes defined for Hidden Objects. The difference is that only one object is selected per round.
+Scene and object assets reuse the same `SceneDefinition` and `ObjectAsset` data classes defined for Hidden Objects (to be implemented in `model/` as part of the Hidden Objects game). The difference is that only one object is selected per round.
 
 ### Placement
 1. One object is chosen at random from the scene's object pool.

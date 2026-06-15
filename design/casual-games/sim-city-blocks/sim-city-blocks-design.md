@@ -77,7 +77,7 @@ Upgrades apply globally to the current tier of each type. Each upgrade tier cost
 - Disasters fire at random intervals (configurable frequency in settings). Each disaster affects a region of the city.
   - **Fire**: destroys 1–3 adjacent buildings. A nearby Fire Station reduces the affected radius.
   - **Economic Slump**: reduces commercial income by 50% for 3 cycles.
-  - **Power Surge**: temporarily disables Energy Level 1 buildings for 2 cycles.
+  - **Blackout**: temporarily disables Energy Level 1 buildings for 2 cycles.
   - **Exodus**: one random residential zone loses half its population for 2 cycles (temporarily reducing worker supply).
 - Disaster events appear as a notification banner; the affected area is highlighted on the city grid.
 
