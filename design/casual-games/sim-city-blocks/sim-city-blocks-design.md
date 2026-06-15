@@ -1,119 +1,159 @@
 # Sim City Blocks — Design Document
 
 ## Overview
-- Sim City Blocks is a casual single-player city-planning game on a compact square grid.
-- The player places residential, commercial, and industrial zone tiles onto the grid to grow a small city while keeping citizen happiness and the city budget positive.
-- Adjacency rules between zone types drive happiness and income: residences near parks thrive; industrial zones near residences reduce happiness; commercial zones near residences generate income.
-- The game is turn-based: each turn, the player places one tile or takes one demolish/upgrade action, then the city's economy and happiness are updated.
-- There is no explicit end condition; the player builds as long as they choose. The target is to maximize city score (population × happiness).
+- Sim City Blocks is a single-player city-building game where the player issues high-level commands (buy zones, build facilities, trigger upgrades) but does not place individual tiles. The game's layout engine places new buildings in sensible, algorithmically chosen locations.
+- The town starts with a pre-built seed: a railroad running east-west, a grid of dirt roads branching off it, and two Level 1 residential houses. The player begins with a modest cash reserve.
+- The game is **not** an idle game. It has active failure conditions: running out of money, unemployed residents leaving, underpowered buildings going dark, and random disasters.
+- The player's job is to maintain a balanced, growing city: residential buildings require jobs from commercial and industrial zones; commercial and industrial zones require workers from residential buildings; every structure consumes energy that must be upgraded over time.
 - The game is fully offline, single-device, and local-stat only.
+
+## Player Actions
+
+### Buy Zones
+| Button | Effect | Cost |
+|--------|--------|------|
+| Buy Residential Zone | Adds one Level 1 house at a sensible empty lot | Low |
+| Buy Commercial Zone | Adds one Level 1 shop near residential areas | Medium |
+| Buy Industrial Zone | Adds one Level 1 factory near the railroad/roads | High |
+
+### Build Civic Buildings
+| Button | Effect | Cost |
+|--------|--------|------|
+| Build Fire Station | Reduces fire disaster damage radius | High |
+| Build Police Station | Reduces crime drain on commercial income | High |
+| Build Park | Increases nearby residential happiness; generates no income | Medium |
+
+### Upgrade
+| Button | What Upgrades |
+|--------|---------------|
+| Upgrade Roads | Dirt roads → Paved roads: reduces commute penalty, boosts happiness |
+| Upgrade Railroads | Single track → Double track: increases industrial income cap |
+| Upgrade Residential | Bumps all Level 1 houses → Level 2 (more population capacity) |
+| Upgrade Commercial | Bumps all Level 1 shops → Level 2 (more revenue per worker) |
+| Upgrade Industrial | Bumps all Level 1 factories → Level 2 (more jobs, more energy demand) |
+| Upgrade Parks | Expands park radius and happiness bonus |
+| Upgrade Energy | Raises the city's total power capacity (required to support upgraded buildings) |
+
+Upgrades apply globally to the current tier of each type. Each upgrade tier costs progressively more. Upgrading requires sufficient funds and, in some cases, prerequisite upgrades.
+
+## Layout Engine
+- When the player purchases a zone, the layout engine selects the best available empty cell based on weighted criteria:
+  - **Residential**: near parks, roads, and existing residences; away from industrial zones.
+  - **Commercial**: near residential zones and roads; not adjacent to industrial zones.
+  - **Industrial**: near the railroad or a major road intersection; away from residential zones.
+  - **Fire Station / Police Station**: maximizes coverage radius over existing buildings.
+  - **Park**: fills gaps between residential blocks; maximizes number of residential neighbors.
+- If no suitable cell is available (city is fully built out), the buy button is disabled with a "No room" indicator.
+- The layout engine never places two buildings of the same type side-by-side if a better spread is possible.
+
+## Starting State
+- A railroad runs across the center of the grid (east-west).
+- Dirt roads branch north and south at two intersections, forming a small neighborhood grid.
+- Two Level 1 residential houses are pre-placed on road-adjacent lots.
+- Starting cash: enough to buy roughly 3–4 additional zones or one civic building.
+- Energy capacity starts at Level 1, supporting only the initial buildings.
+
+## Balance and Failure Conditions
+
+### Employment Loop
+- Each commercial and industrial zone has a **worker demand** (number of residents it employs).
+- Each residential zone contributes **residents** (workers available to commute).
+- If a business has zero available workers, it generates no income and becomes idle (shown with a grey overlay).
+- If residents have no jobs available in the city, their happiness drops over time. If happiness falls to zero for a residential zone, that zone is abandoned (removed from the city, reducing population).
+
+### Energy
+- Every building consumes energy. Total consumption is tracked against total capacity.
+- When consumption exceeds capacity, buildings are randomly powered off in a rolling brownout (shown with a flickering icon). Unpowered buildings generate no income and do not provide services.
+- Upgrading Energy increases total capacity. Energy upgrades are required before most zone upgrades become available.
+
+### Finances
+- Each city cycle (one in-game day, roughly 30 real seconds by default) income and expenses are computed.
+  - **Income**: revenue from commercial and industrial zones (based on workers employed and level).
+  - **Expenses**: maintenance for all buildings (roads, railroad, civic buildings), energy costs, and zone upkeep.
+- If the budget balance goes negative and remains negative for 3 consecutive cycles, the player cannot purchase new zones until revenue recovers.
+- If balance stays critically negative for 10 consecutive cycles, the game enters a deficit spiral warning — the player has a grace period to fix finances before the game ends.
+
+### Random Disasters
+- Disasters fire at random intervals (configurable frequency in settings). Each disaster affects a region of the city.
+  - **Fire**: destroys 1–3 adjacent buildings. A nearby Fire Station reduces the affected radius.
+  - **Economic Slump**: reduces commercial income by 50% for 3 cycles.
+  - **Blackout**: temporarily disables Energy Level 1 buildings for 2 cycles.
+  - **Exodus**: one random residential zone loses half its population for 2 cycles (temporarily reducing worker supply).
+- Disaster events appear as a notification banner; the affected area is highlighted on the city grid.
 
 ## Visual Style
 - Material 3 surfaces using the underwater palette from `ui/theme/Color.kt`.
-- Grid surface: a light `Dark0`/`Dark1` checker pattern.
-- Zone tiles use distinct flat-colored icons:
-  - Residential: `Aqua2` house silhouette.
-  - Commercial: `Teal3` shop/briefcase silhouette.
-  - Industrial: `Coral` factory silhouette.
-  - Park/Green Space: `Green2` tree silhouette.
-  - Road: `Dark3` asphalt strip.
-- A small happiness indicator floats above each residential tile (green smile / yellow neutral / red frown).
-- Budget bar: a horizontal bar at the bottom of the screen, green when positive, red when in deficit.
-- Tile placement preview: ghost tile shown on hover/press before confirming placement.
+- Top-down city grid with a subtle tile texture.
+- Building icons use flat silhouettes:
+  - Residential (Level 1): small house; Level 2: two-story house.
+  - Commercial (Level 1): single-window shop; Level 2: multi-window storefront.
+  - Industrial (Level 1): single smokestack; Level 2: two smokestacks.
+  - Fire Station: red/white icon. Police Station: blue badge icon.
+  - Park: green tree. Railroad: parallel lines. Roads: grey strips.
+- Happiness indicators float above residential zones (green / yellow / red face).
+- Energy warning: buildings flash amber when on brownout rotation.
+- Abandoned zone: building icon fades to grey and crumbles briefly before disappearing.
+- Disaster highlight: a `Coral` glow pulses over affected tiles.
 
 ## Screen Layout
 ```
 ┌─────────────────────────────────────┐
-│  Sim City Blocks   Score: 1,240 ⚙   │  ← Top bar
+│  Sim City Blocks  Pop:120  $1,450 ⚙ │  ← Top bar (population, budget, settings)
 ├─────────────────────────────────────┤
-│  💰 Budget: +$320/turn  😊 Happy: 74%│  ← Economy strip
+│  ⚡ Energy: 74% used  📅 Day 14      │  ← Status strip
 ├─────────────────────────────────────┤
-│  [🏠][🏠][🏪][🌳]                  │
-│  [🏭][🏠][🏠][🏪]                  │  ← Grid (8×8 default; scrollable for larger)
-│  [🏠][🌳][🏪][🏠]                  │
-│  [  ][  ][  ][  ]  ← empty cells    │
+│                                     │
+│  [🏠][🏠][🌳][🏪][🏭][🏭]          │
+│  ══════════════════════════         │  ← Railroad
+│  [🏠][🏠][🏪][🏠][🏪][  ]          │  ← City grid (scrollable)
+│  [  ][🏠][  ][🏠][  ][  ]          │
+│                                     │
 ├─────────────────────────────────────┤
-│  [🏠Res][🏪Com][🏭Ind][🌳Park][🛣Rd] │  ← Tile palette (scrollable)
-│  Cost: $50               [Place]    │  ← Cost display + Place button
+│ [🏠 Buy Res] [🏪 Buy Com] [🏭 Buy Ind] │
+│ [🚒 Fire] [🚓 Police] [🌳 Park]     │  ← Action buttons
+│ [⬆ Upgrade ▾]                       │  ← Upgrade expandable row
 └─────────────────────────────────────┘
 ```
-- Tapping an empty cell with a tile selected places it.
-- Tapping an occupied cell enters an info/demolish view.
-- The grid scrolls/zooms on larger grid sizes.
+- Tapping an existing building opens a detail panel below the grid showing that building's stats (employment, income, energy use, level).
+- The upgrade button expands to show all available upgrade options with costs.
 
 ## Settings
-- **Grid size**: 6×6, 8×8 (default), 12×12.
-- **Starting budget**: $500 (tight), $1000 (default), $2000 (relaxed).
-- **Show happiness indicators** (on/off, default on).
-- **Show adjacency hints** (on/off, default on): highlights cells where placing the selected tile would be beneficial (faint green glow) or harmful (faint red glow).
-- **Auto-advance turn** (on/off, default off): automatically ends the turn after each tile placement.
-
-## How to Play
-- Select a tile type from the palette at the bottom.
-- Tap an empty cell to preview the tile (ghost + cost displayed).
-- Tap **Place** or the cell again to confirm placement. The tile cost is deducted from the budget.
-- After placing a tile, the economy updates: income and expenses are calculated based on zone adjacency, and city happiness is recalculated.
-- If the budget goes negative, no new tiles can be placed until revenue recovers.
-- Tap any placed tile to see its stats or demolish it (demolishing refunds 50% of cost).
-- Aim for the highest city score: population (number of residential tiles) × average happiness percentage.
-
-## Adjacency Rules
-| Zone | Adjacent to | Effect |
-|------|------------|--------|
-| Residential | Park | +10 happiness per neighboring park |
-| Residential | Commercial | +$20 income, 0 happiness change |
-| Residential | Industrial | −15 happiness |
-| Residential | Road | +5 happiness (connectivity bonus) |
-| Commercial | Residential | +$30 income |
-| Commercial | Road | +$15 income |
-| Industrial | Road | +$25 income |
-| Industrial | Residential | −$5 income (protests) |
-| Park | Any | No income cost; provides happiness to adjacent residences |
-- Each tile accrues income/expense per-turn based on all eight neighbors.
-- Roads do not generate income but reduce negative adjacency penalties.
-
-## Gameplay Loop
-1. Player selects a tile from the palette.
-2. Player taps a target cell; cost and adjacency impact preview are shown.
-3. Player confirms placement (or cancels).
-4. Economy update fires: budget changes, happiness recalculates, city score updates.
-5. If budget < 0: show deficit warning; no placements allowed until balance is positive again.
-6. Player continues at their own pace; there is no turn limit or time pressure.
+- **Cycle speed**: Slow (60 s/day), Normal (30 s/day, default), Fast (15 s/day).
+- **Disaster frequency**: Off, Rare (default), Occasional, Frequent.
+- **Show job/population overlay** (on/off, default on): floating employment indicators over each zone.
+- **Show energy overlay** (on/off, default off): overlays energy consumption per building.
 
 ## State Machine
-- A dedicated `SimCityBlocksStateMachine` in `state/` exposes `StateFlow<SimCityBlocksState>`.
+- A dedicated `SimCityBlocksStateMachine` in `state/` exposes `StateFlow<SimCityState>`.
 ```
 Idle
- └─ StartGame → Planning
-Planning
- ├─ TileSelected → TilePreviewing
- ├─ CellInspected → CellDetail
- └─ (no active action)
-TilePreviewing
- ├─ PlacementConfirmed [budget ok] → Updating
- ├─ PlacementConfirmed [no budget] → Planning (error shown)
- └─ PlacementCancelled → Planning
-CellDetail
- ├─ DemolishConfirmed → Updating
- └─ DetailClosed → Planning
-Updating
- └─ EconomyUpdated → Planning
+ └─ StartGame → Running
+Running
+ ├─ ActionTaken [buy/build/upgrade] → Running (layout engine places building, stats updated)
+ ├─ CycleAdvanced → Running (income, expenses, happiness recalculated)
+ ├─ DisasterTriggered → Running (affected area highlighted, stats adjusted)
+ ├─ ZoneAbandoned → Running (zone removed, population reduced)
+ └─ DeficitCritical [10 cycles] → GameOver
+GameOver
+ ├─ NewGame → Idle
+ └─ Continue (load last save) → Running
 ```
 
 ## Scoring & Stats (local)
 | Stat | Stored |
 |------|--------|
-| Highest city score achieved | yes |
-| Most residential tiles in a city | yes |
-| Highest average happiness reached | yes |
-| Total turns played (lifetime) | yes |
-| Longest budget-positive streak | yes |
+| Peak population achieved | yes |
+| Peak budget balance achieved | yes |
+| Longest run (in-game days) | yes |
+| Disasters survived | yes |
+| Total zones built (lifetime) | yes |
 
 ## HUD
-- Top bar: title, current city score, settings.
-- Economy strip: budget per turn (green/red), overall happiness percentage.
-- Grid: zone tiles with happiness indicators; empty cells show a subtle grid line.
-- Tile palette: scrollable chip row with tile icon, name, and cost; selected tile is highlighted.
-- Adjacency hint overlay (if enabled): green/red cell tinting while a tile is selected.
-- Deficit warning: a red banner below the economy strip when the budget is negative.
-- City score and happiness are updated immediately after each placement; no summary panel is shown unless the player opens it via settings.
+- Top bar: title, population count, current budget balance, settings.
+- Status strip: energy utilization percentage, current in-game day.
+- City grid: buildings with happiness indicators; scrollable on large grid sizes.
+- Action button row: buy and build buttons with cost labels; disabled buttons show reason (e.g., "No room", "Need funds", "Need Energy Upgrade").
+- Upgrade expand row: tapping shows a scrollable list of upgrades with costs and prerequisite indicators.
+- Detail panel: slides up from below the grid when a building is tapped; shows the building's current stats without covering the grid.
+- Disaster notification: a banner slides in from the top for 3 seconds when a disaster fires.
+- Deficit warning: a persistent red banner below the status strip when the budget has been negative for 3+ cycles.
