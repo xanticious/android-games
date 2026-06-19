@@ -41,7 +41,7 @@ Two resources keep the model simple:
 
 ### Economy Balance (Player Policy)
 - The player sets a **percentage split** between Food and Wood, e.g. `50% Food / 50% Wood`, via a single slider.
-- The auto-assigner distributes workers so the **proportion of gatherers** matches the target split (rounding to whole workers). Example: 10 workers at 70/30 -> 7 on Food, 3 on Wood.
+- The auto-assigner distributes workers so the **proportion of gatherers** matches the target split (rounding to whole workers). Example: 10 workers at 70/30 → 7 on Food, 3 on Wood.
 - Changing the slider mid-match smoothly **re-balances** existing workers over the next few assignment ticks (no instant teleport; a worker finishes its current trip then may switch).
 - This is the player's primary economic lever and can be changed at any time from the in-match policy bar.
 
@@ -63,7 +63,7 @@ A small rock-paper-scissors triangle keeps composition meaningful:
 
 ### Upgrades & Upgrade Priority (Player Policy)
 - Upgrades improve units along tracks: **Damage I/II**, **Defense I/II**, **Speed I/II** (tiered; II requires I).
-- The player specifies an **ordered Upgrade Priority list**, e.g. `Damage I -> Defense I -> Damage II -> Speed I`.
+- The player specifies an **ordered Upgrade Priority list**, e.g. `Damage I → Defense I → Damage II → Speed I`.
 - The civilization **auto-researches** upgrades **in that order** as resources become available; **upgrades cost resources**. A tier-II entry is skipped (deferred) until its tier-I prerequisite is researched, then taken when reached in order.
 - The priority list is set on the Settings screen and can be reordered mid-match from the policy bar.
 
