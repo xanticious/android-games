@@ -25,7 +25,7 @@
 
 ## Visual Style
 - Material 3 surfaces, underwater palette from `ui/theme/Color.kt`.
-- Up to 8 distinct flood colors are drawn from the palette (`Aqua0`, `Aqua1`, `Aqua2`, `Aqua3`, `Aqua4`, plus `Dark0`, `Dark1`, `Dark2` shades), each paired with a **distinct shape/glyph or pattern** so color-blind players can tell them apart (palette-only differentiation is never relied upon — see [`common/puzzle-controls.md`](../../common/puzzle-controls.md) accessibility).
+- Up to 8 distinct flood colors are drawn from the palette (`Aqua0`, `Aqua1`, `Aqua2`, `Aqua3`, `Aqua4`, plus `Dark0`, `Dark1`, `Dark2` shades) — eight tokens covering the full 4–8 color-count range — each paired with a **distinct shape/glyph or pattern** so color-blind players can tell them apart (palette-only differentiation is never relied upon — see [`common/puzzle-controls.md`](../../common/puzzle-controls.md) accessibility).
 - Flood spread: when a color is chosen, the region recolors with a short ripple from the top-left over ≤200 ms (board-area only).
 - The current flood region carries a subtle outline so its extent is always clear.
 

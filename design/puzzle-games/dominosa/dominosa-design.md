@@ -3,7 +3,7 @@
 ## Overview
 - Dominosa is a single-player deduction puzzle played on a grid of numbers. The grid contains every domino of a complete set exactly once, but the domino boundaries are hidden — only the pip numbers are shown.
 - The player partitions the whole grid into 1×2 dominoes (horizontal or vertical) so that **each domino value pair appears exactly once**.
-- A puzzle of "size N" uses the complete domino set from 0–N. That set has (N+1)(N+2)/2 dominoes and fills a grid of **(N+1) rows × (N+2) columns**.
+- A puzzle of "size N" uses the complete domino set from 0–N. That set has (N+1)×(N+2)/2 dominoes and fills a grid of **(N+1) rows × (N+2) columns**.
 - Every generated puzzle has a unique solution.
 - Fully offline, single device, local stats only.
 - Shared conventions: see [`common/puzzle-grid-board.md`](../../common/puzzle-grid-board.md), [`common/puzzle-controls.md`](../../common/puzzle-controls.md), [`common/puzzle-flow.md`](../../common/puzzle-flow.md).

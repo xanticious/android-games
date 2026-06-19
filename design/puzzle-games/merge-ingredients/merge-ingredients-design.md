@@ -14,7 +14,7 @@
 
 ## Recipe Model
 - Recipes are data in `model/`: each recipe is an unordered set of input items → one output item. Some recipes take 2 inputs, some take 3+ (e.g. Ketchup, Pizza).
-- "Appliance" items (Oven, Stove) are reusable catalysts — consumed conceptually as an input slot but never used up from the pantry.
+- "Appliance" items (Oven, Stove) are reusable catalysts: they occupy an input slot in the combine tray during a craft but are **not** used up — they stay in the pantry afterward, unlike consumable ingredients.
 - The dependency graph is acyclic; every craftable item has at least one discoverable path from base ingredients.
 - Recipe lookup (match a multiset of inputs to an output) is a pure function in `controller/`, unit-tested for the full recipe set including multi-input recipes and order-independence.
 

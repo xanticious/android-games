@@ -11,7 +11,10 @@
 ## Controls (intuitive, signature)
 - **Tap** a white cell: place a light bulb (tap again to remove it). See [`common/puzzle-controls.md`](../../common/puzzle-controls.md).
 - **Hold (long-press)** a white cell: place a **mark** — a small dot the player uses to note "no bulb belongs here." Hold again to clear the mark. Marks are player annotations only; they never emit light and never affect win checks.
-- Tapping a marked cell promotes it to a bulb (and clears the mark); the cycle stays predictable: empty → (tap) bulb → (tap) empty, and empty → (hold) mark → (hold) empty.
+- The cell interaction cycles are predictable:
+  - empty → **tap** → bulb → **tap** → empty
+  - empty → **hold** → mark → **hold** → empty
+- Tapping a marked cell is a convenient shortcut: it clears the mark and places a bulb in one step.
 - Black cells (clue and plain) are not interactive.
 
 ## Settings

@@ -42,7 +42,7 @@
 - Reach the goal to complete the maze; try to minimize moves and time.
 
 ## Controls
-- **Swipe** up/down/left/right (top-down): move the avatar one corridor step (continues until a wall/junction if "glide" is desired). See [`common/puzzle-controls.md`](../../common/puzzle-controls.md).
+- **Swipe** up/down/left/right (top-down): move the avatar one corridor step. See [`common/puzzle-controls.md`](../../common/puzzle-controls.md).
 - **Drag**: trace a continuous path the avatar follows along open corridors.
 - First-person: swipe left/right to turn, swipe up to move forward.
 

@@ -19,13 +19,13 @@
   | 7×7 | 16384 | 8×8 |
   | 8×8 | 32768 (and beyond) | — (max size) |
 - 8×8 is the maximum size; once reached the board never grows again and play continues for high score.
-- **Growth animation:** existing tiles keep their values and positions (anchored to the top-left origin); a new empty row appears on the right and a new empty column on the bottom, sliding in over ≤200 ms. This is a board-area transition, not a full-screen one, and never covers tiles.
+- **Growth animation:** existing tiles keep their values and positions (anchored to the top-left origin); a new empty column appears on the right and a new empty row on the bottom, sliding in over ≤200 ms. This is a board-area transition, not a full-screen one, and never covers tiles.
 - Growing the board is celebrated with a brief "Board expanded to N×N!" line in the status area below the board.
 
 ## Number Abbreviation on Tiles
 - Tile values grow large once the board expands, so tile labels are abbreviated to stay legible:
   - < 1,000 → exact digits (`2`, `64`, `512`).
-  - ≥ 1,000 → one or two significant figures plus a unit suffix: `1k`, `16k`, `131k`, `5m`, `268m`, `4b`, `564b`, `2t`.
+  - ≥ 1,000 → the leading significant digits (rounded down) plus a unit suffix, kept to at most ~4 glyphs: `1k`, `16k`, `131k`, `5m`, `268m`, `4b`, `564b`, `2t`.
   - Suffixes: `k` (thousand), `m` (million), `b` (billion), `t` (trillion).
 - Abbreviation is display-only; the controller always tracks exact integer values for merges, scoring, and win checks.
 - The abbreviation helper is a pure function in `controller/` (e.g. `abbreviate(value: Long): String`) and is unit-tested.
