@@ -1,7 +1,7 @@
 # Brick Breaker (Arcade) — Design Document
 
 ## Overview
-A real-time arcade brick breaker. Bricks slowly descend from the top at a constant speed. The player controls a cannon's left-right position at the bottom and fires balls upward continuously. Shooting is strictly vertical (no angle adjustment — aim by repositioning the cannon). Destroy all bricks before any reach the bottom.
+A real-time arcade brick breaker. Bricks slowly descend from the top at a constant speed. The player controls a cannon's left-right position at the bottom and fires balls upward continuously. The cannon always fires a built-in **multi-shot** spread (one vertical ball plus two slightly angled balls, one to each side) — aim by repositioning the cannon. Destroy all bricks before any reach the bottom.
 
 ## Visual Style
 Identical visual language to Brick Breaker (turn-based). Key arcade-mode additions:
@@ -26,9 +26,14 @@ Identical visual language to Brick Breaker (turn-based). Key arcade-mode additio
 ```
 
 ## Controls
-- **Cannon Position**: drag or slide anywhere on the bottom control zone to move the cannon left and right. The cannon fires straight up from its current position.
-- **Auto-Fire**: the cannon fires automatically at a fixed rate (1 ball per 0.3 seconds by default). No tap required to fire.
+- **Cannon Position**: drag or slide anywhere on the bottom control zone to move the cannon left and right. The cannon always fires its multi-shot spread from its current position.
+- **Auto-Fire**: the cannon fires automatically at a fixed rate (1 volley per 0.3 seconds by default). No tap required to fire.
 - The player's only active input is horizontal cannon positioning.
+
+## Multi-Shot (Always Active)
+- The cannon's fire is **always a three-ball spread**, not a power-up: one ball travels straight up, and two more launch at a slight outward angle, one to each side.
+- The angled balls give light horizontal coverage so repositioning the cannon still matters for aiming, but a single volley sweeps a small arc rather than a single column.
+- Because multi-shot is built in, it is **not** available as a collectible power-up (see Power-Ups below).
 
 ## Gameplay Loop
 
@@ -50,16 +55,18 @@ Power-ups drop from destroyed power-up bricks and float downward. The player col
 
 Available power-ups (from `design/common/powerup-system.md`):
 - Rapid Fire (fires faster)
-- Multi-Shot (3 balls at once)
 - Power Shot (double damage)
 - Clear Screen (destroys all visible bricks instantly)
 - Explode (destroys all bricks adjacent to the collection point)
 - Wide Shot (wider cannon beam)
 
+(Multi-Shot is not a power-up in this mode — the cannon's three-ball spread is always active.)
+
 ### Lives
 - Player starts with 3 lives.
 - A life is lost when any brick reaches the bottom row.
-- Brief 2-second pause after life loss; the brick field continues from where it was.
+- On life loss, **all current bricks are automatically pushed up by half a screen height** to give the player breathing room before play resumes.
+- Brief 2-second pause after life loss; the brick field then continues from its new (raised) position.
 - Game over when all lives are lost.
 
 ## Difficulty Scaling
@@ -87,7 +94,7 @@ Playing
  ├─ AllRowsGeneratedAndCleared → LevelComplete
  └─ PowerUpDropped → Playing (power-up floating)
 LifeLost
- └─ RespawnDelay → Playing
+ └─ RespawnDelay → Playing (bricks shifted up half a screen)
 LevelComplete
  └─ NextLevel → Playing (next level init)
 GameOver
