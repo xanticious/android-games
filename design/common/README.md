@@ -26,3 +26,11 @@ This folder contains design specifications for UI components, interaction patter
 | File | Description |
 |------|-------------|
 | [rhythm-note-highway.md](rhythm-note-highway.md) | Shared lane highway, timing windows, combo/multiplier, audio sync, and results |
+| [morse-code.md](morse-code.md) | International Morse alphabet, dit/dah timing, single-button input, and beep audio |
+
+## Strategy / tower-defense components
+
+| File | Description |
+|------|-------------|
+| [tower-defense.md](tower-defense.md) | Shared lite tower-defense board, waves, economy, towers, and combat |
+| [level-solvability.md](level-solvability.md) | Monte Carlo generate→simulate→accept guarantee for beatable levels |
