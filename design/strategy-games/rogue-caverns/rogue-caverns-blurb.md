@@ -2,4 +2,4 @@
 
 Category: Strategy Games
 
-A roguelike dungeon-crawler where every run generates a new cave layout filled with monsters, traps, and treasures. Permadeath makes every decision count — build a character and explore as deep as you dare.
+A roguelite cavern-crawler where every run generates a new cave layout filled with monsters and treasures, and combat plays out turn-based. Death is never the end — each life earns experience that permanently powers up your next descent, so you always come back stronger.
