@@ -20,3 +20,9 @@ This folder contains design specifications for UI components, interaction patter
 | [puzzle-grid-board.md](puzzle-grid-board.md) | Shared grid/board rendering, sizing, and color tokens |
 | [puzzle-controls.md](puzzle-controls.md) | Standard tap / hold / drag / swipe meanings, undo, hints |
 | [puzzle-flow.md](puzzle-flow.md) | Settings → How to Play → Gameplay flow and victory/defeat placement |
+
+## Rhythm-game components
+
+| File | Description |
+|------|-------------|
+| [rhythm-note-highway.md](rhythm-note-highway.md) | Shared lane highway, timing windows, combo/multiplier, audio sync, and results |
