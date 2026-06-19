@@ -38,6 +38,10 @@ There is no wood, stone, or gold; folding everything into these two resources av
 - Each new worker walks from the Town Center to an **unoccupied spot on the farmland** (producing Food) or to an **unoccupied seat in the Library** where it reads a book (producing Study), contributing to a global resource income.
 - Workers **self-assign** between farmland and Library seats to track the **Economy Balance** target as closely as possible (see below). When the target changes, idle/next-rebalanced workers shift assignment; there is no manual assignment.
 - Worker cap and spawn interval are fixed per difficulty/map (not micromanaged by the player).
+- Workers are **civilians**: they **cannot be targeted, attacked, or killed** by either side. They go about their economy work safely regardless of nearby combat.
+
+<a id="worker-cap-tbd"></a>
+> **Worker cap — TBD.** How big should the cap actually be? We haven't decided costs or production rates, so this is **relative** and `TBD` for now. It must be balanced jointly with the spawn interval, per-worker Food rate, military unit costs, and the Ploughshares threshold so that a heavily-farming player can win in ~10–15 minutes (see [Win / Loss](#win--loss)). We'll tweak all of these values together later.
 
 ### Economy Balance (Player Policy)
 - The player sets a **percentage split** between Food and Study, e.g. `50% Food / 50% Study`, via a single slider.
@@ -47,13 +51,15 @@ There is no wood, stone, or gold; folding everything into these two resources av
 
 ## Initial Village
 Each side starts with a small, pre-built settlement:
-- **Town Center** — surrounded by **farmland**. Workers are generated here and walk out to an unoccupied space on the farmland or to the Library.
+- **Town Center** — surrounded by **farmland**. Workers are generated here and walk out to an unoccupied space on the farmland or to the Library. The Town Center **cannot be targeted or destroyed**.
 - **Library** — depicted with **greek columns** and **open outdoor reading areas**. Workers walk to an unoccupied seat and read a book to produce **Study**.
-- **Barracks** — military units are produced here and walk to the **parade grounds** once assembled, or to the player-set **rally point**.
-- **City wall** with **bow towers** and **auto-opening/closing gates** surrounding the settlement. The wall and gates **can be destroyed**, but **automatically rebuild after some duration**.
+- **Barracks** — military units are produced here and walk to the **parade grounds** once assembled, or to the player-set **rally point**. The Barracks **cannot be targeted or destroyed**.
+- **City wall** with **bow towers** and **auto-opening/closing gates** surrounding the settlement. **Sections of wall, gates, and bow towers are the only structures that can be destroyed**; once destroyed they **automatically rebuild after some duration**.
 - A couple of **workers**, one **military unit**, and a **King**.
 
 The King is the settlement's most important figure — losing the King ends the game (see Win / Loss).
+
+**What can be destroyed:** only **sections of enemy walls, gates, and bow towers**. Workers (civilians), Town Centers, Barracks, and the Library cannot be targeted or destroyed. The King is defeated only via the Military Might condition.
 
 ## Military
 
@@ -72,10 +78,16 @@ A small rock-paper-scissors triangle keeps composition meaningful:
 | Cavalry  | Archers | Infantry | high Food | Fast flankers |
 
 ### Upgrades & Upgrade Priority (Player Policy)
-- Upgrades improve units along tracks: **Damage I/II**, **Defense I/II**, **Speed I/II** (tiered; II requires I).
+- Upgrades are organized into **tiered tracks** (each tier requires the previous one). Costs and magnitudes are **TBD** and will be tuned with the rest of the economy:
+  - **Attack I/II/III** — increase **military unit damage** for all units.
+  - **Defense I/II/III** — increase **military unit health** for all units.
+  - **Speed I/II/III** — increase **military unit speed** for all units.
+  - **City Wall I/II/III** — increase **wall health** and **bow tower damage**, and **reduce wall/gate/tower rebuild wait**.
+  - **Agriculture I/II/III** — increase **Food production rate**.
+  - **Learning I/II/III** — increase **Study production rate**.
 - A special **Enlightenment** upgrade becomes available only **after every other upgrade is researched**; completing it wins the match via the Enlightenment victory condition (see Win / Loss).
-- The player specifies an **ordered Upgrade Priority list**, e.g. `Damage I → Defense I → Damage II → Speed I`.
-- The civilization **auto-researches** upgrades **in that order** as Study becomes available; **upgrades cost Study**. A tier-II entry is skipped (deferred) until its tier-I prerequisite is researched, then taken when reached in order.
+- The player specifies an **ordered Upgrade Priority list**, e.g. `Attack I → Defense I → Agriculture I → Attack II`.
+- The civilization **auto-researches** upgrades **in that order** as Study becomes available; **upgrades cost Study**. A higher-tier entry is skipped (deferred) until its lower-tier prerequisite is researched, then taken when reached in order.
 - The priority list is set on the Settings screen and can be reordered mid-match from the policy bar.
 
 ## The Bot Opponent
@@ -93,9 +105,17 @@ There are multiple paths to victory. A match ends the moment any one of these is
 
 - **Military Might** — **destroy the enemy's King.** This is the classic conquest victory; protect your own King while hunting down the opponent's.
 - **Enlightenment** — **research every available upgrade, then research the special "Enlightenment" upgrade.** When a side begins the Enlightenment upgrade, it is **announced to all players** ("Enlightenment is being researched") and a **countdown timer** appears. If the timer completes, that side wins; if their Library production is interrupted such that Study runs out, the research can stall (the countdown is tied to completing the upgrade). This gives opponents a window to react militarily.
-- **Swords Beaten into Ploughshares** — a peaceful/economic victory: if you ever have more than _[TODO: threshold not specified — see note below]_.
+- **Swords Beaten into Ploughshares** — a peaceful/economic victory: **accumulate a target amount of Food while surviving** _[TBD: exact threshold]_. The intended fantasy is a player who puts a few workers on Study but **almost all on farming**, raises a **skeleton army with basic upgrades**, and uses **superior defensive positioning** to hold out against a stronger enemy military until enough Food has been banked.
 
-> **Note:** The problem statement that requested this rewrite was cut off mid-sentence at the "Swords Beaten into Ploughshares" condition ("...if you ever have more than"). The exact threshold (e.g. a ratio of workers to military units, or a worker count) needs to be confirmed before this condition is finalized.
+> **Note — values are TBD and relative.** We have not settled on costs or production rates yet, so the exact Ploughshares threshold (and most other numeric levers) can't be pinned down. Write `TBD` for now and tune everything together later. The threshold should be sized so a Ploughshares-focused player wins in roughly the same **~10–15 minute** match length as the other victory paths. Open questions to resolve when we tune:
+> - **Max worker count?** _(TBD)_ — see [worker cap discussion](#worker-cap-tbd).
+> - **Workers created every ___ seconds?** _(TBD)_
+> - **Time to reach max worker capacity?** _(TBD minutes — derived from spawn interval × cap)_
+> - **Food generated per farm worker per minute?** _(TBD)_
+> - **Cost of each military unit (in Food)?** _(TBD)_
+> - **Ploughshares Food threshold?** _(TBD)_ — pick so an almost-all-farming player reaches it in ~10–15 min.
+>
+> These are interdependent: pick the worker cap, spawn interval, per-worker Food rate, and unit costs together so the three victory paths converge on a similar match length.
 
 - **Defeat**: your own King is destroyed (the opponent achieves Military Might), or an opponent reaches any of their own victory conditions first.
 - Result is shown on a results panel **below/after** the battlefield, never overlaying it during play (per [../../common/victory-defeat.md](../../common/victory-defeat.md)).
@@ -152,14 +172,22 @@ Victory / Defeat
 Automation logic is pure and unit-testable, with no Android/UI imports:
 - **WorkerAssigner** — given worker count and an Economy Balance target, returns the per-resource worker allocation (proportional rounding; rebalances toward target). Tested: 10 workers @ 70/30 -> 7 food / 3 study; total preserved.
 - **ArmyTrainer** — given current army composition, target composition, available Food, and army cap, returns the next unit type to train (or none). Tested: picks the type with the largest deficit vs target.
-- **UpgradeScheduler** — given the ordered priority list, already-researched set, and available Study, returns the next affordable upgrade respecting tier prerequisites (Enlightenment requires all other upgrades). Tested: tier-II deferred until tier-I researched.
+- **UpgradeScheduler** — given the ordered priority list, already-researched set, and available Study, returns the next affordable upgrade respecting tier prerequisites (each tier requires the previous; Enlightenment requires all other upgrades). Tested: higher tier deferred until lower tier researched.
 - **CombatResolver** — applies the rock-paper-scissors damage modifiers between unit types.
 
 ## Data Model
 ```
 enum class Resource { FOOD, STUDY }
 enum class UnitType { INFANTRY, ARCHER, CAVALRY }
-enum class UpgradeId { DAMAGE_I, DAMAGE_II, DEFENSE_I, DEFENSE_II, SPEED_I, SPEED_II, ENLIGHTENMENT }
+enum class UpgradeId {
+    ATTACK_I, ATTACK_II, ATTACK_III,
+    DEFENSE_I, DEFENSE_II, DEFENSE_III,
+    SPEED_I, SPEED_II, SPEED_III,
+    CITY_WALL_I, CITY_WALL_II, CITY_WALL_III,
+    AGRICULTURE_I, AGRICULTURE_II, AGRICULTURE_III,
+    LEARNING_I, LEARNING_II, LEARNING_III,
+    ENLIGHTENMENT
+}
 enum class Difficulty { EASY, NORMAL, HARD }
 
 data class EconomyBalance(val foodPct: Int, val studyPct: Int)         // sums to 100
