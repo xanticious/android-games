@@ -64,18 +64,34 @@ The King is the settlement's most important figure — losing the King ends the 
 ## Military
 
 ### Army Composition (Player Policy)
-- The player specifies the **desired makeup** of their army as proportions across the available unit types, e.g. `50% Infantry / 30% Archers / 20% Cavalry`.
+- The player specifies the **desired makeup** of their **ratio-based army** as proportions across the standard unit types, e.g. `50% Infantry / 25% Archers / 25% Cavalry`.
 - The civilization **auto-trains** units to converge on that composition **whenever resources allow**. Unlike workers, **military units cost Food** and respect a **population/army cap**.
-- If Food is insufficient, training waits; the auto-trainer always trains the unit type that brings the live army closest to the target ratio next.
+- If Food is insufficient, training waits. When it's time to queue a unit, the auto-trainer picks the unit type that is **farthest below** its target ratio (the largest deficit). If the live army is **exactly at ratio**, it queues the **cheapest** option.
+  - This produces **interleaving** rather than batching: if you escaped a battle with lots of Cavalry but lost your Infantry and Archers, the trainer gradually alternates between Infantry and Archers to rebuild a balanced army, instead of producing all of one type and then all of the other.
+- **Cannons are excluded from the ratio.** Because they're very expensive and you typically want only one or two, they are **not** part of the percentage composition (see below).
 - Reinforcements trained during battle automatically rally to a player-set **rally point** near the front.
 
+### Cannons (Manual, Off-Ratio Production)
+- The **Cannon** is a specialist siege unit that is **not** governed by the Army Composition ratios.
+- A **"Build Cannon (1, 2, or 3)"** control lets the player set the **next queued unit(s)** to be cannons. Selecting `2`, for example, queues the next two production slots as cannons.
+- After the requested cannons are produced, production **reverts to the ratio-based logic** automatically.
+- Cannons still cost Food (a high amount) and obey the army cap like any other unit.
+
+### Unit Healing (Out-of-Combat Regeneration)
+- Any **military unit that has been out of battle** for at least a **minimum cooldown** _[TBD duration]_ begins to **passively regenerate hit points** over time, up to its **full health**.
+- Taking or dealing damage (re-entering battle) **resets** the cooldown; the unit must again stay clear of combat for the minimum time before regen resumes.
+- This lets the player pull damaged units back to recover rather than losing them, reinforcing the "retreat and micro" combat fantasy. Regen rate and cooldown are **TBD** and tuned with the rest of the economy.
+
 ### Unit Types (v1)
-A small rock-paper-scissors triangle keeps composition meaningful:
+A small rock-paper-scissors triangle keeps composition meaningful, plus a dedicated siege unit:
 | Unit | Strong vs | Weak vs | Cost | Role |
 |------|-----------|---------|------|------|
 | Infantry | Cavalry | Archers | low Food | Frontline, durable |
 | Archers  | Infantry | Cavalry | medium Food | Ranged damage |
 | Cavalry  | Archers | Infantry | high Food | Fast flankers |
+| Cannon   | Walls / gates / bow towers | Infantry, Archers, Cavalry (slow, fragile in open battle) | very high Food | Siege — destroys enemy fortifications |
+
+- The **Cannon** specializes in **destroying the only destructible structures** (sections of enemy walls, gates, and bow towers). It is slow and weak against regular units, so it needs an escort.
 
 ### Upgrades & Upgrade Priority (Player Policy)
 - Upgrades are organized into **tiered tracks** (each tier requires the previous one). Costs and magnitudes are **TBD** and will be tuned with the rest of the economy:
@@ -130,16 +146,16 @@ There are multiple paths to victory. A match ends the moment any one of these is
 
 ## Screen Layout
 ```
-+-----------------------------------------------+
-| Food: ###   Study: ###  Workers x/cap  Army%  |  <- resource/HUD strip (top)
-+-----------------------------------------------+
-|                                               |
-|                BATTLEFIELD                    |
-|        (pan / zoom, units, villages)          |
-|                                               |
-+-----------------------------------------------+
-| [Econ 50/50] [Army comp] [Upgrades] [Rally]   |  <- inline policy bar (edge)
-+-----------------------------------------------+
++-----------------------------------------------------------+
+| Food: ###   Study: ###  Workers x/cap  Army%              |  <- resource/HUD strip (top)
++-----------------------------------------------------------+
+|                                                           |
+|                       BATTLEFIELD                         |
+|             (pan / zoom, units, villages)                 |
+|                                                           |
++-----------------------------------------------------------+
+| [Econ 50/50] [Army comp] [Build Cannon] [Upgrades] [Rally] |  <- inline policy bar (edge)
++-----------------------------------------------------------+
 ```
 
 ## Screen Flow
@@ -154,7 +170,7 @@ Idle
  └─ MatchStarted → Playing
 Playing
  ├─ PolicyChanged → Playing      (economy / army / upgrade priority updated)
- ├─ TickElapsed → Playing        (worker spawn, gather, auto-train, auto-research, wall rebuild)
+ ├─ TickElapsed → Playing        (worker spawn, gather, auto-train, auto-research, wall rebuild, out-of-combat unit regen)
  ├─ EnlightenmentStarted → Playing   (announce + countdown begins)
  ├─ PlayerKingDestroyed → Defeat
  ├─ EnemyKingDestroyed → Victory          (Military Might)
@@ -171,14 +187,15 @@ Victory / Defeat
 ## Controllers (pure, `controller/`)
 Automation logic is pure and unit-testable, with no Android/UI imports:
 - **WorkerAssigner** — given worker count and an Economy Balance target, returns the per-resource worker allocation (proportional rounding; rebalances toward target). Tested: 10 workers @ 70/30 -> 7 food / 3 study; total preserved.
-- **ArmyTrainer** — given current army composition, target composition, available Food, and army cap, returns the next unit type to train (or none). Tested: picks the type with the largest deficit vs target.
+- **ArmyTrainer** — given current army composition, target ratios, any pending **cannon build requests**, available Food, and army cap, returns the next unit type to train (or none). Cannon requests take priority and are consumed first; otherwise it picks the ratio unit with the **largest deficit**, or the **cheapest** unit when the army is exactly at ratio. Tested: cannon request produces a cannon then reverts to ratio; picks the type with the largest deficit vs target; ties at exact ratio pick the cheapest.
+- **UnitRegenerator** — given units with their time-since-last-combat and a regen cooldown/rate, returns updated hit points (clamped to max) for units past the cooldown. Tested: a unit out of combat beyond the cooldown gains HP up to its max; a recently-damaged unit does not regen.
 - **UpgradeScheduler** — given the ordered priority list, already-researched set, and available Study, returns the next affordable upgrade respecting tier prerequisites (each tier requires the previous; Enlightenment requires all other upgrades). Tested: higher tier deferred until lower tier researched.
 - **CombatResolver** — applies the rock-paper-scissors damage modifiers between unit types.
 
 ## Data Model
 ```
 enum class Resource { FOOD, STUDY }
-enum class UnitType { INFANTRY, ARCHER, CAVALRY }
+enum class UnitType { INFANTRY, ARCHER, CAVALRY, CANNON }
 enum class UpgradeId {
     ATTACK_I, ATTACK_II, ATTACK_III,
     DEFENSE_I, DEFENSE_II, DEFENSE_III,
@@ -191,7 +208,8 @@ enum class UpgradeId {
 enum class Difficulty { EASY, NORMAL, HARD }
 
 data class EconomyBalance(val foodPct: Int, val studyPct: Int)         // sums to 100
-data class ArmyComposition(val ratios: Map<UnitType, Int>)            // proportional weights
+data class ArmyComposition(val ratios: Map<UnitType, Int>)            // proportional weights; CANNON excluded (built manually)
+data class CannonBuildRequest(val count: Int)                        // 1, 2, or 3 next slots forced to CANNON, then reverts to ratios
 data class UpgradePriority(val order: List<UpgradeId>)
 
 data class MatchSettings(
@@ -202,7 +220,12 @@ data class MatchSettings(
 )
 data class ResourcePool(val food: Int, val study: Int)
 data class Worker(val assignedTo: Resource)                          // FOOD = farmland, STUDY = library seat
-data class MilitaryUnit(val type: UnitType, val hp: Int)
+data class MilitaryUnit(
+    val type: UnitType,
+    val hp: Int,
+    val maxHp: Int,
+    val secondsSinceLastCombat: Int                                 // drives out-of-combat regen
+)
 data class King(val hp: Int)
 ```
 
