@@ -34,3 +34,10 @@ This folder contains design specifications for UI components, interaction patter
 |------|-------------|
 | [tower-defense.md](tower-defense.md) | Shared lite tower-defense board, waves, economy, towers, and combat |
 | [level-solvability.md](level-solvability.md) | Monte Carlo generate→simulate→accept guarantee for beatable levels |
+
+## Word-game components
+
+| File | Description |
+|------|-------------|
+| [word-data-sources.md](word-data-sources.md) | Wordnik word list, offensive-word filtering, Scrabble players dictionary, and Wiktionary definitions; offline build-time pipeline and runtime access |
+| [word-builder-controls.md](word-builder-controls.md) | Tap-a-bank-of-letters word building, Submit / Submit & Keep / Backspace / Give Up actions, countdown timer, and target/found-words display |
