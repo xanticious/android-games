@@ -32,7 +32,7 @@ object GameCatalog {
         game("find-pairs", "Find Pairs", GameCategory.SEARCH),
         game("flood", "Flood", GameCategory.PUZZLE),
         game("gomoku", "Gomoku", GameCategory.STRATEGY),
-        game("guitar-hero", "Guitar Hero", GameCategory.RHYTHM),
+        game("melody-master", "Melody Master", GameCategory.RHYTHM),
         game("hangman", "Hangman", GameCategory.WORD),
         game("hearts", "Hearts", GameCategory.CARD),
         game("hex", "Hex", GameCategory.STRATEGY),
