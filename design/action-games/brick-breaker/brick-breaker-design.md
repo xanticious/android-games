@@ -24,7 +24,7 @@ A turn-based brick breaker where bricks fall one row per turn and the player fir
 │         [aim line preview]      │
 ├─────────────────────────────────┤
 │      [CANNON — aim + fire]      │  ← Control zone (bottom)
-│  [Launch position slider]       │
+│  [Launch position slider] [Clear]│
 └─────────────────────────────────┘
 ```
 
@@ -32,13 +32,14 @@ A turn-based brick breaker where bricks fall one row per turn and the player fir
 - **Launch Position**: drag a slider (or drag the cannon itself) left and right along the bottom edge.
 - **Aim Angle**: drag up from the cannon to set the fire angle. A dotted trajectory preview shows the ball's path and first bounce.
 - **Fire**: release the drag or tap a "Fire" button to launch all 20 balls in sequence along the chosen trajectory.
+- **Clear**: tap the "Clear" button during the Fire Phase to immediately remove all balls still in play and advance to the Resolution Phase. Use it when a ball gets stuck bouncing or the player simply doesn't want to wait for the volley to finish.
 - Angle is clamped between 10° and 170° (nearly vertical in either direction) — flat horizontal shots are not allowed.
 
 ## Gameplay Loop
 
 ### Turn Structure
 1. **Aim Phase**: Player sets position and angle. Trajectory preview updates in real time.
-2. **Fire Phase**: All 20 balls launch in sequence, 0.1s apart. Balls bounce off walls and bricks.
+2. **Fire Phase**: All 20 balls launch in sequence, 0.1s apart. Balls bounce off walls and bricks. The player may tap **Clear** at any point to remove all remaining balls and end the phase early.
 3. **Resolution Phase**: Count hits, apply damage, remove destroyed bricks, drop power-ups.
 4. **Drop Phase**: All remaining bricks descend one row.
 5. Repeat until bricks reach the bottom (defeat) or the field is cleared (victory).
@@ -86,7 +87,8 @@ Spawning
 AimPhase
  └─ FireTapped → FirePhase
 FirePhase
- └─ AllBallsLanded → ResolutionPhase
+ ├─ AllBallsLanded → ResolutionPhase
+ └─ ClearTapped → ResolutionPhase   (all in-flight balls removed)
 ResolutionPhase
  ├─ BricksRemain → DropPhase
  └─ FieldCleared → LevelComplete
