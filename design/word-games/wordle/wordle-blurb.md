@@ -2,4 +2,4 @@
 
 Category: Word Games
 
-A daily word-guessing game where you have six attempts to identify a secret five-letter word. Letter color hints guide you — green means the right letter in the right place, yellow means right letter but wrong place.
+A word-guessing game you can replay as often as you like, with target words drawn from a large dictionary. Color hints guide you — green means the right letter in the right place, yellow means right letter but wrong place — and a Help button can play a valid word for you.
