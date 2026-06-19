@@ -1,8 +1,8 @@
 # Design — Common Components
 
-This folder contains design specifications for UI components, interaction patterns, and systems shared across multiple action games.
+This folder contains design specifications for UI components, interaction patterns, and systems shared across multiple games.
 
-## Contents
+## Action-game components
 
 | File | Description |
 |------|-------------|
@@ -12,3 +12,11 @@ This folder contains design specifications for UI components, interaction patter
 | [powerup-system.md](powerup-system.md) | Power-up spawn, collect, and effect framework |
 | [victory-defeat.md](victory-defeat.md) | Level complete / game over presentation |
 | [visual-style.md](visual-style.md) | High-definition art direction and color palette guidelines |
+
+## Puzzle-game components
+
+| File | Description |
+|------|-------------|
+| [puzzle-grid-board.md](puzzle-grid-board.md) | Shared grid/board rendering, sizing, and color tokens |
+| [puzzle-controls.md](puzzle-controls.md) | Standard tap / hold / drag / swipe meanings, undo, hints |
+| [puzzle-flow.md](puzzle-flow.md) | Settings → How to Play → Gameplay flow and victory/defeat placement |
