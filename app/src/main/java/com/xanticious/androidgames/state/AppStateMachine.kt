@@ -11,6 +11,7 @@ import ru.nsk.kstatemachine.statemachine.processEventByLaunch
 import ru.nsk.kstatemachine.event.Event
 import ru.nsk.kstatemachine.state.*
 import ru.nsk.kstatemachine.transition.onTriggered
+import com.xanticious.androidgames.model.GameDifficulty
 
 sealed interface AppScreen {
     data object Splash : AppScreen
@@ -19,7 +20,7 @@ sealed interface AppScreen {
     data object AppSettings : AppScreen
     data class GameSettings(val gameId: String) : AppScreen
     data class HowToPlay(val gameId: String) : AppScreen
-    data class GameStub(val gameId: String) : AppScreen
+    data class GameStub(val gameId: String, val difficulty: GameDifficulty) : AppScreen
 }
 
 private sealed class NavState : DefaultState() {
@@ -46,6 +47,7 @@ private sealed interface NavEvent : Event {
 class AppStateMachine {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var selectedGameId: String = ""
+    private var selectedDifficulty: GameDifficulty = GameDifficulty.MEDIUM
 
     private val _screen = MutableStateFlow<AppScreen>(AppScreen.Splash)
     val screen: StateFlow<AppScreen> = _screen.asStateFlow()
@@ -94,7 +96,7 @@ class AppStateMachine {
             }
             transition<NavEvent.StartGame> {
                 targetState = NavState.GameStub
-                onTriggered { _screen.value = AppScreen.GameStub(selectedGameId) }
+                onTriggered { _screen.value = AppScreen.GameStub(selectedGameId, selectedDifficulty) }
             }
             transition<NavEvent.BackToLobby> {
                 targetState = NavState.Lobby
@@ -134,7 +136,10 @@ class AppStateMachine {
     }
 
     fun openHowToPlay() = machine.processEventByLaunch(NavEvent.OpenHowToPlay)
-    fun startGame() = machine.processEventByLaunch(NavEvent.StartGame)
+    fun startGame(difficulty: GameDifficulty) {
+        selectedDifficulty = difficulty
+        machine.processEventByLaunch(NavEvent.StartGame)
+    }
     fun backToLobby() = machine.processEventByLaunch(NavEvent.BackToLobby)
     fun backToGameSettings() = machine.processEventByLaunch(NavEvent.BackToGameSettings)
 }

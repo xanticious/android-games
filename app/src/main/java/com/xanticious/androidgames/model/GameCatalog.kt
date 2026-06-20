@@ -5,17 +5,17 @@ object GameCatalog {
         game("age-of-empires-lite", "Age of Empires Lite", GameCategory.RTS),
         game("anagrams", "Anagrams", GameCategory.WORD),
         game("anagrams-arcade", "Anagrams (Arcade)", GameCategory.WORD),
-        game("asteroids", "Asteroids", GameCategory.ACTION),
-        game("brick-breaker", "Brick Breaker", GameCategory.ACTION),
-        game("brick-breaker-arcade", "Brick Breaker (Arcade)", GameCategory.ACTION),
-        game("brick-breaker-cannon", "Brick Breaker (Cannon)", GameCategory.ACTION),
-        game("brick-breaker-cannon-arcade", "Brick Breaker (Cannon Arcade)", GameCategory.ACTION),
+        game("asteroids", "Asteroids", GameCategory.ACTION, released = true),
+        game("brick-breaker", "Brick Breaker", GameCategory.ACTION, released = true),
+        game("brick-breaker-arcade", "Brick Breaker (Arcade)", GameCategory.ACTION, released = true),
+        game("brick-breaker-cannon", "Brick Breaker (Cannon)", GameCategory.ACTION, released = true),
+        game("brick-breaker-cannon-arcade", "Brick Breaker (Cannon Arcade)", GameCategory.ACTION, released = true),
         game("backgammon", "Backgammon", GameCategory.BOARD),
         game("battleships", "Battleships", GameCategory.STRATEGY),
         game("boggle", "Boggle", GameCategory.WORD),
-        game("bubbles-pop", "Bubbles Pop", GameCategory.ACTION),
-        game("bubbles-pop-arcade", "Bubbles Pop (Arcade)", GameCategory.ACTION),
-        game("bubbles-pop-snake-arcade", "Bubbles Pop Snake (Arcade)", GameCategory.ACTION),
+        game("bubbles-pop", "Bubbles Pop", GameCategory.ACTION, released = true),
+        game("bubbles-pop-arcade", "Bubbles Pop (Arcade)", GameCategory.ACTION, released = true),
+        game("bubbles-pop-snake-arcade", "Bubbles Pop Snake (Arcade)", GameCategory.ACTION, released = true),
         game("carcassonne-lite", "Carcassonne Lite", GameCategory.BOARD),
         game("checkers", "Checkers", GameCategory.STRATEGY),
         game("chess", "Chess", GameCategory.STRATEGY),
@@ -57,7 +57,7 @@ object GameCatalog {
         game("memory", "Memory", GameCategory.MEMORY),
         game("memory-lanes", "Memory Lanes", GameCategory.MEMORY),
         game("minesweeper", "Mine Sweeper", GameCategory.PUZZLE),
-        game("missile-command", "Missile Command", GameCategory.ACTION),
+        game("missile-command", "Missile Command", GameCategory.ACTION, released = true),
         game("nonogram", "Nonogram", GameCategory.PUZZLE),
         game("numberlink", "Numberlink", GameCategory.PUZZLE),
         game("othello", "Othello", GameCategory.STRATEGY),
@@ -67,7 +67,7 @@ object GameCatalog {
         game("pipes", "Pipes", GameCategory.PUZZLE),
         game("planet-explorer", "Planet Explorer", GameCategory.EXPLORATION_CREATIVE),
         game("poker", "Poker", GameCategory.CARD),
-        game("pong", "Pong", GameCategory.ACTION),
+        game("pong", "Pong", GameCategory.ACTION, released = true),
         game("qix", "Qix", GameCategory.ACTION),
         game("qwirkle-lite", "Qwirkle Lite", GameCategory.BOARD),
         game("randomized-dice-td", "Randomized Dice TD", GameCategory.TOWER_DEFENSE),
@@ -81,7 +81,7 @@ object GameCatalog {
         game("sim-city-blocks", "Sim City Blocks", GameCategory.EXPLORATION_CREATIVE),
         game("skyscrapers", "Skyscrapers", GameCategory.PUZZLE),
         game("sliding-puzzle", "Sliding Puzzle", GameCategory.PUZZLE),
-        game("snakes-2d", "Snakes 2D", GameCategory.ACTION),
+        game("snakes-2d", "Snakes 2D", GameCategory.ACTION, released = true),
         game("sokoban", "Sokoban", GameCategory.PUZZLE),
         game("solitaire-klondike", "Solitaire (Klondike)", GameCategory.CARD),
         game("solitaire-freecell", "Solitaire (FreeCell)", GameCategory.CARD),
@@ -89,7 +89,7 @@ object GameCatalog {
         game("solitaire-tripeaks", "Solitaire (TriPeaks)", GameCategory.CARD),
         game("solitaire-tripeaks-timed", "Solitaire (TriPeaks Timed)", GameCategory.CARD),
         game("solitaire-clock-timed", "Solitaire (Clock Timed)", GameCategory.CARD),
-        game("space-defender", "Space Defender", GameCategory.ACTION),
+        game("space-defender", "Space Defender", GameCategory.ACTION, released = true),
         game("spades", "Spades", GameCategory.CARD),
         game("splendor", "Splendor", GameCategory.BOARD),
         game("star-miner", "Star Miner", GameCategory.EXPLORATION_CREATIVE),
@@ -130,6 +130,11 @@ object GameCatalog {
         game("typing-sprint", "Typing Sprint", GameCategory.EDUCATIONAL)
     )
 
-    private fun game(id: String, name: String, category: GameCategory): GameDefinition =
-        GameDefinition(id = id, name = name, category = category)
+    private fun game(
+        id: String,
+        name: String,
+        category: GameCategory,
+        released: Boolean = false
+    ): GameDefinition =
+        GameDefinition(id = id, name = name, category = category, released = released)
 }

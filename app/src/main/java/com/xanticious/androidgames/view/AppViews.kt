@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.LobbyController
 import com.xanticious.androidgames.model.GameCategory
 import com.xanticious.androidgames.model.GameDefinition
+import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.model.LobbyFilter
 
 @Composable
@@ -399,12 +400,26 @@ fun AppSettingsView(onBack: () -> Unit) {
 }
 
 @Composable
-fun GameSettingsView(gameName: String, onHowToPlay: () -> Unit, onStart: () -> Unit, onBack: () -> Unit) {
+fun GameSettingsView(gameName: String, onHowToPlay: () -> Unit, onStart: (GameDifficulty) -> Unit, onBack: () -> Unit) {
+    var difficulty by rememberSaveable { mutableStateOf(GameDifficulty.MEDIUM) }
     PageScaffold(title = "$gameName - Settings", onBack = onBack) {
-        Text("Per-game options (stub): board size, difficulty, AI players, starter, undo, timer mode.")
+        Text("Per-game options (stub): board size, AI players, starter, undo, timer mode.")
+        Text("Difficulty", modifier = Modifier.padding(top = 12.dp), fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier.padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            GameDifficulty.entries.forEach { level ->
+                FilterChip(
+                    selected = difficulty == level,
+                    onClick = { difficulty = level },
+                    label = { Text(level.label) }
+                )
+            }
+        }
         Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onHowToPlay) { Text("How to Play") }
-            Button(onClick = onStart) { Text("Start Stub Game") }
+            Button(onClick = { onStart(difficulty) }) { Text("Start Game") }
         }
     }
 }
