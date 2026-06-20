@@ -2,7 +2,18 @@ package com.xanticious.androidgames.view
 
 import androidx.compose.runtime.Composable
 import com.xanticious.androidgames.model.GameDifficulty
+import com.xanticious.androidgames.view.games.asteroids.AsteroidsGame
+import com.xanticious.androidgames.view.games.brickbreaker.BrickBreakerGame
+import com.xanticious.androidgames.view.games.brickbreakerarcade.BrickBreakerArcadeGame
+import com.xanticious.androidgames.view.games.brickbreakercannon.BrickBreakerCannonGame
+import com.xanticious.androidgames.view.games.brickbreakercannonarcade.BrickBreakerCannonArcadeGame
+import com.xanticious.androidgames.view.games.bubblesarcade.BubblesPopArcadeGame
+import com.xanticious.androidgames.view.games.bubblespop.BubblesPopGame
+import com.xanticious.androidgames.view.games.bubblessnakearcade.BubblesPopSnakeArcadeGame
+import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.pong.PongGame
+import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
+import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -16,5 +27,16 @@ import com.xanticious.androidgames.view.games.pong.PongGame
  * can be added independently without touching one another's files.
  */
 val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> Unit> = mapOf(
-    "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) }
+    "asteroids" to { difficulty, onExit -> AsteroidsGame(difficulty, onExit) },
+    "brick-breaker" to { difficulty, onExit -> BrickBreakerGame(difficulty, onExit) },
+    "brick-breaker-arcade" to { difficulty, onExit -> BrickBreakerArcadeGame(difficulty, onExit) },
+    "brick-breaker-cannon" to { difficulty, onExit -> BrickBreakerCannonGame(difficulty, onExit) },
+    "brick-breaker-cannon-arcade" to { difficulty, onExit -> BrickBreakerCannonArcadeGame(difficulty, onExit) },
+    "bubbles-pop" to { difficulty, onExit -> BubblesPopGame(difficulty, onExit) },
+    "bubbles-pop-arcade" to { difficulty, onExit -> BubblesPopArcadeGame(difficulty, onExit) },
+    "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
+    "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
+    "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
+    "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
+    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) }
 )
