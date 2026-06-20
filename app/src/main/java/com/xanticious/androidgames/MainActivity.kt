@@ -11,6 +11,7 @@ import com.xanticious.androidgames.model.GameCatalog
 import com.xanticious.androidgames.state.AppScreen
 import com.xanticious.androidgames.state.AppStateMachine
 import com.xanticious.androidgames.ui.theme.AndroidGamesTheme
+import com.xanticious.androidgames.view.actionGameRegistry
 import com.xanticious.androidgames.view.AppSettingsView
 import com.xanticious.androidgames.view.GameSettingsView
 import com.xanticious.androidgames.view.GameStubView
@@ -53,11 +54,18 @@ class MainActivity : ComponentActivity() {
                         onBackToLobby = stateMachine::backToLobby
                     )
 
-                    is AppScreen.GameStub -> GameStubView(
-                        gameName = gameName(current.gameId),
-                        onBackToSettings = stateMachine::backToGameSettings,
-                        onBackToLobby = stateMachine::backToLobby
-                    )
+                    is AppScreen.GameStub -> {
+                        val game = actionGameRegistry[current.gameId]
+                        if (game != null) {
+                            game(current.difficulty) { stateMachine.backToGameSettings() }
+                        } else {
+                            GameStubView(
+                                gameName = gameName(current.gameId),
+                                onBackToSettings = stateMachine::backToGameSettings,
+                                onBackToLobby = stateMachine::backToLobby
+                            )
+                        }
+                    }
                 }
             }
         }

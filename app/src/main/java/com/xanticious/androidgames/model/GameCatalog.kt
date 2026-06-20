@@ -67,7 +67,7 @@ object GameCatalog {
         game("pipes", "Pipes", GameCategory.PUZZLE),
         game("planet-explorer", "Planet Explorer", GameCategory.EXPLORATION_CREATIVE),
         game("poker", "Poker", GameCategory.CARD),
-        game("pong", "Pong", GameCategory.ACTION),
+        game("pong", "Pong", GameCategory.ACTION, released = true),
         game("qix", "Qix", GameCategory.ACTION),
         game("qwirkle-lite", "Qwirkle Lite", GameCategory.BOARD),
         game("randomized-dice-td", "Randomized Dice TD", GameCategory.TOWER_DEFENSE),
@@ -130,6 +130,11 @@ object GameCatalog {
         game("typing-sprint", "Typing Sprint", GameCategory.EDUCATIONAL)
     )
 
-    private fun game(id: String, name: String, category: GameCategory): GameDefinition =
-        GameDefinition(id = id, name = name, category = category)
+    private fun game(
+        id: String,
+        name: String,
+        category: GameCategory,
+        released: Boolean = false
+    ): GameDefinition =
+        GameDefinition(id = id, name = name, category = category, released = released)
 }
