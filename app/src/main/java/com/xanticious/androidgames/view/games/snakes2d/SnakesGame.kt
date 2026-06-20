@@ -223,8 +223,9 @@ fun SnakesGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
             // Tap destination marker (fades over 1 second)
             val markerAlpha = state.tapMarkerTimer.coerceIn(0f, 1f)
-            if (markerAlpha > 0f && state.tapMarkerPos != null) {
-                val mp = Offset(state.tapMarkerPos.x * w, state.tapMarkerPos.y * h)
+            val tapMarkerPos = state.tapMarkerPos
+            if (markerAlpha > 0f && tapMarkerPos != null) {
+                val mp = Offset(tapMarkerPos.x * w, tapMarkerPos.y * h)
                 drawCircle(
                     color = markerColor.copy(alpha = markerAlpha * 0.7f),
                     radius = 14f,

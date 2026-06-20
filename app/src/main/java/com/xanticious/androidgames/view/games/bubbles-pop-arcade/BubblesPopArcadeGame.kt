@@ -159,7 +159,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     detectTapGestures { tap ->
                         val cx = size.width / 2f
                         val cy = size.height * BubblesPopController.CANNON_Y
-                        aimAngle = atan2(tap.x - cx, cy - tap.y).toFloat()
+                        aimAngle = atan2(tap.x - cx, cy - tap.y)
                             .coerceIn((-PI * 0.45f).toFloat(), (PI * 0.45f).toFloat())
                         val fired = controller.fireCannon(gameState, aimAngle)
                         if (fired.flying != null) gameState = fired
@@ -170,7 +170,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     detectDragGestures { change, _ ->
                         val cx = size.width / 2f
                         val cy = size.height * BubblesPopController.CANNON_Y
-                        aimAngle = atan2(change.position.x - cx, cy - change.position.y).toFloat()
+                        aimAngle = atan2(change.position.x - cx, cy - change.position.y)
                             .coerceIn((-PI * 0.45f).toFloat(), (PI * 0.45f).toFloat())
                         val fired = controller.fireCannon(gameState, aimAngle)
                         if (fired.flying != null) gameState = fired
