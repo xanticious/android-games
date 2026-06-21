@@ -6,6 +6,7 @@ import com.xanticious.androidgames.model.games.asteroids.Asteroid
 import com.xanticious.androidgames.model.games.asteroids.AsteroidSize
 import com.xanticious.androidgames.model.games.asteroids.AsteroidsConfig
 import com.xanticious.androidgames.model.games.asteroids.AsteroidsInput
+import com.xanticious.androidgames.model.games.asteroids.AsteroidsMode
 import com.xanticious.androidgames.model.games.asteroids.AsteroidsState
 import com.xanticious.androidgames.model.games.asteroids.AsteroidsStep
 import com.xanticious.androidgames.model.games.asteroids.AsteroidsStepEvent
@@ -13,7 +14,6 @@ import com.xanticious.androidgames.model.games.asteroids.Beacon
 import com.xanticious.androidgames.model.games.asteroids.Projectile
 import com.xanticious.androidgames.model.games.asteroids.Ship
 import kotlin.math.abs
-import kotlin.math.acos
 import kotlin.math.atan2
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -21,7 +21,12 @@ import kotlin.random.Random
 
 /**
  * Pure Asteroids rules: ship physics, asteroid splitting, beacon explosions,
- * projectile firing and collision detection. No Android or Compose imports.
+ * autofire and collision detection. No Android or Compose imports.
+ *
+ * Movement model: the knob applies acceleration in its own direction (full 360°);
+ * the ship never rotates manually. Speed is clamped between [AsteroidsConfig.minShipSpeed]
+ * and [AsteroidsConfig.maxShipSpeed], so the ship is always drifting. The ship's heading
+ * auto-aligns to its velocity. Firing is automatic, always toward the nearest asteroid.
  */
 class AsteroidsController {
 
@@ -31,7 +36,7 @@ class AsteroidsController {
         GameDifficulty.HARD -> AsteroidsConfig(asteroidBaseSpeed = 0.16f)
     }
 
-    /** Populates the field with large asteroids for [state.level]. Resets ship and timers. */
+    /** Populates the field with large asteroids for [state.level]. Resets ship and per-level timers. */
     fun spawnAsteroids(
         state: AsteroidsState,
         config: AsteroidsConfig,
@@ -57,22 +62,17 @@ class AsteroidsController {
         }
 
         return state.copy(
-            ship = Ship.initial().copy(invincibilityTimer = config.invincibilityDuration),
+            ship = Ship.initial(config.minShipSpeed).copy(invincibilityTimer = config.invincibilityDuration),
             asteroids = asteroids,
             projectiles = emptyList(),
             beacon = null,
             beaconsCollectedThisLevel = 0,
             beaconSpawnTimer = config.beaconSpawnDelay,
+            freezeTimer = 0f,
+            fireCooldown = 0f,
             nextId = nextId
         )
     }
-
-    /** Resets ship to center with fresh invincibility; clears stale projectiles. */
-    fun respawnShip(state: AsteroidsState, config: AsteroidsConfig): AsteroidsState =
-        state.copy(
-            ship = Ship.initial().copy(invincibilityTimer = config.invincibilityDuration),
-            projectiles = emptyList()
-        )
 
     /** Increments level counter (call before spawning asteroids for the next level). */
     fun advanceLevel(state: AsteroidsState): AsteroidsState =
@@ -81,9 +81,9 @@ class AsteroidsController {
     /**
      * Advances the game by [dt] seconds.
      *
-     * Order: ship movement → projectile lifetime → fire → asteroid drift → beacon
-     * timer → projectile/asteroid collisions → ship/asteroid collision →
-     * ship/beacon collection.
+     * Order: clocks → ship movement → projectile lifetime → autofire → asteroid
+     * drift → beacon timer → projectile/asteroid collisions → ship/asteroid
+     * collision (teleport + freeze) → ship/beacon collection → time-expiry check.
      */
     fun step(
         state: AsteroidsState,
@@ -93,20 +93,28 @@ class AsteroidsController {
         random: Random = Random.Default
     ): AsteroidsStep {
 
-        // ── 1. Ship movement ───────────────────────────────────────────────────
-        val newAngle = state.ship.angle + input.joystick.dx * config.rotationSpeed * dt
-        val thrust = Vec2.fromAngle(newAngle) * (-input.joystick.dy) * config.thrustForce * dt
-        var shipVel = state.ship.velocity + thrust
-        // Velocity damping
+        // ── 0. Clocks (never paused) ───────────────────────────────────────────
+        val elapsed = state.elapsedTime + dt
+        val freezeTimer = (state.freezeTimer - dt).coerceAtLeast(0f)
+        val asteroidsFrozen = state.freezeTimer > 0f
+
+        // ── 1. Ship movement: knob = acceleration (360°), auto-aligned heading ──
+        val accel = Vec2(input.joystick.dx, input.joystick.dy) * config.accelerationForce
+        var shipVel = state.ship.velocity + accel * dt
+        // Velocity damping toward zero.
+        val damped = shipVel.length - config.dampening * dt
+        shipVel = if (damped <= 0f) Vec2.ZERO else shipVel.normalized() * damped
+        // Clamp into [minSpeed, maxSpeed] so the ship is never fully still.
         val spd = shipVel.length
         shipVel = when {
-            spd <= config.dampening * dt -> Vec2.ZERO
-            else -> shipVel * ((spd - config.dampening * dt) / spd)
+            spd > config.maxShipSpeed -> shipVel.normalized() * config.maxShipSpeed
+            spd < config.minShipSpeed -> {
+                val dir = if (spd > 1e-5f) shipVel.normalized() else Vec2.fromAngle(state.ship.angle)
+                dir * config.minShipSpeed
+            }
+            else -> shipVel
         }
-        // Speed cap
-        if (shipVel.length > config.maxShipSpeed) {
-            shipVel = shipVel.normalized() * config.maxShipSpeed
-        }
+        val newAngle = atan2(shipVel.y, shipVel.x)
         val shipPos = wrap(state.ship.position + shipVel * dt)
         val invTimer = (state.ship.invincibilityTimer - dt).coerceAtLeast(0f)
         var ship = state.ship.copy(
@@ -122,20 +130,26 @@ class AsteroidsController {
             .map { p -> p.copy(position = wrap(p.position + p.velocity * dt), age = p.age + dt) }
             .filter { it.age < config.projectileLifetime }
 
-        // ── 3. Fire if tap ─────────────────────────────────────────────────────
-        val fireDir = computeFireDirection(state.ship, input.fireTapNormalized)
-        if (fireDir != null) {
-            projectiles = projectiles + Projectile(
-                id = nextId++,
-                position = ship.position,
-                velocity = fireDir * config.projectileSpeed,
-                age = 0f
-            )
+        // ── 3. Autofire toward the nearest asteroid ────────────────────────────
+        var fireCooldown = (state.fireCooldown - dt).coerceAtLeast(0f)
+        if (fireCooldown <= 0f) {
+            val dir = nearestAsteroidDirection(ship.position, state.asteroids)
+            if (dir != null) {
+                projectiles = projectiles + Projectile(
+                    id = nextId++,
+                    position = ship.position,
+                    velocity = dir * config.projectileSpeed,
+                    age = 0f
+                )
+                fireCooldown = config.fireInterval
+            }
         }
 
-        // ── 4. Asteroids: drift ────────────────────────────────────────────────
-        var asteroids = state.asteroids.map { a ->
-            a.copy(position = wrap(a.position + a.velocity * dt))
+        // ── 4. Asteroids: drift (frozen during the damage animation) ───────────
+        var asteroids = if (asteroidsFrozen) {
+            state.asteroids
+        } else {
+            state.asteroids.map { a -> a.copy(position = wrap(a.position + a.velocity * dt)) }
         }
 
         // ── 5. Beacon spawn timer ──────────────────────────────────────────────
@@ -151,6 +165,7 @@ class AsteroidsController {
 
         // ── 6. Projectile–asteroid collisions ──────────────────────────────────
         var score = state.score
+        var destroyed = state.asteroidsDestroyed
         val hitProjectileIds = mutableSetOf<Int>()
         val asteroidById = asteroids.associateBy { it.id }.toMutableMap()
         val splits = mutableListOf<Asteroid>()
@@ -165,6 +180,7 @@ class AsteroidsController {
                     if (damaged.hp <= 0) {
                         asteroidById -= a.id
                         score += scoreForDestroy(a.size)
+                        destroyed++
                         val children = splitAsteroid(a, nextId)
                         nextId += children.size
                         splits += children
@@ -179,18 +195,25 @@ class AsteroidsController {
         asteroids = asteroidById.values.toList() + splits
         projectiles = projectiles.filter { it.id !in hitProjectileIds }
 
-        // ── 7. Ship–asteroid collision ─────────────────────────────────────────
+        // ── 7. Ship–asteroid collision: teleport to safety + freeze ────────────
         var lives = state.lives
         var event = AsteroidsStepEvent.NONE
+        var resultFreeze = freezeTimer
 
-        if (!ship.isInvincible) {
+        if (!ship.isInvincible && !asteroidsFrozen) {
             val crashed = asteroids.any { a ->
                 wrappedDistance(ship.position, a.position) < Ship.RADIUS + Asteroid.radiusFor(a.size)
             }
             if (crashed) {
-                lives--
-                ship = Ship.initial().copy(invincibilityTimer = config.invincibilityDuration)
-                projectiles = emptyList()
+                if (!state.mode.infiniteLives) lives--
+                val safePos = safePositionAwayFromAsteroids(asteroids, random)
+                ship = ship.copy(
+                    position = safePos,
+                    velocity = Vec2.fromAngle(Ship.INITIAL_ANGLE) * config.minShipSpeed,
+                    angle = Ship.INITIAL_ANGLE,
+                    invincibilityTimer = maxOf(config.invincibilityDuration, config.freezeDuration)
+                )
+                resultFreeze = config.freezeDuration
                 event = AsteroidsStepEvent.PLAYER_HIT
             }
         }
@@ -206,6 +229,7 @@ class AsteroidsController {
                 val expl = applyBeaconExplosion(asteroids, beacon.position, config, nextId)
                 asteroids = expl.asteroids
                 score += expl.scoreGained
+                destroyed += expl.destroyed
                 nextId = expl.nextId
 
                 beacon = null
@@ -214,6 +238,12 @@ class AsteroidsController {
                 event = if (allDone) AsteroidsStepEvent.ALL_BEACONS_COLLECTED
                         else AsteroidsStepEvent.BEACON_COLLECTED
             }
+        }
+
+        // ── 9. Time-challenge expiry ───────────────────────────────────────────
+        val mode = state.mode
+        if (mode is AsteroidsMode.TimeChallenge && elapsed >= mode.durationSeconds) {
+            event = AsteroidsStepEvent.TIME_EXPIRED
         }
 
         return AsteroidsStep(
@@ -226,7 +256,11 @@ class AsteroidsController {
                 beaconSpawnTimer = beaconTimer,
                 lives = lives,
                 score = score,
-                nextId = nextId
+                nextId = nextId,
+                elapsedTime = elapsed,
+                asteroidsDestroyed = destroyed,
+                freezeTimer = resultFreeze,
+                fireCooldown = fireCooldown
             ),
             event = event
         )
@@ -234,42 +268,31 @@ class AsteroidsController {
 
     // ── Private helpers ────────────────────────────────────────────────────────
 
-    /**
-     * Wraps a position into [0, 1] on both axes (screen wrap-around).
-     */
+    /** Wraps a position into [0, 1] on both axes (screen wrap-around). */
     internal fun wrap(pos: Vec2): Vec2 =
         Vec2(((pos.x % 1f) + 1f) % 1f, ((pos.y % 1f) + 1f) % 1f)
 
-    /**
-     * Minimum toroidal (wrap-around) distance between two normalized positions.
-     */
+    /** Minimum toroidal (wrap-around) distance between two normalized positions. */
     internal fun wrappedDistance(a: Vec2, b: Vec2): Float {
         val dx = abs(a.x - b.x).let { minOf(it, 1f - it) }
         val dy = abs(a.y - b.y).let { minOf(it, 1f - it) }
         return sqrt(dx * dx + dy * dy)
     }
 
-    /**
-     * Computes the projectile direction from the ship's heading, clamping the tap
-     * direction into a ±20° fire cone (Variant A, design/common/tap-targeting.md).
-     */
-    internal fun computeFireDirection(ship: Ship, tapNorm: Vec2?): Vec2? {
-        tapNorm ?: return null
-        val raw = tapNorm - ship.position
-        if (raw.length < 1e-4f) return null
-        val tapDir = raw.normalized()
-        val forward = Vec2.fromAngle(ship.angle)
-        val cosAngle = tapDir.dot(forward).coerceIn(-1f, 1f)
-        val angleDiff = acos(cosAngle)
-        val coneLimit = (20f * Math.PI / 180f).toFloat()
-        return if (angleDiff <= coneLimit) {
-            tapDir
-        } else {
-            // Clamp to nearest cone edge; cross product z-component gives sign.
-            val cross = forward.x * tapDir.y - forward.y * tapDir.x
-            val clamp = if (cross >= 0f) coneLimit else -coneLimit
-            Vec2.fromAngle(ship.angle + clamp)
-        }
+    /** Shortest toroidal vector from [from] to [to]. */
+    internal fun wrappedDelta(from: Vec2, to: Vec2): Vec2 {
+        var dx = to.x - from.x
+        var dy = to.y - from.y
+        if (dx > 0.5f) dx -= 1f else if (dx < -0.5f) dx += 1f
+        if (dy > 0.5f) dy -= 1f else if (dy < -0.5f) dy += 1f
+        return Vec2(dx, dy)
+    }
+
+    /** Unit direction toward the nearest asteroid (wrap-aware), or null when none. */
+    internal fun nearestAsteroidDirection(shipPos: Vec2, asteroids: List<Asteroid>): Vec2? {
+        val nearest = asteroids.minByOrNull { wrappedDistance(shipPos, it.position) } ?: return null
+        val delta = wrappedDelta(shipPos, nearest.position)
+        return if (delta.length < 1e-4f) null else delta.normalized()
     }
 
     private fun splitAsteroid(asteroid: Asteroid, startId: Int): List<Asteroid> {
@@ -296,6 +319,7 @@ class AsteroidsController {
     private data class ExplosionResult(
         val asteroids: List<Asteroid>,
         val scoreGained: Int,
+        val destroyed: Int,
         val nextId: Int
     )
 
@@ -306,6 +330,7 @@ class AsteroidsController {
         startNextId: Int
     ): ExplosionResult {
         var score = 0
+        var destroyed = 0
         var nextId = startNextId
         val survivors = mutableListOf<Asteroid>()
         val newSplits = mutableListOf<Asteroid>()
@@ -315,6 +340,7 @@ class AsteroidsController {
                 val damaged = a.copy(hp = a.hp - 1)
                 if (damaged.hp <= 0) {
                     score += scoreForDestroy(a.size)
+                    destroyed++
                     val children = splitAsteroid(a, nextId)
                     nextId += children.size
                     newSplits += children
@@ -326,7 +352,7 @@ class AsteroidsController {
             }
         }
 
-        return ExplosionResult(survivors + newSplits, score, nextId)
+        return ExplosionResult(survivors + newSplits, score, destroyed, nextId)
     }
 
     private fun safeSpawnPosition(avoidCenter: Vec2, minDist: Float, random: Random): Vec2 {
@@ -339,5 +365,26 @@ class AsteroidsController {
             (avoidCenter.x + 0.5f) % 1f,
             (avoidCenter.y + 0.5f) % 1f
         )
+    }
+
+    /** Picks the sampled position with the largest gap to every asteroid (teleport-to-safety). */
+    internal fun safePositionAwayFromAsteroids(asteroids: List<Asteroid>, random: Random): Vec2 {
+        if (asteroids.isEmpty()) return Vec2(0.5f, 0.5f)
+        var best = Vec2(0.5f, 0.5f)
+        var bestGap = -1f
+        repeat(SAFE_TELEPORT_SAMPLES) {
+            val pos = Vec2(random.nextFloat(), random.nextFloat())
+            val gap = asteroids.minOf { wrappedDistance(pos, it.position) }
+            if (gap > bestGap) {
+                bestGap = gap
+                best = pos
+            }
+        }
+        return best
+    }
+
+    private companion object {
+        /** Random positions sampled when searching for a safe teleport gap. */
+        const val SAFE_TELEPORT_SAMPLES = 40
     }
 }

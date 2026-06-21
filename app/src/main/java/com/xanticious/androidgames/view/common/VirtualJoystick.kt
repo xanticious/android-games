@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -66,8 +67,65 @@ fun VirtualJoystick(
     ) {
         val center = Offset(size.width / 2f, size.height / 2f)
         drawCircle(color = accent.copy(alpha = 0.18f), radius = radiusPx, center = center)
-        drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+        drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = center, style = Stroke(width = 4f))
         drawCircle(color = accent, radius = knobRadiusPx, center = center + knob)
+    }
+}
+
+/**
+ * Floating analog joystick: it has no fixed home. The ring appears wherever the
+ * player first touches inside [modifier]'s bounds and the knob tracks the finger
+ * from there, so any finger anywhere can drive it. Emits [JoystickInput.NONE] on
+ * release.
+ */
+@Composable
+fun FloatingJoystick(
+    onInput: (JoystickInput) -> Unit,
+    modifier: Modifier = Modifier,
+    ringDiameter: Dp = 240.dp,
+    knobDiameter: Dp = 100.dp,
+    accent: Color = Color(0xFF20C997)
+) {
+    val density = LocalDensity.current
+    val radiusPx = with(density) { ringDiameter.toPx() } / 2f
+    val knobRadiusPx = with(density) { knobDiameter.toPx() } / 2f
+    val deadZonePx = with(density) { 8.dp.toPx() }
+
+    var origin by remember { mutableStateOf<Offset?>(null) }
+    var knob by remember { mutableStateOf(Offset.Zero) }
+    val latestInput = rememberUpdatedState(onInput)
+
+    Canvas(
+        modifier = modifier.pointerInput(radiusPx, deadZonePx) {
+            detectDragGestures(
+                onDragStart = { pos ->
+                    origin = pos
+                    knob = Offset.Zero
+                },
+                onDrag = { change, _ ->
+                    change.consume()
+                    val o = origin ?: change.position.also { origin = it }
+                    knob = clampToRing(change.position - o, radiusPx)
+                    latestInput.value(toInput(knob, radiusPx, deadZonePx))
+                },
+                onDragEnd = {
+                    origin = null
+                    knob = Offset.Zero
+                    latestInput.value(JoystickInput.NONE)
+                },
+                onDragCancel = {
+                    origin = null
+                    knob = Offset.Zero
+                    latestInput.value(JoystickInput.NONE)
+                }
+            )
+        }
+    ) {
+        origin?.let { o ->
+            drawCircle(color = accent.copy(alpha = 0.18f), radius = radiusPx, center = o)
+            drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = o, style = Stroke(width = 4f))
+            drawCircle(color = accent, radius = knobRadiusPx, center = o + knob)
+        }
     }
 }
 

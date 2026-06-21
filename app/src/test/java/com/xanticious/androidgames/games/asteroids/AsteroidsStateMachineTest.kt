@@ -17,9 +17,17 @@ class AsteroidsStateMachineTest {
     }
 
     @Test
-    fun startGame_movesToSpawning() {
+    fun startGame_movesToSetup() {
         val m = machine()
         m.startGame()
+        assertEquals(AsteroidsPhase.SETUP, m.phase.value)
+    }
+
+    @Test
+    fun confirmConfig_movesToSpawning() {
+        val m = machine()
+        m.startGame()
+        m.confirmConfig()
         assertEquals(AsteroidsPhase.SPAWNING, m.phase.value)
     }
 
@@ -27,35 +35,18 @@ class AsteroidsStateMachineTest {
     fun fieldReady_movesToPlaying() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
         assertEquals(AsteroidsPhase.PLAYING, m.phase.value)
     }
 
     @Test
-    fun playerHitWithLives_movesToRespawning() {
+    fun gameEnded_fromPlaying_movesToGameOver() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
-        m.playerHitWithLives()
-        assertEquals(AsteroidsPhase.RESPAWNING, m.phase.value)
-    }
-
-    @Test
-    fun respawnComplete_returnsToPlaying() {
-        val m = machine()
-        m.startGame()
-        m.fieldReady()
-        m.playerHitWithLives()
-        m.respawnComplete()
-        assertEquals(AsteroidsPhase.PLAYING, m.phase.value)
-    }
-
-    @Test
-    fun playerDied_movesToGameOver() {
-        val m = machine()
-        m.startGame()
-        m.fieldReady()
-        m.playerDied()
+        m.gameEnded()
         assertEquals(AsteroidsPhase.GAME_OVER, m.phase.value)
     }
 
@@ -63,6 +54,7 @@ class AsteroidsStateMachineTest {
     fun allBeaconsCollected_movesToLevelComplete() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
         m.allBeaconsCollected()
         assertEquals(AsteroidsPhase.LEVEL_COMPLETE, m.phase.value)
@@ -72,6 +64,7 @@ class AsteroidsStateMachineTest {
     fun nextLevel_movesFromLevelCompleteToSpawning() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
         m.allBeaconsCollected()
         m.nextLevel()
@@ -79,9 +72,21 @@ class AsteroidsStateMachineTest {
     }
 
     @Test
+    fun gameEnded_fromLevelComplete_movesToGameOver() {
+        val m = machine()
+        m.startGame()
+        m.confirmConfig()
+        m.fieldReady()
+        m.allBeaconsCollected()
+        m.gameEnded()
+        assertEquals(AsteroidsPhase.GAME_OVER, m.phase.value)
+    }
+
+    @Test
     fun fieldReadyAfterNextLevel_movesToPlaying() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
         m.allBeaconsCollected()
         m.nextLevel()
@@ -93,34 +98,23 @@ class AsteroidsStateMachineTest {
     fun retry_movesFromGameOverToSpawning() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
-        m.playerDied()
+        m.gameEnded()
         m.retry()
         assertEquals(AsteroidsPhase.SPAWNING, m.phase.value)
-    }
-
-    @Test
-    fun fullFlow_respawnTwiceThenDie_reachesGameOver() {
-        val m = machine()
-        m.startGame()
-        m.fieldReady()
-        m.playerHitWithLives()
-        m.respawnComplete()
-        m.playerHitWithLives()
-        m.respawnComplete()
-        m.playerDied()
-        assertEquals(AsteroidsPhase.GAME_OVER, m.phase.value)
     }
 
     @Test
     fun fullFlow_twoLevelsThenGameOver_reachesGameOver() {
         val m = machine()
         m.startGame()
+        m.confirmConfig()
         m.fieldReady()
         m.allBeaconsCollected()
         m.nextLevel()
         m.fieldReady()
-        m.playerDied()
+        m.gameEnded()
         assertEquals(AsteroidsPhase.GAME_OVER, m.phase.value)
     }
 }

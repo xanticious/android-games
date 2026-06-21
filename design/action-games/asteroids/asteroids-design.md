@@ -21,28 +21,50 @@ A high-definition reimagining of the classic arcade game with updated movement c
 │     (wrapping play field)       │
 │                                 │
 └─────────────────────────────────┘
-     [Joystick]       [Tap Zone]     ← Controls (overlaid on board corners)
+     [Acceleration Knob: left-fixed / right-fixed / floating]   ← Control (overlaid on board)
 ```
 - The game board wraps on all four edges (objects exiting one side reappear on the opposite side).
 - Controls are overlaid on the game board corners; they do not reduce board size.
 
 ## Controls
 
-### Left Thumb — Virtual Joystick
-- See `design/common/virtual-joystick.md` for full spec.
-- `dx` controls rotation speed: left rotates ship counter-clockwise, right rotates clockwise.
-- `dy` up applies thrust in the direction the ship is pointing.
-- `dy` down applies reverse thrust (backward deceleration).
-- Joystick input is analog — partial deflection gives partial rotation/thrust.
+### Acceleration Knob (360°)
+- A single large analog knob (twice the size of the shared default) controls **acceleration**.
+- The knob accelerates the ship in the knob's own direction — full 360° control. The player does
+  not rotate then thrust; instead they can be moving one way and accelerate toward any other.
+- The knob's deflection from center sets the acceleration magnitude (analog, for precise control).
+- Knob placement is selectable in the in-game settings screen:
+  - **Left Thumb (fixed)** — anchored at the lower-left.
+  - **Right Thumb (fixed)** — anchored at the lower-right.
+  - **Floating** — no home; the ring appears wherever any finger first touches and tracks from there.
 
-### Right Hand — Tap to Fire
-- See `design/common/tap-targeting.md` — Variant A (Directional Fire).
-- Player taps anywhere in the right half of the screen.
-- The tap point defines a direction from the ship center.
-- Valid fire cone: ±20° from the ship's current heading.
-- Out-of-cone taps clamp to the nearest cone edge.
-- Fire rate: one projectile per tap; no auto-fire.
-- Projectiles are large (visually prominent) and travel at a moderate speed (~40% of original arcade speed equivalent).
+### Ship Movement
+- The ship always drifts: speed is clamped between a small non-zero **min speed** and a **max speed**.
+- It starts each life moving at min speed.
+- The ship's heading **auto-aligns** to its current velocity direction.
+
+### Firing — Autofire
+- There is no tap-to-fire. The ship fires automatically on a fixed cadence.
+- Each shot targets the **nearest asteroid** (wrap-aware), regardless of ship heading.
+- Projectiles are large (visually prominent) and travel at a moderate speed.
+
+### Taking Damage — Teleport to Safety
+- On any asteroid collision the ship **teleports** into a large gap between asteroids and its
+  velocity is clamped down to min speed.
+- Asteroids **freeze** for ~2 seconds during the teleport/damage animation before play resumes.
+- The mode timer (for timed modes) does **not** pause during this freeze.
+
+## Game Modes
+Selectable on the in-game settings screen before play begins:
+
+- **Classic** — survive as many levels as you can, starting with 3 lives. HUD shows hearts.
+- **Level Challenge** — choose a number of levels (e.g. 10). Count-up timer and infinite lives;
+  complete that many levels as quickly as possible. HUD shows the timer and level progress.
+- **Time Challenge** — choose a duration (1–20 min). Count-down timer and infinite lives; destroy
+  as many asteroids as possible before time runs out. HUD shows the timer and asteroid kill count.
+
+For modes with infinite lives, the HUD shows the timer instead of hearts. Damage still teleports the
+ship to safety, but no life is lost.
 
 ## Gameplay Loop
 
@@ -70,10 +92,10 @@ Each level is an asteroid field. The objective is to collect 5 beacons.
 - Asteroids wrap around screen edges.
 
 ### Player Ship
-- Starts each level at screen center.
-- Three lives per game.
-- Brief invincibility (2 seconds) after losing a life, shown as a blinking ship sprite.
-- Ship is destroyed by any asteroid collision.
+- Starts each level at screen center, already drifting at min speed.
+- Classic mode: three lives per game. Level/Time Challenge modes: infinite lives.
+- Brief invincibility (2 seconds) after taking damage, shown as a blinking ship sprite.
+- On collision the ship teleports to a safe gap; asteroids freeze for ~2 seconds.
 - Ship wraps around screen edges.
 
 ### Scoring
@@ -90,24 +112,25 @@ Each level is an asteroid field. The objective is to collect 5 beacons.
 - Asteroid drift speed increases slightly each level (capped at 1.5× initial speed by level 5).
 - Beacon spawn time remains constant at 10 seconds between beacons regardless of level.
 
-## State Machine (per-level)
+## State Machine (per-game)
 ```
 Idle
- └─ LevelStart → Spawning
+ └─ GameStarted → Setup
+Setup (choose knob placement + game mode)
+ └─ ConfigConfirmed → Spawning
 Spawning
  └─ FieldReady → Playing
 Playing
  ├─ BeaconSpawn → Playing (beacon appears on field)
  ├─ BeaconCollected → Playing (explosion fires, next beacon timer starts)
+ ├─ PlayerHit → Playing (teleport to safety + asteroid freeze; no phase change)
  ├─ AllBeaconsCollected → LevelComplete
- ├─ PlayerHit [lives > 0] → Respawning
- └─ PlayerHit [lives == 0] → GameOver
-Respawning
- └─ RespawnComplete → Playing
+ └─ GameEnded → GameOver        (out of lives, or time expired)
 LevelComplete
- └─ NextLevel → Spawning
+ ├─ NextLevel → Spawning
+ └─ GameEnded → GameOver        (level-challenge target reached)
 GameOver
- └─ (terminal state)
+ └─ Retry → Spawning
 ```
 
 ## Victory / Defeat
@@ -118,5 +141,7 @@ GameOver
 ## HUD
 - See `design/common/hud-elements.md`.
 - Beacon tracker: 5 dots (filled = collected, pulsing = active/spawned, hollow = not yet spawned).
-- Lives: small ship icons (up to 3).
+- Classic mode: lives shown as small ship icons (up to 3) on the left.
+- Infinite-life modes: the mode timer replaces the hearts on the left (count-up for Level Challenge,
+  count-down for Time Challenge); Time Challenge also shows the asteroid kill count.
 - Score: top-center.
