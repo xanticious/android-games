@@ -257,10 +257,10 @@ fun AsteroidsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
 // ── Setup screen ─────────────────────────────────────────────────────────────
 
-private enum class ModeKind { CLASSIC, LEVEL, TIME }
-
 private val levelOptions = listOf(5, 10, 15, 20)
 private val timeOptionsMin = listOf(1, 3, 5, 10, 20)
+private const val DEFAULT_TARGET_LEVELS = 10
+private const val DEFAULT_DURATION_SECONDS = 5 * 60
 
 @Composable
 private fun AsteroidsSetup(
@@ -268,9 +268,7 @@ private fun AsteroidsSetup(
     onKnobPlacement: (KnobPlacement) -> Unit,
     onStart: (AsteroidsMode) -> Unit
 ) {
-    var modeKind by remember { mutableStateOf(ModeKind.CLASSIC) }
-    var targetLevels by remember { mutableStateOf(10) }
-    var durationMinutes by remember { mutableStateOf(5) }
+    var selectedMode: AsteroidsMode by remember { mutableStateOf(AsteroidsMode.Classic) }
 
     Column(
         modifier = Modifier
@@ -291,63 +289,58 @@ private fun AsteroidsSetup(
 
         Text("Game Mode", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ModeKind.entries.forEach { kind ->
-                FilterChip(
-                    selected = modeKind == kind,
-                    onClick = { modeKind = kind },
-                    label = { Text(kind.label()) }
-                )
-            }
+            FilterChip(
+                selected = selectedMode is AsteroidsMode.Classic,
+                onClick = { selectedMode = AsteroidsMode.Classic },
+                label = { Text("Classic") }
+            )
+            FilterChip(
+                selected = selectedMode is AsteroidsMode.LevelChallenge,
+                onClick = { selectedMode = AsteroidsMode.LevelChallenge(DEFAULT_TARGET_LEVELS) },
+                label = { Text("Level Challenge") }
+            )
+            FilterChip(
+                selected = selectedMode is AsteroidsMode.TimeChallenge,
+                onClick = { selectedMode = AsteroidsMode.TimeChallenge(DEFAULT_DURATION_SECONDS) },
+                label = { Text("Time Challenge") }
+            )
         }
 
-        when (modeKind) {
-            ModeKind.LEVEL -> {
+        when (val mode = selectedMode) {
+            is AsteroidsMode.LevelChallenge -> {
                 Text("Levels to complete")
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(levelOptions) { n ->
                         FilterChip(
-                            selected = targetLevels == n,
-                            onClick = { targetLevels = n },
+                            selected = mode.targetLevels == n,
+                            onClick = { selectedMode = AsteroidsMode.LevelChallenge(n) },
                             label = { Text("$n") }
                         )
                     }
                 }
             }
-            ModeKind.TIME -> {
+            is AsteroidsMode.TimeChallenge -> {
                 Text("Time limit (minutes)")
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(timeOptionsMin) { m ->
                         FilterChip(
-                            selected = durationMinutes == m,
-                            onClick = { durationMinutes = m },
+                            selected = mode.durationSeconds == m * 60,
+                            onClick = { selectedMode = AsteroidsMode.TimeChallenge(m * 60) },
                             label = { Text("$m") }
                         )
                     }
                 }
             }
-            ModeKind.CLASSIC -> Unit
+            AsteroidsMode.Classic -> Unit
         }
 
         Button(
-            onClick = {
-                val mode = when (modeKind) {
-                    ModeKind.LEVEL -> AsteroidsMode.LevelChallenge(targetLevels)
-                    ModeKind.TIME -> AsteroidsMode.TimeChallenge(durationMinutes * 60)
-                    ModeKind.CLASSIC -> AsteroidsMode.Classic
-                }
-                onStart(mode)
-            },
+            onClick = { onStart(selectedMode) },
             modifier = Modifier.padding(top = 12.dp)
         ) {
             Text("Start Game")
         }
     }
-}
-
-private fun ModeKind.label(): String = when (this) {
-    ModeKind.CLASSIC -> "Classic"
-    ModeKind.LEVEL -> "Level Challenge"
-    ModeKind.TIME -> "Time Challenge"
 }
 
 private fun KnobPlacement.label(): String = when (this) {

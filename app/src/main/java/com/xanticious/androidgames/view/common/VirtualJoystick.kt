@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -66,7 +67,7 @@ fun VirtualJoystick(
     ) {
         val center = Offset(size.width / 2f, size.height / 2f)
         drawCircle(color = accent.copy(alpha = 0.18f), radius = radiusPx, center = center)
-        drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+        drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = center, style = Stroke(width = 4f))
         drawCircle(color = accent, radius = knobRadiusPx, center = center + knob)
     }
 }
@@ -122,7 +123,7 @@ fun FloatingJoystick(
     ) {
         origin?.let { o ->
             drawCircle(color = accent.copy(alpha = 0.18f), radius = radiusPx, center = o)
-            drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = o, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+            drawCircle(color = accent.copy(alpha = 0.4f), radius = radiusPx, center = o, style = Stroke(width = 4f))
             drawCircle(color = accent, radius = knobRadiusPx, center = o + knob)
         }
     }

@@ -96,7 +96,7 @@ class AsteroidsController {
         // ── 0. Clocks (never paused) ───────────────────────────────────────────
         val elapsed = state.elapsedTime + dt
         val freezeTimer = (state.freezeTimer - dt).coerceAtLeast(0f)
-        val frozen = state.freezeTimer > 0f
+        val asteroidsFrozen = state.freezeTimer > 0f
 
         // ── 1. Ship movement: knob = acceleration (360°), auto-aligned heading ──
         val accel = Vec2(input.joystick.dx, input.joystick.dy) * config.accelerationForce
@@ -146,7 +146,7 @@ class AsteroidsController {
         }
 
         // ── 4. Asteroids: drift (frozen during the damage animation) ───────────
-        var asteroids = if (frozen) {
+        var asteroids = if (asteroidsFrozen) {
             state.asteroids
         } else {
             state.asteroids.map { a -> a.copy(position = wrap(a.position + a.velocity * dt)) }
@@ -200,7 +200,7 @@ class AsteroidsController {
         var event = AsteroidsStepEvent.NONE
         var resultFreeze = freezeTimer
 
-        if (!ship.isInvincible && !frozen) {
+        if (!ship.isInvincible && !asteroidsFrozen) {
             val crashed = asteroids.any { a ->
                 wrappedDistance(ship.position, a.position) < Ship.RADIUS + Asteroid.radiusFor(a.size)
             }
