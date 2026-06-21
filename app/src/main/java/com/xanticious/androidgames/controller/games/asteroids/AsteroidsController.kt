@@ -372,7 +372,7 @@ class AsteroidsController {
         if (asteroids.isEmpty()) return Vec2(0.5f, 0.5f)
         var best = Vec2(0.5f, 0.5f)
         var bestGap = -1f
-        repeat(40) {
+        repeat(SAFE_TELEPORT_SAMPLES) {
             val pos = Vec2(random.nextFloat(), random.nextFloat())
             val gap = asteroids.minOf { wrappedDistance(pos, it.position) }
             if (gap > bestGap) {
@@ -381,5 +381,10 @@ class AsteroidsController {
             }
         }
         return best
+    }
+
+    private companion object {
+        /** Random positions sampled when searching for a safe teleport gap. */
+        const val SAFE_TELEPORT_SAMPLES = 40
     }
 }

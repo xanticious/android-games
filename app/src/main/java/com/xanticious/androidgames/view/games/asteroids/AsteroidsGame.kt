@@ -257,8 +257,10 @@ fun AsteroidsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
 // ── Setup screen ─────────────────────────────────────────────────────────────
 
-private val LEVEL_OPTIONS = listOf(5, 10, 15, 20)
-private val TIME_OPTIONS_MIN = listOf(1, 3, 5, 10, 20)
+private enum class ModeKind { CLASSIC, LEVEL, TIME }
+
+private val levelOptions = listOf(5, 10, 15, 20)
+private val timeOptionsMin = listOf(1, 3, 5, 10, 20)
 
 @Composable
 private fun AsteroidsSetup(
@@ -266,7 +268,7 @@ private fun AsteroidsSetup(
     onKnobPlacement: (KnobPlacement) -> Unit,
     onStart: (AsteroidsMode) -> Unit
 ) {
-    var modeKind by remember { mutableStateOf(0) } // 0 Classic, 1 Level, 2 Time
+    var modeKind by remember { mutableStateOf(ModeKind.CLASSIC) }
     var targetLevels by remember { mutableStateOf(10) }
     var durationMinutes by remember { mutableStateOf(5) }
 
@@ -289,20 +291,20 @@ private fun AsteroidsSetup(
 
         Text("Game Mode", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Classic", "Level Challenge", "Time Challenge").forEachIndexed { index, label ->
+            ModeKind.entries.forEach { kind ->
                 FilterChip(
-                    selected = modeKind == index,
-                    onClick = { modeKind = index },
-                    label = { Text(label) }
+                    selected = modeKind == kind,
+                    onClick = { modeKind = kind },
+                    label = { Text(kind.label()) }
                 )
             }
         }
 
         when (modeKind) {
-            1 -> {
+            ModeKind.LEVEL -> {
                 Text("Levels to complete")
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(LEVEL_OPTIONS) { n ->
+                    items(levelOptions) { n ->
                         FilterChip(
                             selected = targetLevels == n,
                             onClick = { targetLevels = n },
@@ -311,10 +313,10 @@ private fun AsteroidsSetup(
                     }
                 }
             }
-            2 -> {
+            ModeKind.TIME -> {
                 Text("Time limit (minutes)")
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(TIME_OPTIONS_MIN) { m ->
+                    items(timeOptionsMin) { m ->
                         FilterChip(
                             selected = durationMinutes == m,
                             onClick = { durationMinutes = m },
@@ -323,14 +325,15 @@ private fun AsteroidsSetup(
                     }
                 }
             }
+            ModeKind.CLASSIC -> Unit
         }
 
         Button(
             onClick = {
                 val mode = when (modeKind) {
-                    1 -> AsteroidsMode.LevelChallenge(targetLevels)
-                    2 -> AsteroidsMode.TimeChallenge(durationMinutes * 60)
-                    else -> AsteroidsMode.Classic
+                    ModeKind.LEVEL -> AsteroidsMode.LevelChallenge(targetLevels)
+                    ModeKind.TIME -> AsteroidsMode.TimeChallenge(durationMinutes * 60)
+                    ModeKind.CLASSIC -> AsteroidsMode.Classic
                 }
                 onStart(mode)
             },
@@ -339,6 +342,12 @@ private fun AsteroidsSetup(
             Text("Start Game")
         }
     }
+}
+
+private fun ModeKind.label(): String = when (this) {
+    ModeKind.CLASSIC -> "Classic"
+    ModeKind.LEVEL -> "Level Challenge"
+    ModeKind.TIME -> "Time Challenge"
 }
 
 private fun KnobPlacement.label(): String = when (this) {
