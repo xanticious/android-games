@@ -38,6 +38,8 @@ internal fun powerUpColor(type: PowerUpType): Color = when (type) {
     PowerUpType.WIDE_SHOT -> GameSuccess
     PowerUpType.RAPID_FIRE -> GameCourtLine
     PowerUpType.TIME_BONUS -> GameAccent
+    PowerUpType.EXTRA_BALL -> GamePlayer
+    PowerUpType.EXTRA_STRENGTH -> GameEnemy
 }
 
 internal fun brickColor(type: BrickType): Color = when (type) {
@@ -232,6 +234,8 @@ internal fun activePowerUpLabel(powerUps: List<ActivePowerUp>): String =
             PowerUpType.WIDE_SHOT -> "WIDE"
             PowerUpType.RAPID_FIRE -> "FAST"
             PowerUpType.TIME_BONUS -> "+T"
+            PowerUpType.EXTRA_BALL -> "+BALL"
+            PowerUpType.EXTRA_STRENGTH -> "+STR"
         }
         "$name ${pu.remainingSeconds.toInt()}s"
     }

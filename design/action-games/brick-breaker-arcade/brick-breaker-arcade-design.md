@@ -26,7 +26,7 @@ Identical visual language to Brick Breaker (turn-based). Key arcade-mode additio
 ```
 
 ## Controls
-- **Cannon Position**: drag or slide anywhere on the bottom control zone to move the cannon left and right. The cannon always fires its multi-shot spread from its current position.
+- **Cannon Position**: drag or slide *anywhere on the screen* (not just the bottom control zone) to move the cannon left and right. A slider is also available. The cannon always fires its multi-shot spread from its current position.
 - **Auto-Fire**: the cannon fires automatically at a fixed rate (1 volley per 0.3 seconds by default). No tap required to fire.
 - The player's only active input is horizontal cannon positioning.
 
@@ -51,14 +51,9 @@ Same types as Brick Breaker (turn-based):
 - Steel bricks (introduced at higher levels).
 
 ### Power-Ups
-Power-ups drop from destroyed power-up bricks and float downward. The player collects them by sliding the cannon under the falling power-up icon.
-
-Available power-ups (from `design/common/powerup-system.md`):
-- Rapid Fire (fires faster)
-- Power Shot (double damage)
-- Clear Screen (destroys all visible bricks instantly)
-- Explode (destroys all bricks adjacent to the collection point)
-- Wide Shot (wider cannon beam)
+Power-up bricks drop one of two collectibles. The player collects them by sliding the cannon under the falling icon; collection instantly increments the matching HUD chip (no extra ball animation):
+- **Extra Ball**: +1 to the player's ball bank.
+- **Extra Strength**: +1 to the damage multiplier (each ball deals more damage).
 
 (Multi-Shot is not a power-up in this mode — the cannon's three-ball spread is always active.)
 
@@ -103,7 +98,9 @@ GameOver
 
 ## HUD
 - Score: top-left.
-- Level: top-center.
-- Lives: top-right (heart icons).
+- Level.
+- Balls: current ball bank (starts at 20). The chip highlights when it increments.
+- Strength: current damage multiplier (starts at ×1). The chip highlights when it increments.
+- Lives: heart icons.
+- A dashed bottom boundary line marks the death line; it pulses red when bricks approach it.
 - Active power-ups: left side, icon stack with countdown bars.
-- Descent speed indicator: subtle bar at the right edge, filling as bricks approach the bottom.

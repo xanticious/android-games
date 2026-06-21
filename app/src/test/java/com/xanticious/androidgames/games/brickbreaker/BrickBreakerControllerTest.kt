@@ -418,4 +418,145 @@ class BrickBreakerControllerTest {
         val state = BrickBreakerState(timerSeconds = 20f)
         assertEquals(2000, controller.timeRemainingBonus(state))
     }
+
+    // ---- classic finite rows ----
+
+    @Test
+    fun generateClassicFeedBricks_level1_hasSingleRow() {
+        val rows = controller.generateClassicFeedBricks(1).map { it.row }.distinct()
+        assertEquals(1, rows.size)
+    }
+
+    @Test
+    fun generateClassicFeedBricks_level5_hasFiveRows() {
+        val rows = controller.generateClassicFeedBricks(5).map { it.row }.distinct()
+        assertEquals(5, rows.size)
+    }
+
+    @Test
+    fun generateClassicFeedBricks_cappedAtTwentyRows() {
+        val rows = controller.generateClassicFeedBricks(25).map { it.row }.distinct()
+        assertEquals(20, rows.size)
+    }
+
+    @Test
+    fun generateClassicFeedBricks_highLevel_stacksRowsOffScreen() {
+        val rows = controller.generateClassicFeedBricks(12).map { it.row }
+        assertTrue(rows.any { it < 0 })
+    }
+
+    @Test
+    fun generateClassicFeedBricks_powerUpsAreBallOrStrength() {
+        val pus = controller.generateClassicFeedBricks(20).mapNotNull { it.powerUp }
+        assertTrue(pus.isNotEmpty())
+        assertTrue(pus.all { it == PowerUpType.EXTRA_BALL || it == PowerUpType.EXTRA_STRENGTH })
+    }
+
+    // ---- aim angle wiring ----
+
+    @Test
+    fun step_classic_firesBallAtSpecifiedAngle() {
+        val config = controller.configFor(BrickBreakerVariant.CLASSIC, GameDifficulty.MEDIUM)
+        // ballsToFire > 0 with the fire timer elapsed launches a ball this step.
+        val state = BrickBreakerState(ballsToFire = 5, fireTimer = 0f, cannonAngleDeg = 45f)
+        val result = controller.step(state, config, 0.016f, BrickBreakerInput(aimAngleDeg = 30f))
+        val ball = result.state.balls.firstOrNull()
+        assertNotNull(ball)
+        // 30° launch: rightward and upward, vx ~ cos30 > 0, vy < 0.
+        assertTrue(ball!!.vel.x > 0f)
+        assertTrue(ball.vel.y < 0f)
+    }
+
+    // ---- strength scales damage ----
+
+    @Test
+    fun step_strengthTwo_dealsDoubleDamage() {
+        val config = controller.configFor(BrickBreakerVariant.CLASSIC, GameDifficulty.EASY)
+        val brick = Brick(col = 4, row = 0, hp = 5, maxHp = 5, type = BrickType.STANDARD)
+        val brickCx = (brick.col + 0.5f) / BrickField.COLS.toFloat()
+        val brickCy = BrickField.TOP_MARGIN + brick.row * BrickField.ROW_HEIGHT + BrickField.ROW_HEIGHT / 2f
+        val ball = Ball(pos = Vec2(brickCx, brickCy - 0.03f), vel = Vec2(0f, 0.5f))
+        val state = BrickBreakerState(
+            bricks = listOf(brick), balls = listOf(ball), ballsToFire = 0, strength = 2,
+        )
+        val result = controller.step(state, config, 0.1f, BrickBreakerInput())
+        val remaining = result.state.bricks.firstOrNull { it.col == 4 && it.row == 0 }
+        // strength 2 → 2 damage → hp drops to 3.
+        if (remaining != null) assertEquals(3, remaining.hp)
+    }
+
+    // ---- power-up collection ----
+
+    @Test
+    fun applyPowerUp_extraBall_incrementsBallCount() {
+        val config = controller.configFor(BrickBreakerVariant.ARCADE, GameDifficulty.EASY)
+        val state = BrickBreakerState(ballCount = 20)
+        val after = controller.applyPowerUp(state, config, PowerUpType.EXTRA_BALL, 0.5f, 0.9f)
+        assertEquals(21, after.ballCount)
+    }
+
+    @Test
+    fun applyPowerUp_extraStrength_incrementsStrength() {
+        val config = controller.configFor(BrickBreakerVariant.ARCADE, GameDifficulty.EASY)
+        val state = BrickBreakerState(strength = 1)
+        val after = controller.applyPowerUp(state, config, PowerUpType.EXTRA_STRENGTH, 0.5f, 0.9f)
+        assertEquals(2, after.strength)
+    }
+
+    @Test
+    fun collectInstantly_mixedPowerUps_incrementsBoth() {
+        val state = BrickBreakerState(ballCount = 20, strength = 1)
+        val after = controller.collectInstantly(
+            state,
+            listOf(PowerUpType.EXTRA_BALL, PowerUpType.EXTRA_BALL, PowerUpType.EXTRA_STRENGTH),
+        )
+        assertEquals(22, after.ballCount)
+        assertEquals(2, after.strength)
+    }
+
+    @Test
+    fun collectOffscreenPowerUps_awardsRemainingBrickPowerUps() {
+        val bricks = listOf(
+            Brick(0, -2, 1, 1, BrickType.POWERUP, PowerUpType.EXTRA_BALL),
+            Brick(1, -3, 1, 1, BrickType.POWERUP, PowerUpType.EXTRA_STRENGTH),
+            Brick(2, -1, 1, 1, BrickType.STANDARD),
+        )
+        val state = BrickBreakerState(bricks = bricks, ballCount = 20, strength = 1)
+        val after = controller.collectOffscreenPowerUps(state)
+        assertEquals(21, after.ballCount)
+        assertEquals(2, after.strength)
+    }
+
+    @Test
+    fun noVisibleBricks_onlyOffscreenRows_returnsTrue() {
+        val state = BrickBreakerState(bricks = listOf(Brick(0, -1, 1, 1, BrickType.STANDARD)))
+        assertTrue(controller.noVisibleBricks(state))
+    }
+
+    @Test
+    fun noVisibleBricks_withVisibleRow_returnsFalse() {
+        val state = BrickBreakerState(bricks = listOf(Brick(0, 0, 1, 1, BrickType.STANDARD)))
+        assertFalse(controller.noVisibleBricks(state))
+    }
+
+    @Test
+    fun beginVolley_usesBallCount() {
+        val config = controller.configFor(BrickBreakerVariant.CLASSIC, GameDifficulty.MEDIUM)
+        val state = BrickBreakerState(ballCount = 27)
+        val started = controller.beginVolley(state, config)
+        assertEquals(27, started.ballsToFire)
+    }
+
+    @Test
+    fun step_classic_collectsPowerUpsInstantlyWithoutDroppingIcons() {
+        val config = controller.configFor(BrickBreakerVariant.CLASSIC, GameDifficulty.EASY)
+        val brick = Brick(col = 4, row = 0, hp = 1, maxHp = 1, type = BrickType.POWERUP, powerUp = PowerUpType.EXTRA_BALL)
+        val brickCx = (brick.col + 0.5f) / BrickField.COLS.toFloat()
+        val brickCy = BrickField.TOP_MARGIN + brick.row * BrickField.ROW_HEIGHT + BrickField.ROW_HEIGHT / 2f
+        val ball = Ball(pos = Vec2(brickCx, brickCy - 0.03f), vel = Vec2(0f, 0.5f))
+        val state = BrickBreakerState(bricks = listOf(brick), balls = listOf(ball), ballsToFire = 0, ballCount = 20)
+        val result = controller.step(state, config, 0.15f, BrickBreakerInput())
+        assertEquals(21, result.state.ballCount)
+        assertTrue(result.state.droppingPowerUps.isEmpty())
+    }
 }

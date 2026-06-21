@@ -6,6 +6,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.games.brickbreaker.BrickBreakerController
@@ -35,10 +37,10 @@ import com.xanticious.androidgames.model.games.brickbreaker.BrickBreakerVariant
 import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerPhase
 import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerStateMachine
 import com.xanticious.androidgames.view.common.DefeatPanel
-import com.xanticious.androidgames.view.common.GameHud
 import com.xanticious.androidgames.view.common.GameLoop
 import com.xanticious.androidgames.view.common.GameScaffold
 import com.xanticious.androidgames.view.common.VictoryPanel
+import com.xanticious.androidgames.view.games.brickbreaker.BrickBreakerStatHud
 import com.xanticious.androidgames.view.games.brickbreaker.activePowerUpLabel
 import com.xanticious.androidgames.view.games.brickbreaker.drawBalls
 import com.xanticious.androidgames.view.games.brickbreaker.drawBottomPaddle
@@ -107,10 +109,13 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         title = "Brick Breaker Arcade",
         onExit = onExit,
         hud = {
-            GameHud(
-                left = "Score ${state.score}",
-                center = "Level ${state.level}",
-                right = "Lives ${"♥".repeat(state.lives.coerceAtLeast(0))}",
+            BrickBreakerStatHud(
+                score = state.score,
+                level = state.level,
+                ballCount = state.ballCount,
+                strength = state.strength,
+                trailingLabel = "Lives",
+                trailingValue = "♥".repeat(state.lives.coerceAtLeast(0)),
             )
         },
         status = {
@@ -154,7 +159,7 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             onReplay = {
                                 machine.nextLevel()
                                 state = controller.generateLevel(config, state.level + 1)
-                                    .copy(score = state.score, lives = state.lives)
+                                    .copy(score = state.score, lives = state.lives, ballCount = state.ballCount, strength = state.strength)
                                 machine.readyForPlay()
                             },
                             onMenu = onExit,
@@ -180,7 +185,21 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             }
         }
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    // Slide a finger anywhere on the field to reposition the cannon.
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            paddleX = (offset.x / size.width).coerceIn(0.05f, 0.95f)
+                        },
+                    ) { change, _ ->
+                        change.consume()
+                        paddleX = (change.position.x / size.width).coerceIn(0.05f, 0.95f)
+                    }
+                }
+        ) {
             drawCourt()
             drawBricks(state, textMeasurer, state.descentOffset)
             drawBoundaryLine(danger = bricksNearBoundary, pulse = boundaryPulse)

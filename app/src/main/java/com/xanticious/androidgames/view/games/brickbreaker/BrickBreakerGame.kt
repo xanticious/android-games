@@ -43,7 +43,6 @@ import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerPhase
 import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerStateMachine
 import com.xanticious.androidgames.ui.theme.GameCourt
 import com.xanticious.androidgames.view.common.DefeatPanel
-import com.xanticious.androidgames.view.common.GameHud
 import com.xanticious.androidgames.view.common.GameLoop
 import com.xanticious.androidgames.view.common.GameScaffold
 import com.xanticious.androidgames.view.common.VictoryPanel
@@ -80,7 +79,11 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         )
         state = result.state
         when {
-            result.fieldCleared -> {
+            result.visibleCleared -> {
+                // Clearing every brick on screen wins the level early; award the
+                // power-ups from any rows still queued off screen.
+                state = controller.collectOffscreenPowerUps(state)
+                    .copy(bricks = emptyList(), balls = emptyList(), ballsToFire = 0)
                 machine.allBallsLanded()
                 machine.fieldCleared()
             }
@@ -117,10 +120,13 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         title = "Brick Breaker",
         onExit = onExit,
         hud = {
-            GameHud(
-                left = "Score ${state.score}",
-                center = "Level ${state.level}",
-                right = "Turn ${state.turnsPlayed}",
+            BrickBreakerStatHud(
+                score = state.score,
+                level = state.level,
+                ballCount = state.ballCount,
+                strength = state.strength,
+                trailingLabel = "Turn",
+                trailingValue = "${state.turnsPlayed}",
             )
         },
         status = {
@@ -136,7 +142,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                 when (phase) {
                     BrickBreakerPhase.AIM_PHASE -> {
                         // Cannon position slider.
-                        Text("Balls: ${config.volleySize}", style = MaterialTheme.typography.labelMedium)
+                        Text("Balls: ${state.ballCount}   Strength: ×${state.strength}", style = MaterialTheme.typography.labelMedium)
                         Text("Position", style = MaterialTheme.typography.labelMedium)
                         Slider(
                             value = paddleX,
@@ -180,7 +186,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             onReplay = {
                                 machine.nextLevel()
                                 state = controller.generateLevel(config, state.level + 1)
-                                    .copy(score = state.score)
+                                    .copy(score = state.score, ballCount = state.ballCount, strength = state.strength)
                                 state = controller.beginVolley(state, config)
                                 machine.readyForAim()
                             },

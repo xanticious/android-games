@@ -1,7 +1,7 @@
 # Brick Breaker — Design Document
 
 ## Overview
-A turn-based brick breaker where bricks fall one row per turn and the player fires a cannon loaded with 20 balls per turn. The goal is to destroy all bricks before any reach the bottom row.
+A turn-based brick breaker where bricks descend one row per turn and the player fires a bank of balls each turn (starting at 20). Each level has a finite number of rows to destroy — level 1 has 1 row, level 2 has 2 rows, and so on up to a maximum of 20 rows. Rows beyond what fits on screen are stacked off screen above the field and feed into view one row per turn. The goal is to destroy every row before any brick reaches the bottom boundary.
 
 ## Visual Style
 - HD 2D graphics with a bold, colorful aesthetic.
@@ -31,7 +31,7 @@ A turn-based brick breaker where bricks fall one row per turn and the player fir
 ## Controls
 - **Launch Position**: drag a slider (or drag the cannon itself) left and right along the bottom edge.
 - **Aim Angle**: drag up from the cannon to set the fire angle. A dotted trajectory preview shows the ball's path and first bounce.
-- **Fire**: release the drag or tap a "Fire" button to launch all 20 balls in sequence along the chosen trajectory.
+- **Fire**: release the drag or tap a "Fire" button to launch the whole ball bank in sequence along the chosen trajectory.
 - **Clear**: tap the "Clear" button during the Fire Phase to immediately remove all balls still in play and advance to the Resolution Phase. Use it when a ball gets stuck bouncing or the player simply doesn't want to wait for the volley to finish.
 - Angle is clamped between 10° and 170° (nearly vertical in either direction) — flat horizontal shots are not allowed.
 
@@ -39,7 +39,7 @@ A turn-based brick breaker where bricks fall one row per turn and the player fir
 
 ### Turn Structure
 1. **Aim Phase**: Player sets position and angle. Trajectory preview updates in real time.
-2. **Fire Phase**: All 20 balls launch in sequence, 0.1s apart. Balls bounce off walls and bricks. The player may tap **Clear** at any point to remove all remaining balls and end the phase early.
+2. **Fire Phase**: The full ball bank launches in sequence, 0.1s apart. Balls bounce off walls and bricks. The player may tap **Clear** at any point to remove all remaining balls and end the phase early.
 3. **Resolution Phase**: Count hits, apply damage, remove destroyed bricks, drop power-ups.
 4. **Drop Phase**: All remaining bricks descend one row.
 5. Repeat until bricks reach the bottom (defeat) or the field is cleared (victory).
@@ -50,24 +50,24 @@ A turn-based brick breaker where bricks fall one row per turn and the player fir
   - **Power-up brick**: standard HP but drops a power-up when destroyed (see `design/common/powerup-system.md`). Marked with a glowing icon.
   - **Steel brick**: immune to standard shots; requires a Power Shot active power-up or 2× the listed HP to destroy.
 - New bricks spawn at the top each turn, filling a row (with gaps) generated procedurally.
-- Each ball deals 1 damage per hit. Multi-shot power-up fires 3 balls per tick.
+- Each ball deals damage equal to the current strength multiplier (1 by default).
 
 ### Power-Ups Available
-From `design/common/powerup-system.md`:
-- Explode (instant area clear around power-up brick's position)
-- Multi-Shot (3 balls per tick for the rest of the level)
-- Power Shot (double damage for 20 seconds or rest of level)
-- Clear Screen (destroys all standard bricks currently visible)
-- Wide Shot (increases ball size, wider hitbox for remainder of level)
+Power-up bricks drop one of two collectibles, each worth a single point. They are collected instantly when the brick is destroyed — no falling icon animation — and the matching HUD chip (Balls or Strength) briefly highlights to show it incremented:
+- **Extra Ball**: +1 to the player's ball bank (more balls fired per turn).
+- **Extra Strength**: +1 to the damage multiplier (each ball deals more damage).
+
+Both the ball bank and the strength multiplier persist across turns and levels.
 
 ### Win / Loss
-- **Win**: clear all bricks from the field before any brick reaches the bottom.
-- **Loss**: any brick enters the bottom row at the start of a Drop Phase.
+- **Win**: destroy every row of the level. You can also beat a level early by clearing all bricks currently on screen; any power-ups from rows still off screen are awarded automatically.
+- **Loss**: any brick crosses the bottom boundary at the start of a Drop Phase.
 
 ## Difficulty Scaling
+- Rows per level scale with the level number (level N = N rows, capped at 20).
 - Level 1–3: max brick HP = level × 3, new rows always have gaps.
 - Level 4+: max brick HP = level × 3, gaps narrow, steel bricks introduced.
-- Ball count (20) is constant across all levels.
+- The ball bank starts at 20 and grows only via Extra Ball power-ups.
 
 ## Scoring
 | Event | Points |
@@ -103,7 +103,9 @@ GameOver
 
 ## HUD
 - Score: top-left.
-- Level number: top-center.
-- Turns played: top-right.
+- Level number.
+- Balls: current ball bank (starts at 20). The chip highlights when it increments.
+- Strength: current damage multiplier (starts at ×1). The chip highlights when it increments.
+- Turn counter.
+- A dashed bottom boundary line marks the death line; it pulses red when bricks sit one row away from crossing it.
 - Active power-ups: left side, stacked icons with timers.
-- Ball count: bottom-right (always 20, resets each turn).
