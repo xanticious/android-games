@@ -38,6 +38,8 @@ internal fun powerUpColor(type: PowerUpType): Color = when (type) {
     PowerUpType.WIDE_SHOT -> GameSuccess
     PowerUpType.RAPID_FIRE -> GameCourtLine
     PowerUpType.TIME_BONUS -> GameAccent
+    PowerUpType.EXTRA_BALL -> GamePlayer
+    PowerUpType.EXTRA_STRENGTH -> GameEnemy
 }
 
 internal fun brickColor(type: BrickType): Color = when (type) {
@@ -50,6 +52,30 @@ internal fun brickColor(type: BrickType): Color = when (type) {
 /** Draw the background court. */
 internal fun DrawScope.drawCourt() {
     drawRect(color = GameCourt, size = size)
+}
+
+/**
+ * Draw the dashed bottom boundary (death line) for the descent variants.
+ *
+ * The line is unobtrusive by default; when [danger] is true (a brick is one
+ * step from crossing) it switches to the hazard colour and pulses via [pulse]
+ * (a 0..1 animated value).
+ */
+internal fun DrawScope.drawBoundaryLine(danger: Boolean, pulse: Float) {
+    val y = (BrickField.TOP_MARGIN + BrickField.ROWS * BrickField.ROW_HEIGHT) * size.height
+    val dash = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f)
+    val color = if (danger) {
+        GameHazard.copy(alpha = 0.35f + 0.55f * pulse.coerceIn(0f, 1f))
+    } else {
+        GameCourtLine.copy(alpha = 0.35f)
+    }
+    drawLine(
+        color = color,
+        start = Offset(0f, y),
+        end = Offset(size.width, y),
+        strokeWidth = if (danger) 4f else 2f,
+        pathEffect = dash,
+    )
 }
 
 /**
@@ -208,6 +234,8 @@ internal fun activePowerUpLabel(powerUps: List<ActivePowerUp>): String =
             PowerUpType.WIDE_SHOT -> "WIDE"
             PowerUpType.RAPID_FIRE -> "FAST"
             PowerUpType.TIME_BONUS -> "+T"
+            PowerUpType.EXTRA_BALL -> "+BALL"
+            PowerUpType.EXTRA_STRENGTH -> "+STR"
         }
         "$name ${pu.remainingSeconds.toInt()}s"
     }

@@ -1,5 +1,10 @@
 package com.xanticious.androidgames.view.games.brickbreaker
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -38,7 +43,6 @@ import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerPhase
 import com.xanticious.androidgames.state.games.brickbreaker.BrickBreakerStateMachine
 import com.xanticious.androidgames.ui.theme.GameCourt
 import com.xanticious.androidgames.view.common.DefeatPanel
-import com.xanticious.androidgames.view.common.GameHud
 import com.xanticious.androidgames.view.common.GameLoop
 import com.xanticious.androidgames.view.common.GameScaffold
 import com.xanticious.androidgames.view.common.VictoryPanel
@@ -75,7 +79,11 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         )
         state = result.state
         when {
-            result.fieldCleared -> {
+            result.visibleCleared -> {
+                // Clearing every brick on screen wins the level early; award the
+                // power-ups from any rows still queued off screen.
+                state = controller.collectOffscreenPowerUps(state)
+                    .copy(bricks = emptyList(), balls = emptyList(), ballsToFire = 0)
                 machine.allBallsLanded()
                 machine.fieldCleared()
             }
@@ -100,15 +108,25 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val trajectoryPoints = remember(aimAngleDeg, paddleX) {
         controller.classicTrajectoryPreview(paddleX, aimAngleDeg)
     }
+    val bricksNearBoundary = controller.bricksNearBoundary(state)
+    val boundaryPulse by rememberInfiniteTransition(label = "boundaryPulse").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
+        label = "boundaryPulseValue",
+    )
 
     GameScaffold(
         title = "Brick Breaker",
         onExit = onExit,
         hud = {
-            GameHud(
-                left = "Score ${state.score}",
-                center = "Level ${state.level}",
-                right = "Turn ${state.turnsPlayed}",
+            BrickBreakerStatHud(
+                score = state.score,
+                level = state.level,
+                ballCount = state.ballCount,
+                strength = state.strength,
+                trailingLabel = "Turn",
+                trailingValue = "${state.turnsPlayed}",
             )
         },
         status = {
@@ -124,6 +142,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                 when (phase) {
                     BrickBreakerPhase.AIM_PHASE -> {
                         // Cannon position slider.
+                        Text("Balls: ${state.ballCount}   Strength: ×${state.strength}", style = MaterialTheme.typography.labelMedium)
                         Text("Position", style = MaterialTheme.typography.labelMedium)
                         Slider(
                             value = paddleX,
@@ -148,7 +167,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     }
                     BrickBreakerPhase.FIRE_PHASE -> {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Balls remaining: ${state.balls.size + state.ballsToFire}", style = MaterialTheme.typography.labelMedium)
+                            Text("Balls: ${state.balls.size + state.ballsToFire}", style = MaterialTheme.typography.labelMedium)
                             OutlinedButton(onClick = {
                                 state = state.copy(balls = emptyList(), ballsToFire = 0)
                                 machine.clearTapped()
@@ -167,12 +186,13 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             onReplay = {
                                 machine.nextLevel()
                                 state = controller.generateLevel(config, state.level + 1)
-                                    .copy(score = state.score)
+                                    .copy(score = state.score, ballCount = state.ballCount, strength = state.strength)
                                 state = controller.beginVolley(state, config)
                                 machine.readyForAim()
                             },
                             onMenu = onExit,
                             headline = "Level ${state.level} Clear!",
+                            primaryLabel = "Next Level",
                         )
                     }
                     BrickBreakerPhase.GAME_OVER -> {
@@ -197,6 +217,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCourt()
             drawBricks(state, textMeasurer)
+            drawBoundaryLine(danger = bricksNearBoundary, pulse = boundaryPulse)
             drawBalls(state)
             if (phase == BrickBreakerPhase.AIM_PHASE) {
                 drawTrajectory(trajectoryPoints)

@@ -30,7 +30,9 @@ enum class PowerUpType {
     CLEAR_SCREEN,  // instant: destroy all STANDARD bricks on screen
     WIDE_SHOT,     // timed: larger ball radius
     RAPID_FIRE,    // timed: shorter auto-fire interval (ARCADE)
-    TIME_BONUS     // instant: +10 s to countdown (CANNON_ARCADE)
+    TIME_BONUS,    // instant: +10 s to countdown (CANNON_ARCADE)
+    EXTRA_BALL,    // instant: +1 ball to the player's ball count
+    EXTRA_STRENGTH // instant: +1 to the player's damage multiplier
 }
 
 /** A single brick cell in the grid. */
@@ -79,6 +81,11 @@ object BrickField {
     const val BALL_RADIUS = 0.016f
     const val POWERUP_RADIUS = 0.025f
     const val POWERUP_MAX_AGE = 3f
+
+    /** CLASSIC: a level's row target is the level number, capped here. */
+    const val CLASSIC_MAX_ROWS = 20
+    /** CLASSIC: how many rows are on screen at the start of a level. */
+    const val CLASSIC_VISIBLE_ROWS = 6
 }
 
 /**
@@ -93,6 +100,10 @@ data class BrickBreakerState(
     val level: Int = 1,
     val activePowerUps: List<ActivePowerUp> = emptyList(),
     val droppingPowerUps: List<DroppingPowerUp> = emptyList(),
+
+    // Player ball bank and damage multiplier (CLASSIC / ARCADE).
+    val ballCount: Int = 20,         // total balls available; grows via EXTRA_BALL
+    val strength: Int = 1,           // damage multiplier; grows via EXTRA_STRENGTH
 
     // ---- CLASSIC / ARCADE (bottom paddle) ----
     val paddleX: Float = 0.5f,       // normalized x-centre of the cannon
@@ -174,4 +185,6 @@ data class BrickBreakerStepResult(
     val timerExpired: Boolean = false,
     val levelRowsCleared: Boolean = false,
     val livesGone: Boolean = false,
+    /** CLASSIC: no bricks remain on screen (row >= 0); off-screen rows may linger. */
+    val visibleCleared: Boolean = false,
 )

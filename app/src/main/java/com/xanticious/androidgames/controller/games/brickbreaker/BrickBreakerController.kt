@@ -15,7 +15,6 @@ import com.xanticious.androidgames.model.games.brickbreaker.BrickType
 import com.xanticious.androidgames.model.games.brickbreaker.Brick
 import com.xanticious.androidgames.model.games.brickbreaker.DroppingPowerUp
 import com.xanticious.androidgames.model.games.brickbreaker.PowerUpType
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
@@ -110,8 +109,8 @@ class BrickBreakerController {
 
     fun generateLevel(config: BrickBreakerConfig, level: Int): BrickBreakerState {
         val bricks = when (config.variant) {
-            BrickBreakerVariant.CLASSIC, BrickBreakerVariant.ARCADE ->
-                generateClassicBricks(level, config.variant == BrickBreakerVariant.ARCADE)
+            BrickBreakerVariant.CLASSIC -> generateClassicFeedBricks(level)
+            BrickBreakerVariant.ARCADE -> generateArcadeBricks(level)
             BrickBreakerVariant.CANNON, BrickBreakerVariant.CANNON_ARCADE ->
                 generateCannonBricks(level)
         }
@@ -128,7 +127,41 @@ class BrickBreakerController {
         )
     }
 
-    private fun generateClassicBricks(level: Int, arcade: Boolean): List<Brick> {
+    /**
+     * CLASSIC level layout.  A level requires destroying [level] rows (capped at
+     * [BrickField.CLASSIC_MAX_ROWS]).  Up to [BrickField.CLASSIC_VISIBLE_ROWS]
+     * rows start on screen (rows 0..N-1); any remaining rows are stacked above
+     * the field at negative row indices and descend into view one row per turn.
+     */
+    fun generateClassicFeedBricks(level: Int): List<Brick> {
+        val totalRows = level.coerceIn(1, BrickField.CLASSIC_MAX_ROWS)
+        val visible = minOf(totalRows, BrickField.CLASSIC_VISIBLE_ROWS)
+        val maxHp = level * 3
+        val cols = BrickField.COLS
+        val useSteelFrom = 4
+        val bricks = mutableListOf<Brick>()
+        repeat(totalRows) { i ->
+            // i = 0 is the deepest on-screen row; higher i stacks upward/off screen.
+            val row = (visible - 1) - i
+            repeat(cols) { col ->
+                if (Random.nextFloat() > 0.15f) {  // ~85% fill
+                    val hp = Random.nextInt(1, maxHp + 1)
+                    val r = Random.nextFloat()
+                    val type = when {
+                        level >= useSteelFrom && r < 0.10f -> BrickType.STEEL
+                        r < 0.22f -> BrickType.POWERUP
+                        else -> BrickType.STANDARD
+                    }
+                    val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
+                    val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
+                    bricks += Brick(col, row, steelHp, steelHp, type, pu)
+                }
+            }
+        }
+        return bricks
+    }
+
+    private fun generateArcadeBricks(level: Int): List<Brick> {
         val maxHp = level * 3
         val cols = BrickField.COLS
         val numRows = (2 + level).coerceAtMost(6)
@@ -144,7 +177,7 @@ class BrickBreakerController {
                         r < 0.18f -> BrickType.POWERUP
                         else -> BrickType.STANDARD
                     }
-                    val pu = if (type == BrickType.POWERUP) randomPowerUp(arcade) else null
+                    val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
                     val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
                     bricks += Brick(col, row, steelHp, steelHp, type, pu)
                 }
@@ -182,17 +215,10 @@ class BrickBreakerController {
         return bricks
     }
 
-    private fun randomPowerUp(arcade: Boolean): PowerUpType {
-        val pool = buildList {
-            add(PowerUpType.EXPLODE)
-            add(PowerUpType.POWER_SHOT)
-            add(PowerUpType.CLEAR_SCREEN)
-            add(PowerUpType.WIDE_SHOT)
-            if (arcade) add(PowerUpType.RAPID_FIRE)
-            else add(PowerUpType.MULTI_SHOT)
-        }
-        return pool.random()
-    }
+
+    /** CLASSIC / ARCADE power-ups: each is worth one ball or one strength point. */
+    private fun randomBallStrengthPowerUp(): PowerUpType =
+        if (Random.nextFloat() < 0.5f) PowerUpType.EXTRA_BALL else PowerUpType.EXTRA_STRENGTH
 
     private fun randomPowerUpCannon(): PowerUpType {
         val pool = listOf(
@@ -240,7 +266,7 @@ class BrickBreakerController {
     fun beginVolley(state: BrickBreakerState, config: BrickBreakerConfig): BrickBreakerState =
         state.copy(
             balls = emptyList(),
-            ballsToFire = config.volleySize,
+            ballsToFire = state.ballCount.coerceAtLeast(1),
             fireTimer = 0f,
         )
 
@@ -290,7 +316,12 @@ class BrickBreakerController {
 
         // Update player input (paddle / aim).
         s = when (config.variant) {
-            BrickBreakerVariant.CLASSIC, BrickBreakerVariant.ARCADE ->
+            BrickBreakerVariant.CLASSIC ->
+                s.copy(
+                    paddleX = input.paddleX.coerceIn(0.05f, 0.95f),
+                    cannonAngleDeg = input.aimAngleDeg.coerceIn(10f, 170f),
+                )
+            BrickBreakerVariant.ARCADE ->
                 s.copy(paddleX = input.paddleX.coerceIn(0.05f, 0.95f))
             BrickBreakerVariant.CANNON, BrickBreakerVariant.CANNON_ARCADE ->
                 s.copy(cannonAngleDeg = input.aimAngleDeg.coerceIn(5f, 85f))
@@ -333,10 +364,22 @@ class BrickBreakerController {
             balls = newBalls,
             bricks = newBricks,
             score = s.score + scoreGain,
-            droppingPowerUps = s.droppingPowerUps + newDrops,
         )
+        // CLASSIC collects ball / strength power-ups instantly (no falling icon).
+        // ARCADE applies every power-up instantly at the destroyed brick — no
+        // catch-to-collect.  Remaining variants let the icon drift down.
+        s = when (config.variant) {
+            BrickBreakerVariant.CLASSIC -> collectInstantly(s, newDrops.map { it.type })
+            BrickBreakerVariant.ARCADE -> {
+                var t = s
+                for (drop in newDrops) t = applyPowerUp(t, config, drop.type, drop.pos.x, drop.pos.y)
+                t
+            }
+            else -> s.copy(droppingPowerUps = s.droppingPowerUps + newDrops)
+        }
 
-        // ARCADE: descend bricks, spawn new rows, collect power-ups with paddle.
+        // ARCADE: descend bricks and spawn new rows (power-ups already collected
+        // instantly above when their brick was destroyed).
         var brickAtBottom = false
         var levelRowsCleared = false
         if (config.variant == BrickBreakerVariant.ARCADE) {
@@ -353,9 +396,6 @@ class BrickBreakerController {
                 s = s.copy(nextRowTimer = rowTimer.coerceAtLeast(0f))
             }
 
-            // Collect dropping power-ups if paddle is nearby.
-            s = collectArcadePowerUps(s, config)
-
             // Level completion check.
             if (s.rowsGenerated >= s.totalRowsForLevel && s.bricks.isEmpty()) {
                 levelRowsCleared = true
@@ -369,6 +409,7 @@ class BrickBreakerController {
                 (s.ballsToFire <= 0 || config.variant == BrickBreakerVariant.CANNON_ARCADE)
         val allTargetsCleared = allTargetsDestroyed(s)
         val fieldCleared = allBricksGone(s)
+        val visibleCleared = config.variant == BrickBreakerVariant.CLASSIC && noVisibleBricks(s)
         val timerExpired = config.variant == BrickBreakerVariant.CANNON_ARCADE && s.timerSeconds <= 0f
         val livesGone = config.variant == BrickBreakerVariant.ARCADE && brickAtBottom && s.lives <= 1
 
@@ -381,6 +422,7 @@ class BrickBreakerController {
             timerExpired = timerExpired,
             levelRowsCleared = levelRowsCleared,
             livesGone = livesGone,
+            visibleCleared = visibleCleared,
         )
     }
 
@@ -404,7 +446,8 @@ class BrickBreakerController {
         var bricks = state.bricks.toMutableList()
         val newDrops = mutableListOf<DroppingPowerUp>()
         var score = 0
-        val damage = if (state.hasPowerShot) config.baseDamage * 2 else config.baseDamage
+        val damage = (if (state.hasPowerShot) config.baseDamage * 2 else config.baseDamage) *
+                state.strength.coerceAtLeast(1)
         val radius = if (state.hasWideShot) BrickField.BALL_RADIUS * 2f else BrickField.BALL_RADIUS
 
         for (ball in state.balls) {
@@ -587,7 +630,7 @@ class BrickBreakerController {
                     r < 0.20f -> BrickType.POWERUP
                     else -> BrickType.STANDARD
                 }
-                val pu = if (type == BrickType.POWERUP) randomPowerUp(arcade = true) else null
+                val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
                 val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
                 Brick(col, 0, steelHp, steelHp, type, pu)
             } else null
@@ -595,23 +638,6 @@ class BrickBreakerController {
         // Shift existing bricks down by 1 conceptually via descentOffset — already handled.
         // For newly spawned rows, they appear at row 0 and the descent will move them.
         return state.copy(bricks = newBricks + state.bricks)
-    }
-
-    private fun collectArcadePowerUps(
-        state: BrickBreakerState,
-        config: BrickBreakerConfig,
-    ): BrickBreakerState {
-        val paddleLeft = state.paddleX - 0.06f
-        val paddleRight = state.paddleX + 0.06f
-        val paddleY = BrickField.CANNON_Y
-        val collected = mutableListOf<PowerUpType>()
-        val remaining = state.droppingPowerUps.filter { drop ->
-            val near = drop.pos.x in paddleLeft..paddleRight && abs(drop.pos.y - paddleY) < 0.05f
-            if (near) { collected += drop.type; false } else true
-        }
-        var s = state.copy(droppingPowerUps = remaining)
-        for (type in collected) s = applyPowerUp(s, config, type, s.paddleX, paddleY)
-        return s
     }
 
     // -------------------------------------------------------------------------
@@ -651,7 +677,34 @@ class BrickBreakerController {
             PowerUpType.WIDE_SHOT -> addOrRefreshPowerUp(state, type, config.wideShotDuration)
             PowerUpType.RAPID_FIRE -> addOrRefreshPowerUp(state, type, config.rapidFireDuration)
             PowerUpType.TIME_BONUS -> state.copy(timerSeconds = state.timerSeconds + config.timeBonusSeconds)
+            PowerUpType.EXTRA_BALL -> state.copy(ballCount = state.ballCount + 1)
+            PowerUpType.EXTRA_STRENGTH -> state.copy(strength = state.strength + 1)
         }
+    }
+
+    /**
+     * Apply a batch of instantly-collected power-ups (CLASSIC).  Only the
+     * ball / strength bank power-ups have an effect here; anything else is
+     * resolved through the normal drop path.
+     */
+    fun collectInstantly(state: BrickBreakerState, types: List<PowerUpType>): BrickBreakerState {
+        if (types.isEmpty()) return state
+        var ballCount = state.ballCount
+        var strength = state.strength
+        for (type in types) when (type) {
+            PowerUpType.EXTRA_BALL -> ballCount += 1
+            PowerUpType.EXTRA_STRENGTH -> strength += 1
+            else -> {}
+        }
+        return state.copy(ballCount = ballCount, strength = strength)
+    }
+
+    /** Award the ball / strength power-ups still sitting in off-screen rows. */
+    fun collectOffscreenPowerUps(state: BrickBreakerState): BrickBreakerState {
+        val pending = state.bricks
+            .filter { it.type == BrickType.POWERUP && it.powerUp != null }
+            .mapNotNull { it.powerUp }
+        return collectInstantly(state, pending)
     }
 
     private fun addOrRefreshPowerUp(
@@ -704,6 +757,10 @@ class BrickBreakerController {
 
     fun allBricksGone(state: BrickBreakerState): Boolean = state.bricks.isEmpty()
 
+    /** CLASSIC: true when no brick is currently on screen (row >= 0). */
+    fun noVisibleBricks(state: BrickBreakerState): Boolean =
+        state.bricks.none { it.row >= 0 }
+
     fun allTargetsDestroyed(state: BrickBreakerState): Boolean =
         state.bricks.none { it.type == BrickType.TARGET }
 
@@ -712,6 +769,16 @@ class BrickBreakerController {
 
     fun targetBrickCount(state: BrickBreakerState): Int =
         state.bricks.count { it.type == BrickType.TARGET }
+
+    /**
+     * Whether any brick sits within one row of the bottom boundary — i.e. the
+     * next descent would push it across the death line and end the game.
+     *
+     * [descentOffset] is the fractional real-time descent (ARCADE); pass 0 for
+     * the turn-based CLASSIC variant where bricks sink one whole row per turn.
+     */
+    fun bricksNearBoundary(state: BrickBreakerState, descentOffset: Float = 0f): Boolean =
+        state.bricks.any { it.row + descentOffset >= BrickField.ROWS - 1 }
 
     // -------------------------------------------------------------------------
     // Trajectory preview (for cannon variants)
