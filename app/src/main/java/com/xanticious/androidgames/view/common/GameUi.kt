@@ -86,14 +86,15 @@ fun VictoryPanel(
     stars: Int,
     onReplay: () -> Unit,
     onMenu: () -> Unit,
-    headline: String = "You Win!"
+    headline: String = "You Win!",
+    primaryLabel: String = "Replay"
 ) {
     ResultPanel(
         heading = headline,
         score = score,
         bestScore = bestScore,
         stars = stars,
-        primaryLabel = "Replay",
+        primaryLabel = primaryLabel,
         onPrimary = onReplay,
         onMenu = onMenu
     )

@@ -1,5 +1,10 @@
 package com.xanticious.androidgames.view.games.brickbreaker
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -100,6 +105,13 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val trajectoryPoints = remember(aimAngleDeg, paddleX) {
         controller.classicTrajectoryPreview(paddleX, aimAngleDeg)
     }
+    val bricksNearBoundary = controller.bricksNearBoundary(state)
+    val boundaryPulse by rememberInfiniteTransition(label = "boundaryPulse").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
+        label = "boundaryPulseValue",
+    )
 
     GameScaffold(
         title = "Brick Breaker",
@@ -124,6 +136,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                 when (phase) {
                     BrickBreakerPhase.AIM_PHASE -> {
                         // Cannon position slider.
+                        Text("Balls: ${config.volleySize}", style = MaterialTheme.typography.labelMedium)
                         Text("Position", style = MaterialTheme.typography.labelMedium)
                         Slider(
                             value = paddleX,
@@ -148,7 +161,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     }
                     BrickBreakerPhase.FIRE_PHASE -> {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Balls remaining: ${state.balls.size + state.ballsToFire}", style = MaterialTheme.typography.labelMedium)
+                            Text("Balls: ${state.balls.size + state.ballsToFire}", style = MaterialTheme.typography.labelMedium)
                             OutlinedButton(onClick = {
                                 state = state.copy(balls = emptyList(), ballsToFire = 0)
                                 machine.clearTapped()
@@ -173,6 +186,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             },
                             onMenu = onExit,
                             headline = "Level ${state.level} Clear!",
+                            primaryLabel = "Next Level",
                         )
                     }
                     BrickBreakerPhase.GAME_OVER -> {
@@ -197,6 +211,7 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCourt()
             drawBricks(state, textMeasurer)
+            drawBoundaryLine(danger = bricksNearBoundary, pulse = boundaryPulse)
             drawBalls(state)
             if (phase == BrickBreakerPhase.AIM_PHASE) {
                 drawTrajectory(trajectoryPoints)

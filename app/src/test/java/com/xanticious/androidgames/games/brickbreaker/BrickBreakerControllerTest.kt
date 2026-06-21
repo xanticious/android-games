@@ -271,6 +271,31 @@ class BrickBreakerControllerTest {
         assertFalse(atBottom)
     }
 
+    // ---- bricksNearBoundary ----
+
+    @Test
+    fun bricksNearBoundary_brickOnLastRow_returnsTrue() {
+        val state = BrickBreakerState(bricks = listOf(Brick(0, BrickField.ROWS - 1, 1, 1, BrickType.STANDARD)))
+        assertTrue(controller.bricksNearBoundary(state))
+    }
+
+    @Test
+    fun bricksNearBoundary_brickWellAbove_returnsFalse() {
+        val state = BrickBreakerState(bricks = listOf(Brick(0, 0, 1, 1, BrickType.STANDARD)))
+        assertFalse(controller.bricksNearBoundary(state))
+    }
+
+    @Test
+    fun bricksNearBoundary_noBricks_returnsFalse() {
+        assertFalse(controller.bricksNearBoundary(BrickBreakerState(bricks = emptyList())))
+    }
+
+    @Test
+    fun bricksNearBoundary_descentOffsetPushesBrickIntoDanger_returnsTrue() {
+        val state = BrickBreakerState(bricks = listOf(Brick(0, BrickField.ROWS - 2, 1, 1, BrickType.STANDARD)))
+        assertTrue(controller.bricksNearBoundary(state, descentOffset = 1f))
+    }
+
     // ---- allBricksGone ----
 
     @Test

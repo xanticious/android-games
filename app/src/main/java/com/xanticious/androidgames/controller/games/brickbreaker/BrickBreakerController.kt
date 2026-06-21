@@ -713,6 +713,16 @@ class BrickBreakerController {
     fun targetBrickCount(state: BrickBreakerState): Int =
         state.bricks.count { it.type == BrickType.TARGET }
 
+    /**
+     * Whether any brick sits within one row of the bottom boundary — i.e. the
+     * next descent would push it across the death line and end the game.
+     *
+     * [descentOffset] is the fractional real-time descent (ARCADE); pass 0 for
+     * the turn-based CLASSIC variant where bricks sink one whole row per turn.
+     */
+    fun bricksNearBoundary(state: BrickBreakerState, descentOffset: Float = 0f): Boolean =
+        state.bricks.any { it.row + descentOffset >= BrickField.ROWS - 1 }
+
     // -------------------------------------------------------------------------
     // Trajectory preview (for cannon variants)
     // -------------------------------------------------------------------------

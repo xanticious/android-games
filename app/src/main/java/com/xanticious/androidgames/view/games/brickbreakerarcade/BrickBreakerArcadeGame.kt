@@ -1,5 +1,10 @@
 package com.xanticious.androidgames.view.games.brickbreakerarcade
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,6 +42,7 @@ import com.xanticious.androidgames.view.common.VictoryPanel
 import com.xanticious.androidgames.view.games.brickbreaker.activePowerUpLabel
 import com.xanticious.androidgames.view.games.brickbreaker.drawBalls
 import com.xanticious.androidgames.view.games.brickbreaker.drawBottomPaddle
+import com.xanticious.androidgames.view.games.brickbreaker.drawBoundaryLine
 import com.xanticious.androidgames.view.games.brickbreaker.drawBricks
 import com.xanticious.androidgames.view.games.brickbreaker.drawCourt
 import com.xanticious.androidgames.view.games.brickbreaker.drawDroppingPowerUps
@@ -89,6 +95,13 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     }
 
     val textMeasurer = rememberTextMeasurer()
+    val bricksNearBoundary = controller.bricksNearBoundary(state, state.descentOffset)
+    val boundaryPulse by rememberInfiniteTransition(label = "boundaryPulse").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
+        label = "boundaryPulseValue",
+    )
 
     GameScaffold(
         title = "Brick Breaker Arcade",
@@ -146,6 +159,7 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             },
                             onMenu = onExit,
                             headline = "Level ${state.level} Clear!",
+                            primaryLabel = "Next Level",
                         )
                     }
                     BrickBreakerPhase.GAME_OVER -> {
@@ -169,6 +183,7 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCourt()
             drawBricks(state, textMeasurer, state.descentOffset)
+            drawBoundaryLine(danger = bricksNearBoundary, pulse = boundaryPulse)
             drawBalls(state)
             drawDroppingPowerUps(state)
             drawBottomPaddle(paddleX)

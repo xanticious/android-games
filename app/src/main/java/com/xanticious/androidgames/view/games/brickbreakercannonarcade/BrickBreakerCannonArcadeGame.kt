@@ -170,6 +170,7 @@ fun BrickBreakerCannonArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit)
                             },
                             onMenu = onExit,
                             headline = "Level ${state.level} Clear!",
+                            primaryLabel = "Next Level",
                         )
                     }
                     BrickBreakerPhase.GAME_OVER -> {
