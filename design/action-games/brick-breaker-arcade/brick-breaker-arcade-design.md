@@ -51,7 +51,7 @@ Same types as Brick Breaker (turn-based):
 - Steel bricks (introduced at higher levels).
 
 ### Power-Ups
-Power-up bricks drop one of two collectibles. The player collects them by sliding the cannon under the falling icon; collection instantly increments the matching HUD chip (no extra ball animation):
+Power-up bricks award one of two collectibles. Collection is **automatic**: destroying the power-up brick instantly grants the bonus (there is no falling icon to catch), incrementing the matching HUD chip (no extra ball animation):
 - **Extra Ball**: +1 to the player's ball bank.
 - **Extra Strength**: +1 to the damage multiplier (each ball deals more damage).
 
@@ -87,7 +87,7 @@ Playing
  ├─ BrickReachedBottom [lives > 0] → LifeLost
  ├─ BrickReachedBottom [lives == 0] → GameOver
  ├─ AllRowsGeneratedAndCleared → LevelComplete
- └─ PowerUpDropped → Playing (power-up floating)
+ └─ PowerUpCollected → Playing (bonus applied)
 LifeLost
  └─ RespawnDelay → Playing (bricks shifted up half a screen)
 LevelComplete

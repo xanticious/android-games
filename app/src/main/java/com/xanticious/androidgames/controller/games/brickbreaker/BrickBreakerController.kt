@@ -15,7 +15,6 @@ import com.xanticious.androidgames.model.games.brickbreaker.BrickType
 import com.xanticious.androidgames.model.games.brickbreaker.Brick
 import com.xanticious.androidgames.model.games.brickbreaker.DroppingPowerUp
 import com.xanticious.androidgames.model.games.brickbreaker.PowerUpType
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
@@ -366,15 +365,21 @@ class BrickBreakerController {
             bricks = newBricks,
             score = s.score + scoreGain,
         )
-        // CLASSIC collects power-ups instantly (no falling icon) — just bump the
-        // ball / strength counters.  Other variants let the icon drift down.
-        s = if (config.variant == BrickBreakerVariant.CLASSIC) {
-            collectInstantly(s, newDrops.map { it.type })
-        } else {
-            s.copy(droppingPowerUps = s.droppingPowerUps + newDrops)
+        // CLASSIC collects ball / strength power-ups instantly (no falling icon).
+        // ARCADE applies every power-up instantly at the destroyed brick — no
+        // catch-to-collect.  Remaining variants let the icon drift down.
+        s = when (config.variant) {
+            BrickBreakerVariant.CLASSIC -> collectInstantly(s, newDrops.map { it.type })
+            BrickBreakerVariant.ARCADE -> {
+                var t = s
+                for (drop in newDrops) t = applyPowerUp(t, config, drop.type, drop.pos.x, drop.pos.y)
+                t
+            }
+            else -> s.copy(droppingPowerUps = s.droppingPowerUps + newDrops)
         }
 
-        // ARCADE: descend bricks, spawn new rows, collect power-ups with paddle.
+        // ARCADE: descend bricks and spawn new rows (power-ups already collected
+        // instantly above when their brick was destroyed).
         var brickAtBottom = false
         var levelRowsCleared = false
         if (config.variant == BrickBreakerVariant.ARCADE) {
@@ -390,9 +395,6 @@ class BrickBreakerController {
             } else {
                 s = s.copy(nextRowTimer = rowTimer.coerceAtLeast(0f))
             }
-
-            // Collect dropping power-ups if paddle is nearby.
-            s = collectArcadePowerUps(s, config)
 
             // Level completion check.
             if (s.rowsGenerated >= s.totalRowsForLevel && s.bricks.isEmpty()) {
@@ -636,23 +638,6 @@ class BrickBreakerController {
         // Shift existing bricks down by 1 conceptually via descentOffset — already handled.
         // For newly spawned rows, they appear at row 0 and the descent will move them.
         return state.copy(bricks = newBricks + state.bricks)
-    }
-
-    private fun collectArcadePowerUps(
-        state: BrickBreakerState,
-        config: BrickBreakerConfig,
-    ): BrickBreakerState {
-        val paddleLeft = state.paddleX - 0.06f
-        val paddleRight = state.paddleX + 0.06f
-        val paddleY = BrickField.CANNON_Y
-        val collected = mutableListOf<PowerUpType>()
-        val remaining = state.droppingPowerUps.filter { drop ->
-            val near = drop.pos.x in paddleLeft..paddleRight && abs(drop.pos.y - paddleY) < 0.05f
-            if (near) { collected += drop.type; false } else true
-        }
-        var s = state.copy(droppingPowerUps = remaining)
-        for (type in collected) s = applyPowerUp(s, config, type, s.paddleX, paddleY)
-        return s
     }
 
     // -------------------------------------------------------------------------

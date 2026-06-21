@@ -556,6 +556,15 @@ class BrickBreakerControllerTest {
         val ball = Ball(pos = Vec2(brickCx, brickCy - 0.03f), vel = Vec2(0f, 0.5f))
         val state = BrickBreakerState(bricks = listOf(brick), balls = listOf(ball), ballsToFire = 0, ballCount = 20)
         val result = controller.step(state, config, 0.15f, BrickBreakerInput())
+    @Test
+    fun step_arcade_collectsPowerUpsInstantlyWithoutDroppingIcons() {
+        val config = controller.configFor(BrickBreakerVariant.ARCADE, GameDifficulty.EASY)
+        val brick = Brick(col = 4, row = 0, hp = 1, maxHp = 1, type = BrickType.POWERUP, powerUp = PowerUpType.EXTRA_BALL)
+        val brickCx = (brick.col + 0.5f) / BrickField.COLS.toFloat()
+        val brickCy = BrickField.TOP_MARGIN + brick.row * BrickField.ROW_HEIGHT + BrickField.ROW_HEIGHT / 2f
+        val ball = Ball(pos = Vec2(brickCx, brickCy - 0.03f), vel = Vec2(0f, 0.5f))
+        val state = BrickBreakerState(bricks = listOf(brick), balls = listOf(ball), ballCount = 20)
+        val result = controller.step(state, config, 0.15f, BrickBreakerInput())
         assertEquals(21, result.state.ballCount)
         assertTrue(result.state.droppingPowerUps.isEmpty())
     }
