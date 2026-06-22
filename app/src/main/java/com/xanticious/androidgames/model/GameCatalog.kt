@@ -80,7 +80,7 @@ object GameCatalog {
         game("shogi-lite", "Shogi Lite", GameCategory.STRATEGY),
         game("sim-city-blocks", "Sim City Blocks", GameCategory.EXPLORATION_CREATIVE),
         game("skyscrapers", "Skyscrapers", GameCategory.PUZZLE),
-        game("sliding-puzzle", "Sliding Puzzle", GameCategory.PUZZLE),
+        game("sliding-puzzle", "Sliding Puzzle", GameCategory.PUZZLE, released = true, selfConfigured = true),
         game("snakes-2d", "Snakes 2D", GameCategory.ACTION, released = true),
         game("sokoban", "Sokoban", GameCategory.PUZZLE),
         game("solitaire-klondike", "Solitaire (Klondike)", GameCategory.CARD),
