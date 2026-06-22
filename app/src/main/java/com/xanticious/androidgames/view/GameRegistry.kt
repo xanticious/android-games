@@ -13,6 +13,7 @@ import com.xanticious.androidgames.view.games.bubblespop.BubblesPopGame
 import com.xanticious.androidgames.view.games.bubblessnakearcade.BubblesPopSnakeArcadeGame
 import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
+import com.xanticious.androidgames.view.games.dominosa.DominosaGame
 import com.xanticious.androidgames.view.games.flood.FloodGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
@@ -27,6 +28,7 @@ import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
 import com.xanticious.androidgames.view.games.pipes.PipesGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
+import com.xanticious.androidgames.view.games.skyscrapers.SkyscrapersGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
 import com.xanticious.androidgames.view.games.sokoban.SokobanGame
 import com.xanticious.androidgames.view.games.sudokucolors.SudokuColorsGame
@@ -57,6 +59,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
     "drift-racer" to { difficulty, onExit -> DriftRacerGame(difficulty, onExit) },
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
+    "dominosa" to { difficulty, onExit -> DominosaGame(difficulty, onExit) },
     "flood" to { difficulty, onExit -> FloodGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
@@ -71,6 +74,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
     "pipes" to { difficulty, onExit -> PipesGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
+    "skyscrapers" to { difficulty, onExit -> SkyscrapersGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
     "sokoban" to { difficulty, onExit -> SokobanGame(difficulty, onExit) },
     "sudoku-colors" to { difficulty, onExit -> SudokuColorsGame(difficulty, onExit) },
