@@ -13,16 +13,21 @@ import com.xanticious.androidgames.view.games.bubblespop.BubblesPopGame
 import com.xanticious.androidgames.view.games.bubblessnakearcade.BubblesPopSnakeArcadeGame
 import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
+import com.xanticious.androidgames.view.games.flood.FloodGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.lightup.LightUpGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
+import com.xanticious.androidgames.view.games.nonogram.NonogramGame
+import com.xanticious.androidgames.view.games.numberlink.NumberlinkGame
 import com.xanticious.androidgames.view.games.mastermind.MastermindGame
 import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
 import com.xanticious.androidgames.view.games.pipes.PipesGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
+import com.xanticious.androidgames.view.games.sokoban.SokobanGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
 import com.xanticious.androidgames.view.games.twentyfortyeight.TwentyFortyEightGame
@@ -50,16 +55,21 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
     "drift-racer" to { difficulty, onExit -> DriftRacerGame(difficulty, onExit) },
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
+    "flood" to { difficulty, onExit -> FloodGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "light-up" to { difficulty, onExit -> LightUpGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "mastermind" to { difficulty, onExit -> MastermindGame(difficulty, onExit) },
     "minesweeper" to { difficulty, onExit -> MinesweeperGame(difficulty, onExit) },
+    "nonogram" to { difficulty, onExit -> NonogramGame(difficulty, onExit) },
+    "numberlink" to { difficulty, onExit -> NumberlinkGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
     "pipes" to { difficulty, onExit -> PipesGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
+    "sokoban" to { difficulty, onExit -> SokobanGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
     "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
     "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) }
