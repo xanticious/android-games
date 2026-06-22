@@ -201,13 +201,14 @@ object HeartsController {
     /**
      * Determine the winner of a complete (4-card) trick.
      * The highest card of the led suit wins; other suits cannot win.
+     * Uses [Rank.highValue] so Ace (14) beats King (13) — Ace is high in Hearts.
      */
     fun trickWinner(trick: List<TrickCard>): Seat {
         require(trick.size == 4) { "Trick must contain exactly 4 cards (got ${trick.size})" }
         val ledSuit = trick.first().card.suit
         return trick
             .filter { it.card.suit == ledSuit }
-            .maxBy { it.card.rank.value }
+            .maxBy { it.card.rank.highValue }
             .seat
     }
 

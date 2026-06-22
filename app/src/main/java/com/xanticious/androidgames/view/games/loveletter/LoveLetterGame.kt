@@ -550,9 +550,8 @@ private fun StatusSlot(
                             OutlinedButton(
                                 onClick = {
                                     if (card == LoveLetterCard.GUARD) {
-                                        // Need a second step for the guess
-                                        game.copy(pendingTargetIndex = targetIdx).let { /* handled below */ }
-                                        onCardPlayed(card, targetIdx, null)  // signal that target was picked
+                                        // Guard: set pending target so the guess UI appears next
+                                        onSetPendingTarget(targetIdx)
                                     } else {
                                         onCardPlayed(card, targetIdx, null)
                                     }
