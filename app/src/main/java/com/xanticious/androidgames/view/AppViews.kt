@@ -388,8 +388,8 @@ private fun GameListRow(game: GameDefinition, onClick: () -> Unit, onLongClick: 
                     contentDescription = "Favorite",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .size(16.dp)
                         .padding(end = 4.dp)
+                        .size(16.dp)
                 )
             }
             Text(text = game.name, style = MaterialTheme.typography.bodyMedium)
@@ -481,7 +481,7 @@ private fun gridViewIcon(): ImageVector =
         viewportHeight = 24f
     ).apply {
         val fill = SolidColor(Color.Black)
-        fun square(left: Float, top: Float) {
+        fun addSquare(left: Float, top: Float) {
             path(fill = fill) {
                 moveTo(left, top)
                 lineTo(left + 7f, top)
@@ -490,10 +490,10 @@ private fun gridViewIcon(): ImageVector =
                 close()
             }
         }
-        square(3f, 3f)
-        square(14f, 3f)
-        square(3f, 14f)
-        square(14f, 14f)
+        addSquare(3f, 3f)
+        addSquare(14f, 3f)
+        addSquare(3f, 14f)
+        addSquare(14f, 14f)
     }.build()
 
 private fun GameCategory.displayName(): String = when (this) {
