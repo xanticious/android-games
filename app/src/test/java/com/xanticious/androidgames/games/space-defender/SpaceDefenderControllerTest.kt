@@ -8,6 +8,8 @@ import com.xanticious.androidgames.model.games.spacedefender.EnemyBehavior
 import com.xanticious.androidgames.model.games.spacedefender.EnemyType
 import com.xanticious.androidgames.model.games.spacedefender.Projectile
 import com.xanticious.androidgames.model.games.spacedefender.ProjectileOwner
+import com.xanticious.androidgames.model.games.spacedefender.Shield
+import com.xanticious.androidgames.model.games.spacedefender.ShieldHealth
 import com.xanticious.androidgames.model.games.spacedefender.SpaceDefenderEvent
 import com.xanticious.androidgames.model.games.spacedefender.SpaceDefenderInput
 import com.xanticious.androidgames.model.games.spacedefender.SpaceDefenderState
@@ -360,5 +362,80 @@ class SpaceDefenderControllerTest {
     @Test
     fun starsEarned_wave6_returnsTwo() {
         assertEquals(2, controller.starsEarned(wave = 6, lives = 1))
+    }
+
+    // -----------------------------------------------------------------------
+    // Auto-fire pause during invincibility
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun step_autoFire_pausedWhenInvincible() {
+        val state = SpaceDefenderState.initial().copy(
+            autoFireTimer = 0f,
+            invincibilityTimer = 1.0f,
+            projectiles = emptyList()
+        )
+        val result = controller.step(state, config, dt = 0.01f, noInput)
+        assertFalse(result.state.projectiles.any { it.owner == ProjectileOwner.PLAYER })
+    }
+
+    @Test
+    fun step_autoFire_resumesWhenInvincibilityExpires() {
+        val state = SpaceDefenderState.initial().copy(
+            autoFireTimer = 0f,
+            invincibilityTimer = 0f,
+            projectiles = emptyList()
+        )
+        val result = controller.step(state, config, dt = 0.01f, noInput)
+        assertTrue(result.state.projectiles.any { it.owner == ProjectileOwner.PLAYER })
+    }
+
+    // -----------------------------------------------------------------------
+    // Shield invulnerability
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun step_shield_healthUnchanged_whenHitByEnemyProjectile() {
+        val shield = Shield(id = 0, position = Vec2(0.5f, 0.72f), health = ShieldHealth.FULL)
+        val proj = Projectile(
+            id = 0,
+            position = Vec2(0.5f, 0.72f),
+            velocity = Vec2(0f, 0.5f),
+            owner = ProjectileOwner.ENEMY
+        )
+        val state = SpaceDefenderState.initial().copy(
+            shields = listOf(shield),
+            projectiles = listOf(proj),
+            autoFireTimer = 99f
+        )
+        val result = controller.step(state, config, dt = 0.01f, noInput)
+        val remainingShield = result.state.shields.first()
+        assertEquals(ShieldHealth.FULL, remainingShield.health)
+    }
+
+    @Test
+    fun step_shield_absorbsEnemyProjectile_removesIt() {
+        val shield = Shield(id = 0, position = Vec2(0.5f, 0.72f), health = ShieldHealth.FULL)
+        val proj = Projectile(
+            id = 0,
+            position = Vec2(0.5f, 0.72f),
+            velocity = Vec2(0f, 0.5f),
+            owner = ProjectileOwner.ENEMY
+        )
+        val state = SpaceDefenderState.initial().copy(
+            shields = listOf(shield),
+            projectiles = listOf(proj),
+            autoFireTimer = 99f
+        )
+        val result = controller.step(state, config, dt = 0.01f, noInput)
+        assertFalse(result.state.projectiles.any { it.id == proj.id })
+    }
+
+    @Test
+    fun startNextWave_shieldsPreservedAcrossWaves() {
+        val shield = Shield(id = 0, position = Vec2(0.5f, 0.72f), health = ShieldHealth.FULL)
+        val state = SpaceDefenderState.initial().copy(wave = 1, shields = listOf(shield))
+        val next = controller.startNextWave(state, config)
+        assertEquals(listOf(shield), next.shields)
     }
 }

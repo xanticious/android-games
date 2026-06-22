@@ -1,9 +1,9 @@
 package com.xanticious.androidgames.view.games.spacedefender
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,8 +21,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.games.spacedefender.SpaceDefenderController
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.model.JoystickInput
@@ -48,11 +48,11 @@ import com.xanticious.androidgames.view.common.DefeatPanel
 import com.xanticious.androidgames.view.common.GameHud
 import com.xanticious.androidgames.view.common.GameLoop
 import com.xanticious.androidgames.view.common.GameScaffold
-import com.xanticious.androidgames.view.common.VirtualJoystick
 
 /**
  * Space Defender — defend against descending enemy waves using a sliding auto-firing cannon.
- * Entry composable wired to [GameDifficulty]; uses [GameScaffold] + [GameLoop] + [VirtualJoystick].
+ * Entry composable wired to [GameDifficulty]; uses [GameScaffold] + [GameLoop].
+ * Touch and drag anywhere on the screen to slide the ship.
  */
 @Composable
 fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
@@ -66,6 +66,8 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var waveIntroCountdown by remember { mutableStateOf(0f) }
     var waveCompleteTimer by remember { mutableStateOf(0f) }
     var bestScore by remember { mutableStateOf(0) }
+    var damageFlashTimer by remember { mutableStateOf(0f) }
+    var dragOriginX by remember { mutableStateOf<Float?>(null) }
 
     // Capture colors outside Canvas (DrawScope is not @Composable)
     val courtColor = GameCourt
@@ -92,6 +94,7 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     }
 
     GameLoop(running = phase == SpaceDefenderPhase.PLAYING || phase == SpaceDefenderPhase.WAVE_INTRO || phase == SpaceDefenderPhase.WAVE_COMPLETE) { dt ->
+        if (damageFlashTimer > 0f) damageFlashTimer = (damageFlashTimer - dt).coerceAtLeast(0f)
         when (phase) {
             SpaceDefenderPhase.WAVE_INTRO -> {
                 waveIntroCountdown -= dt
@@ -116,7 +119,11 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             waveCompleteTimer = 2.0f
                             machine.allEnemiesDestroyed()
                         }
+                        is SpaceDefenderEvent.PlayerHit -> {
+                            damageFlashTimer = DAMAGE_FLASH_DURATION
+                        }
                         is SpaceDefenderEvent.GameOver -> {
+                            damageFlashTimer = DAMAGE_FLASH_DURATION
                             if (gameState.score > bestScore) bestScore = gameState.score
                             machine.playerDied()
                         }
@@ -154,7 +161,24 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        val capturedDamageFlash = damageFlashTimer
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { pos -> dragOriginX = pos.x },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            val origin = dragOriginX ?: change.position.x.also { dragOriginX = it }
+                            val dx = ((change.position.x - origin) / (size.width * 0.35f)).coerceIn(-1f, 1f)
+                            joystickInput = JoystickInput(dx = dx, dy = 0f)
+                        },
+                        onDragEnd = { dragOriginX = null; joystickInput = JoystickInput.NONE },
+                        onDragCancel = { dragOriginX = null; joystickInput = JoystickInput.NONE }
+                    )
+                }
+        ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val w = size.width
                 val h = size.height
@@ -183,13 +207,20 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
                 // Player cannon
                 val invincible = gameState.isInvincible
+                val blink = invincible && (gameState.invincibilityTimer * 8f).toInt() % 2 == 0
                 drawPlayerCannon(
                     x = gameState.playerX * w,
                     y = SpaceDefenderState.PLAYER_Y * h,
                     w = w,
-                    color = if (invincible) playerColor.copy(alpha = 0.5f) else playerColor,
+                    color = if (blink) playerColor.copy(alpha = 0.15f) else playerColor,
                     accentColor = accentColor
                 )
+
+                // Damage flash overlay
+                if (capturedDamageFlash > 0f) {
+                    val alpha = (capturedDamageFlash / DAMAGE_FLASH_DURATION * 0.5f).coerceIn(0f, 0.5f)
+                    drawRect(color = Color.Red.copy(alpha = alpha), size = Size(w, h))
+                }
             }
 
             // Wave intro overlay (shows wave number briefly, non-blocking)
@@ -202,17 +233,15 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-
-            // Joystick — lower-left
-            VirtualJoystick(
-                onInput = { joystickInput = it },
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp)
-            )
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+private const val DAMAGE_FLASH_DURATION = 0.4f
 
 // ---------------------------------------------------------------------------
 // Canvas draw helpers (pure DrawScope — no @Composable, no MaterialTheme access)

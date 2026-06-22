@@ -2,15 +2,10 @@ package com.xanticious.androidgames.view.games.pong
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,8 +40,8 @@ import kotlin.random.Random
 
 /**
  * Pong — bat-and-ball court game (`design/action-games/pong`). Tap your half to
- * swing the bat; toggle forehand/backhand to angle the return. First to win
- * [com.xanticious.androidgames.model.games.pong.PongConfig.setsToWin] sets wins.
+ * swing the bat. First to win [com.xanticious.androidgames.model.games.pong.PongConfig.setsToWin]
+ * sets wins.
  */
 @Composable
 fun PongGame(difficulty: GameDifficulty, onExit: () -> Unit) {
@@ -56,7 +51,6 @@ fun PongGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by machine.phase.collectAsState()
 
     var state by remember { mutableStateOf(PongState.initial()) }
-    var stance by remember { mutableStateOf(Stance.FOREHAND) }
     var targetBatY by remember { mutableStateOf<Float?>(null) }
 
     LaunchedEffect(Unit) {
@@ -66,7 +60,7 @@ fun PongGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     }
 
     GameLoop(running = phase == PongPhase.PLAYING) { dt ->
-        val step = controller.step(state, config, dt, PongInput(targetBatY, swingRequested = false, stance = stance))
+        val step = controller.step(state, config, dt, PongInput(targetBatY, swingRequested = false, stance = Stance.FOREHAND))
         state = step.state
         if (step.event != PongEvent.NONE) {
             targetBatY = null
@@ -99,25 +93,8 @@ fun PongGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             )
         },
         status = {
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = stance == Stance.FOREHAND,
-                        onClick = { stance = Stance.FOREHAND },
-                        label = { Text("Forehand") }
-                    )
-                    FilterChip(
-                        selected = stance == Stance.BACKHAND,
-                        onClick = { stance = Stance.BACKHAND },
-                        label = { Text("Backhand") }
-                    )
-                    Text(
-                        "Tap your half to swing",
-                        modifier = Modifier.padding(start = 8.dp, top = 8.dp),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
-                if (phase == PongPhase.MATCH_OVER) {
+            if (phase == PongPhase.MATCH_OVER) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                     if (playerWon) {
                         VictoryPanel(
                             score = state.playerSets,
