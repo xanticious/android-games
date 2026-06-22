@@ -98,7 +98,7 @@ class BaseDefenseControllerTest {
     }
 
     @Test
-    fun upgradeCost_risesPerlevel() {
+    fun upgradeCost_risesPerLevel() {
         val cost0 = BaseDefenseController.upgradeCost(BaseTower.MORTAR, 0)
         val cost1 = BaseDefenseController.upgradeCost(BaseTower.MORTAR, 1)
         val cost2 = BaseDefenseController.upgradeCost(BaseTower.MORTAR, 2)
