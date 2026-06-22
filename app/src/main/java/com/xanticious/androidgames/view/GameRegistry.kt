@@ -16,11 +16,13 @@ import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
+import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
+import com.xanticious.androidgames.view.games.twentyfortyeight.TwentyFortyEightGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -49,8 +51,10 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
+    "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
-    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) }
+    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
+    "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) }
 )
