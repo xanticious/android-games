@@ -112,13 +112,14 @@ class BrickBreakerController {
             BrickBreakerVariant.CLASSIC -> generateClassicFeedBricks(level)
             BrickBreakerVariant.ARCADE -> generateArcadeBricks(level)
             BrickBreakerVariant.CANNON, BrickBreakerVariant.CANNON_ARCADE ->
-                generateCannonBricks(level)
+                settleCannonBricks(generateCannonBricks(level))
         }
         val turnsLeft = config.startingTurns + level
         val timerSecs = (config.startTimerSeconds - (level - 1) * 5f).coerceAtLeast(30f)
         return BrickBreakerState(
             bricks = bricks,
             level = level,
+            ballCount = 1,
             lives = config.livesStart,
             totalRowsForLevel = config.totalRowsForLevel,
             turnsLeft = turnsLeft,
@@ -143,6 +144,24 @@ class BrickBreakerController {
         repeat(totalRows) { i ->
             // i = 0 is the deepest on-screen row; higher i stacks upward/off screen.
             val row = (visible - 1) - i
+            // Every 3rd row is a sparse row containing only 1-2 bricks.
+            if (i % 3 == 2) {
+                val count = Random.nextInt(1, 3)
+                val chosenCols = (0 until cols).shuffled().take(count)
+                for (col in chosenCols) {
+                    val hp = Random.nextInt(1, maxHp + 1)
+                    val r = Random.nextFloat()
+                    val type = when {
+                        level >= useSteelFrom && r < 0.10f -> BrickType.STEEL
+                        r < 0.22f -> BrickType.POWERUP
+                        else -> BrickType.STANDARD
+                    }
+                    val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
+                    val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
+                    bricks += Brick(col, row, steelHp, steelHp, type, pu)
+                }
+                return@repeat
+            }
             repeat(cols) { col ->
                 if (Random.nextFloat() > 0.15f) {  // ~85% fill
                     val hp = Random.nextInt(1, maxHp + 1)
@@ -174,10 +193,10 @@ class BrickBreakerController {
                     val r = Random.nextFloat()
                     val type = when {
                         level >= useSteelFrom && r < 0.10f -> BrickType.STEEL
-                        r < 0.18f -> BrickType.POWERUP
+                        r < 0.045f -> BrickType.POWERUP
                         else -> BrickType.STANDARD
                     }
-                    val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
+                    val pu = if (type == BrickType.POWERUP) PowerUpType.EXTRA_STRENGTH else null
                     val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
                     bricks += Brick(col, row, steelHp, steelHp, type, pu)
                 }
@@ -186,33 +205,169 @@ class BrickBreakerController {
         return bricks
     }
 
+    /**
+     * Connected polyomino piece templates (cell offsets, origin at top-left).
+     * Sizes range from a single cell up to six connected cells, including
+     * rectangles and "C" / "S" / "L" / "T" silhouettes.
+     */
+    private val cannonPieceShapes: List<List<Pair<Int, Int>>> = listOf(
+        // 1x1
+        listOf(0 to 0),
+        // 1x2 vertical, 2x1 horizontal
+        listOf(0 to 0, 0 to 1),
+        listOf(0 to 0, 1 to 0),
+        // 1x3 vertical, 3x1 horizontal
+        listOf(0 to 0, 0 to 1, 0 to 2),
+        listOf(0 to 0, 1 to 0, 2 to 0),
+        // 1x4 vertical
+        listOf(0 to 0, 0 to 1, 0 to 2, 0 to 3),
+        // 2x2 square
+        listOf(0 to 0, 1 to 0, 0 to 1, 1 to 1),
+        // 2x3 rectangle
+        listOf(0 to 0, 1 to 0, 0 to 1, 1 to 1, 0 to 2, 1 to 2),
+        // L
+        listOf(0 to 0, 0 to 1, 0 to 2, 1 to 2),
+        // T
+        listOf(0 to 0, 1 to 0, 2 to 0, 1 to 1),
+        // S
+        listOf(1 to 0, 2 to 0, 0 to 1, 1 to 1),
+        // C / U
+        listOf(0 to 0, 0 to 1, 0 to 2, 1 to 2, 2 to 0, 2 to 1, 2 to 2),
+    )
+
     private fun generateCannonBricks(level: Int): List<Brick> {
         val maxHp = (level * 2).coerceAtMost(6)
         val cols = BrickField.COLS
-        val numRows = (2 + level).coerceAtMost(7)
-        val bricks = mutableListOf<Brick>()
-        val targetCount = (2 + level).coerceAtMost(8)
-        var targetsPlaced = 0
-        repeat(numRows) { row ->
-            repeat(cols) { col ->
-                if (col >= 2 && Random.nextFloat() > 0.20f) {  // right-side bricks
-                    val hp = Random.nextInt(1, maxHp + 1)
-                    val r = Random.nextFloat()
-                    val type = when {
-                        targetsPlaced < targetCount && r < 0.25f -> {
-                            targetsPlaced++; BrickType.TARGET
-                        }
-                        level >= 3 && r < 0.08f -> BrickType.STEEL
-                        r < 0.15f -> BrickType.POWERUP
-                        else -> BrickType.STANDARD
-                    }
-                    val pu = if (type == BrickType.POWERUP) randomPowerUpCannon() else null
-                    val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
-                    bricks += Brick(col, row, steelHp, steelHp, type, pu)
-                }
+        val bottomRow = BrickField.CANNON_BOTTOM_ROW
+        // Leave the leftmost columns clear so the cannon has firing room.
+        val firstCol = 2
+        val occupied = HashSet<Pair<Int, Int>>()
+        val raw = mutableListOf<Brick>()
+        val pieceCount = (2 + level).coerceAtMost(6)
+
+        repeat(pieceCount) {
+            val shape = cannonPieceShapes.random()
+            val shapeW = shape.maxOf { it.first } + 1
+            val shapeH = shape.maxOf { it.second } + 1
+            val maxCol = cols - shapeW
+            if (maxCol < firstCol) return@repeat
+            val baseCol = Random.nextInt(firstCol, maxCol + 1)
+            // Stack on top of whatever already occupies these columns.
+            val shapeCols = shape.map { baseCol + it.first }.distinct()
+            val highestOccupied = shapeCols.minOfOrNull { c ->
+                (0..bottomRow).firstOrNull { r -> occupied.contains(c to r) } ?: (bottomRow + 1)
+            } ?: (bottomRow + 1)
+            val bottomOfShape = highestOccupied - 1
+            val topRow = bottomOfShape - (shapeH - 1)
+            if (topRow < 0) return@repeat
+            val cells = shape.map { (baseCol + it.first) to (topRow + it.second) }
+            if (cells.any { occupied.contains(it) }) return@repeat
+            for ((c, r) in cells) {
+                occupied += c to r
+                raw += Brick(c, r, 1, 1, BrickType.STANDARD)
             }
         }
-        return bricks
+
+        // Assign HP and promote some bricks to TARGET / STEEL / POWERUP.
+        val targetCount = (1 + level).coerceAtMost(8)
+        val shuffled = raw.indices.shuffled()
+        val targetIdx = shuffled.take(targetCount).toHashSet()
+        return raw.mapIndexed { i, brick ->
+            val hp = Random.nextInt(1, maxHp + 1)
+            val rnd = Random.nextFloat()
+            val type = when {
+                i in targetIdx -> BrickType.TARGET
+                level >= 3 && rnd < 0.08f -> BrickType.STEEL
+                rnd < 0.12f -> BrickType.POWERUP
+                else -> BrickType.STANDARD
+            }
+            val pu = if (type == BrickType.POWERUP) randomPowerUpCannon() else null
+            val finalHp = if (type == BrickType.STEEL) hp * 2 else hp
+            brick.copy(hp = finalHp, maxHp = finalHp, type = type, powerUp = pu)
+        }
+    }
+
+    /**
+     * CANNON variants: pull every brick down to the ground.  Each connected
+     * group of bricks falls as a rigid body until one of its cells rests on the
+     * ground row or on top of another group, so breaking a lower brick lets the
+     * bricks above it fall.
+     */
+    fun settleCannonBricks(bricks: List<Brick>): List<Brick> {
+        if (bricks.isEmpty()) return bricks
+        val bottomRow = BrickField.CANNON_BOTTOM_ROW
+        var current = bricks
+        repeat(BrickField.ROWS * 2) {
+            val components = connectedComponents(current)
+            val occupied = HashMap<Pair<Int, Int>, Int>()
+            current.forEachIndexed { idx, b -> occupied[b.col to b.row] = idx }
+            // Map each brick index to its component id.
+            val componentOf = IntArray(current.size) { -1 }
+            components.forEachIndexed { cid, comp -> comp.forEach { componentOf[it] = cid } }
+
+            var moved = false
+            // Process components nearest the ground first.
+            val order = components.indices.sortedByDescending { cid ->
+                components[cid].maxOf { current[it].row }
+            }
+            val mutableState = current.toMutableList()
+            val occ = HashMap<Pair<Int, Int>, Int>().apply { putAll(occupied) }
+            for (cid in order) {
+                val members = components[cid]
+                val canMove = members.all { idx ->
+                    val b = mutableState[idx]
+                    if (b.row + 1 > bottomRow) return@all false
+                    val below = (b.col to (b.row + 1))
+                    val occupant = occ[below]
+                    occupant == null || componentOf[occupant] == cid
+                }
+                if (canMove) {
+                    members.forEach { idx -> occ.remove(mutableState[idx].col to mutableState[idx].row) }
+                    members.forEach { idx ->
+                        val b = mutableState[idx]
+                        mutableState[idx] = b.copy(row = b.row + 1)
+                        occ[mutableState[idx].col to mutableState[idx].row] = idx
+                    }
+                    moved = true
+                }
+            }
+            current = mutableState
+            if (!moved) return current
+        }
+        return current
+    }
+
+    /** 4-connected components of the brick grid, returned as lists of indices. */
+    private fun connectedComponents(bricks: List<Brick>): List<List<Int>> {
+        val cellToIndex = HashMap<Pair<Int, Int>, Int>()
+        bricks.forEachIndexed { idx, b -> cellToIndex[b.col to b.row] = idx }
+        val visited = BooleanArray(bricks.size)
+        val result = mutableListOf<List<Int>>()
+        for (start in bricks.indices) {
+            if (visited[start]) continue
+            val comp = mutableListOf<Int>()
+            val stack = ArrayDeque<Int>()
+            stack.addLast(start)
+            visited[start] = true
+            while (stack.isNotEmpty()) {
+                val cur = stack.removeLast()
+                comp += cur
+                val b = bricks[cur]
+                val neighbours = listOf(
+                    b.col - 1 to b.row, b.col + 1 to b.row,
+                    b.col to b.row - 1, b.col to b.row + 1,
+                )
+                for (n in neighbours) {
+                    val ni = cellToIndex[n] ?: continue
+                    if (!visited[ni]) {
+                        visited[ni] = true
+                        stack.addLast(ni)
+                    }
+                }
+            }
+            result += comp
+        }
+        return result
     }
 
 
@@ -278,9 +433,10 @@ class BrickBreakerController {
         val vy = -sin(rad)
         val speed = config.ballSpeed
         val damage = if (state.hasPowerShot) config.baseDamage * 2 else config.baseDamage
-        val primary = Ball(pos = Vec2(BrickField.CANNON_X, 0.5f), vel = Vec2(vx, vy) * speed)
+        val origin = Vec2(BrickField.CANNON_X, BrickField.GROUND_Y - BrickField.BALL_RADIUS)
+        val primary = Ball(pos = origin, vel = Vec2(vx, vy) * speed)
         val extra = if (state.hasMultiShot) {
-            listOf(Ball(pos = Vec2(BrickField.CANNON_X, 0.5f), vel = Vec2(vx, vy + 0.06f).normalized() * speed))
+            listOf(Ball(pos = origin, vel = Vec2(vx, vy + 0.06f).normalized() * speed))
         } else emptyList()
         return state.copy(
             balls = state.balls + primary + extra,
@@ -365,6 +521,12 @@ class BrickBreakerController {
             bricks = newBricks,
             score = s.score + scoreGain,
         )
+        // CANNON variants: gravity settles the towers after any brick is broken.
+        if (config.variant == BrickBreakerVariant.CANNON ||
+            config.variant == BrickBreakerVariant.CANNON_ARCADE
+        ) {
+            s = s.copy(bricks = settleCannonBricks(s.bricks))
+        }
         // CLASSIC collects ball / strength power-ups instantly (no falling icon).
         // ARCADE applies every power-up instantly at the destroyed brick — no
         // catch-to-collect.  Remaining variants let the icon drift down.
@@ -470,11 +632,17 @@ class BrickBreakerController {
 
             b = b.copy(pos = pos, vel = vel, bounces = bounces)
 
-            // Remove ball if it exits the bottom (or exceeds max bounces for cannon).
-            val exitBottom = b.pos.y > 1f + radius
-            val tooManyBounces = config.variant in listOf(BrickBreakerVariant.CANNON, BrickBreakerVariant.CANNON_ARCADE) &&
-                    b.bounces >= config.maxBounces
-            if (exitBottom || tooManyBounces) continue
+            val isCannon = config.variant == BrickBreakerVariant.CANNON ||
+                    config.variant == BrickBreakerVariant.CANNON_ARCADE
+            // CANNON variants terminate when the ball reaches the ground line;
+            // until then it keeps bouncing off the right wall and ceiling.
+            // Other variants terminate when the ball exits the bottom.
+            val exitBottom = if (isCannon) {
+                b.pos.y > BrickField.GROUND_Y
+            } else {
+                b.pos.y > 1f + radius
+            }
+            if (exitBottom) continue
 
             // Brick collisions.
             val (newBall, newBricks, drops, pts) = collideBall(b, bricks, config, damage, radius)
@@ -519,13 +687,25 @@ class BrickBreakerController {
             val brickTop = top + brick.row * rowH
             val brickBottom = brickTop + rowH - pad
 
-            // Nearest point on brick rect to ball center.
-            val nearX = b.pos.x.coerceIn(left, right)
-            val nearY = b.pos.y.coerceIn(brickTop, brickBottom)
+            // Treat the brick as a rounded rectangle: clamp the ball centre to an
+            // inner rectangle inset by the corner radius, then collide against a
+            // surface that sits [cr] beyond it.  Grazing a corner yields a
+            // diagonal normal, so the ball bounces off at an angle.
+            val cr = BrickField.BRICK_CORNER_RADIUS
+            val midX = (left + right) / 2f
+            val midY = (brickTop + brickBottom) / 2f
+            val innerLeft = (left + cr).coerceAtMost(midX)
+            val innerRight = (right - cr).coerceAtLeast(midX)
+            val innerTop = (brickTop + cr).coerceAtMost(midY)
+            val innerBottom = (brickBottom - cr).coerceAtLeast(midY)
+
+            val nearX = b.pos.x.coerceIn(innerLeft, innerRight)
+            val nearY = b.pos.y.coerceIn(innerTop, innerBottom)
             val dx = b.pos.x - nearX
             val dy = b.pos.y - nearY
             val distSq = dx * dx + dy * dy
-            if (distSq >= radius * radius) continue
+            val reach = radius + cr
+            if (distSq >= reach * reach) continue
 
             // Determine collision normal.
             val normal = if (distSq < 1e-10f) Vec2(0f, -1f) else Vec2(dx, dy).normalized()
@@ -533,7 +713,7 @@ class BrickBreakerController {
 
             // Push ball outside brick.
             val dist = kotlin.math.sqrt(distSq)
-            val push = radius - dist + 0.001f
+            val push = reach - dist + 0.001f
             b = b.copy(pos = b.pos + normal * push)
 
             // Steel bricks: standard damage only works if PowerShot is active.
@@ -627,10 +807,10 @@ class BrickBreakerController {
                 val r = Random.nextFloat()
                 val type = when {
                     level >= 4 && r < 0.10f -> BrickType.STEEL
-                    r < 0.20f -> BrickType.POWERUP
+                    r < 0.05f -> BrickType.POWERUP
                     else -> BrickType.STANDARD
                 }
-                val pu = if (type == BrickType.POWERUP) randomBallStrengthPowerUp() else null
+                val pu = if (type == BrickType.POWERUP) PowerUpType.EXTRA_STRENGTH else null
                 val steelHp = if (type == BrickType.STEEL) hp * 2 else hp
                 Brick(col, 0, steelHp, steelHp, type, pu)
             } else null
@@ -791,18 +971,17 @@ class BrickBreakerController {
     fun trajectoryPreview(config: BrickBreakerConfig, angleDeg: Float): List<Vec2> {
         val points = mutableListOf<Vec2>()
         val rad = Math.toRadians(angleDeg.toDouble().coerceIn(5.0, 85.0)).toFloat()
-        var pos = Vec2(BrickField.CANNON_X, 0.5f)
+        var pos = Vec2(BrickField.CANNON_X, BrickField.GROUND_Y - BrickField.BALL_RADIUS)
         var vel = Vec2(cos(rad), -sin(rad)) * config.ballSpeed
         val dt = 0.015f
-        var bounces = 0
         repeat(300) {
             vel = Vec2(vel.x, vel.y + config.gravity * dt)
             pos += vel * dt
-            if (pos.x < BrickField.BALL_RADIUS) { pos = Vec2(BrickField.BALL_RADIUS, pos.y); vel = Vec2(-vel.x, vel.y); bounces++ }
-            if (pos.x > 1f - BrickField.BALL_RADIUS) { pos = Vec2(1f - BrickField.BALL_RADIUS, pos.y); vel = Vec2(-vel.x, vel.y); bounces++ }
-            if (pos.y < BrickField.BALL_RADIUS) { pos = Vec2(pos.x, BrickField.BALL_RADIUS); vel = Vec2(vel.x, -vel.y); bounces++ }
+            if (pos.x < BrickField.BALL_RADIUS) { pos = Vec2(BrickField.BALL_RADIUS, pos.y); vel = Vec2(-vel.x, vel.y) }
+            if (pos.x > 1f - BrickField.BALL_RADIUS) { pos = Vec2(1f - BrickField.BALL_RADIUS, pos.y); vel = Vec2(-vel.x, vel.y) }
+            if (pos.y < BrickField.BALL_RADIUS) { pos = Vec2(pos.x, BrickField.BALL_RADIUS); vel = Vec2(vel.x, -vel.y) }
             points += pos
-            if (pos.y > 1f || bounces >= config.maxBounces) return points
+            if (pos.y > BrickField.GROUND_Y) return points
         }
         return points
     }

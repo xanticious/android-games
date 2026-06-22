@@ -150,12 +150,12 @@ fun BrickBreakerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                             valueRange = 0.05f..0.95f,
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        // Angle slider.
+                        // Angle slider (inverted so dragging left aims left).
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Angle ${aimAngleDeg.toInt()}°", style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
                             Slider(
-                                value = aimAngleDeg,
-                                onValueChange = { aimAngleDeg = it },
+                                value = 180f - aimAngleDeg,
+                                onValueChange = { aimAngleDeg = 180f - it },
                                 valueRange = 10f..170f,
                                 modifier = Modifier.weight(2f),
                             )
