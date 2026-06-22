@@ -8,7 +8,7 @@ A high-definition reimagining of the classic arcade game with updated movement c
 - Deep space background: layered parallax starfields (2–3 layers at different scroll speeds).
 - Asteroids have distinct visual tiers by size: large (3 segments), medium (2 segments), small (1 segment). Each tier has a cracked, rocky texture.
 - Explosions emit a burst of rock-fragment particles matching the asteroid's color.
-- Beacon: glowing pulsing orb with a distinct accent color. Pulses faster as the collection timer approaches.
+- Beacon: glowing pulsing orb with a distinct accent color.
 - Ship: sleek silhouette with a faint engine trail particle stream.
 
 ## Screen Layout
@@ -47,10 +47,14 @@ A high-definition reimagining of the classic arcade game with updated movement c
 - There is no tap-to-fire. The ship fires automatically on a fixed cadence.
 - Each shot targets the **nearest asteroid** (wrap-aware), regardless of ship heading.
 - Projectiles are large (visually prominent) and travel at a moderate speed.
+- Projectiles fade out after travelling a fixed distance across the field.
+- Autofire **pauses** during the post-damage teleport/freeze animation.
 
 ### Taking Damage — Teleport to Safety
 - On any asteroid collision the ship **teleports** into a large gap between asteroids and its
   velocity is clamped down to min speed.
+- The ship's **collision boundary is tighter than its bounding circle** so it hugs the rendered
+  triangular sprite — asteroids must visibly touch the ship to count as a hit.
 - Asteroids **freeze** for ~2 seconds during the teleport/damage animation before play resumes.
 - The mode timer (for timed modes) does **not** pause during this freeze.
 
@@ -71,14 +75,17 @@ ship to safety, but no life is lost.
 ### Level Structure
 Each level is an asteroid field. The objective is to collect 5 beacons.
 
-1. **Beacon 1** spawns 10 seconds after the level begins at a random position in the field.
-2. **Beacons 2–5** each spawn 10 seconds after the previous beacon is collected.
+1. **Beacon 1** is already on the field when the level begins, at a random position.
+2. **Beacons 2–5** each appear immediately when the previous beacon is collected — there is no
+   spawn delay; exactly one beacon is on the field at any time until all five are collected.
 3. Collecting a beacon (touching it with the ship) triggers an area-of-effect explosion:
    - All asteroids within a radius of ~25% of the screen's shorter dimension take 1 damage.
    - Large asteroids (3 HP) that reach 0 HP split into 2 Medium asteroids.
    - Medium asteroids (2 HP) that reach 0 HP split into 2 Small asteroids.
    - Small asteroids (1 HP) that reach 0 HP are destroyed.
-4. After all 5 beacons are collected, the level ends.
+4. The field keeps refilling with a fresh wave of large asteroids whenever it is cleared, until
+   all 5 beacons are collected.
+5. After all 5 beacons are collected, the level ends.
 
 ### Asteroids
 - Three sizes: Large, Medium, Small.
@@ -110,19 +117,21 @@ Each level is an asteroid field. The objective is to collect 5 beacons.
 ## Difficulty Scaling
 - Asteroid count increases each level.
 - Asteroid drift speed increases slightly each level (capped at 1.5× initial speed by level 5).
-- Beacon spawn time remains constant at 10 seconds between beacons regardless of level.
+- Asteroids keep respawning within a level until all 5 beacons are collected.
 
 ## State Machine (per-game)
 ```
 Idle
  └─ GameStarted → Setup
-Setup (choose knob placement + game mode)
+Setup (one screen: difficulty + knob placement + game mode + How to Play + Start)
+ ├─ OpenHowToPlay → HowToPlay
  └─ ConfigConfirmed → Spawning
+HowToPlay
+ └─ BackToSetup → Setup
 Spawning
  └─ FieldReady → Playing
 Playing
- ├─ BeaconSpawn → Playing (beacon appears on field)
- ├─ BeaconCollected → Playing (explosion fires, next beacon timer starts)
+ ├─ BeaconCollected → Playing (explosion fires, next beacon appears immediately)
  ├─ PlayerHit → Playing (teleport to safety + asteroid freeze; no phase change)
  ├─ AllBeaconsCollected → LevelComplete
  └─ GameEnded → GameOver        (out of lives, or time expired)
@@ -132,6 +141,12 @@ LevelComplete
 GameOver
  └─ Retry → Spawning
 ```
+
+## Settings & How to Play
+- Asteroids owns its full settings flow inside its own composable (`selfConfigured = true` in the
+  catalog), so the lobby launches it directly and the shared game-settings screen is skipped.
+- A single Setup screen collects **difficulty**, **knob placement**, and **game mode**, and offers
+  **How to Play** and **Start Game** buttons.
 
 ## Victory / Defeat
 - See `design/common/victory-defeat.md`.

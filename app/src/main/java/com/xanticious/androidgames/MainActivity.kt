@@ -36,7 +36,14 @@ class MainActivity : ComponentActivity() {
                         controller = lobbyController,
                         onOpenProfiles = stateMachine::openProfiles,
                         onOpenSettings = stateMachine::openAppSettings,
-                        onOpenGame = stateMachine::openGameSettings
+                        onOpenGame = { gameId ->
+                            val def = GameCatalog.allGames.firstOrNull { it.id == gameId }
+                            if (def?.selfConfigured == true) {
+                                stateMachine.launchGame(gameId)
+                            } else {
+                                stateMachine.openGameSettings(gameId)
+                            }
+                        }
                     )
 
                     AppScreen.Profiles -> ProfilesView(onBack = stateMachine::backToLobby)
@@ -57,7 +64,12 @@ class MainActivity : ComponentActivity() {
                     is AppScreen.GameStub -> {
                         val game = actionGameRegistry[current.gameId]
                         if (game != null) {
-                            game(current.difficulty) { stateMachine.backToGameSettings() }
+                            val selfConfigured = GameCatalog.allGames
+                                .firstOrNull { it.id == current.gameId }?.selfConfigured == true
+                            val onExit: () -> Unit =
+                                if (selfConfigured) stateMachine::backToLobby
+                                else stateMachine::backToGameSettings
+                            game(current.difficulty, onExit)
                         } else {
                             GameStubView(
                                 gameName = gameName(current.gameId),

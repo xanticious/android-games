@@ -5,7 +5,7 @@ object GameCatalog {
         game("age-of-empires-lite", "Age of Empires Lite", GameCategory.RTS),
         game("anagrams", "Anagrams", GameCategory.WORD),
         game("anagrams-arcade", "Anagrams (Arcade)", GameCategory.WORD),
-        game("asteroids", "Asteroids", GameCategory.ACTION, released = true),
+        game("asteroids", "Asteroids", GameCategory.ACTION, released = true, selfConfigured = true),
         game("brick-breaker", "Brick Breaker", GameCategory.ACTION, released = true),
         game("brick-breaker-arcade", "Brick Breaker (Arcade)", GameCategory.ACTION, released = true),
         game("brick-breaker-cannon", "Brick Breaker (Cannon)", GameCategory.ACTION, released = true),
@@ -134,7 +134,8 @@ object GameCatalog {
         id: String,
         name: String,
         category: GameCategory,
-        released: Boolean = false
+        released: Boolean = false,
+        selfConfigured: Boolean = false
     ): GameDefinition =
-        GameDefinition(id = id, name = name, category = category, released = released)
+        GameDefinition(id = id, name = name, category = category, released = released, selfConfigured = selfConfigured)
 }
