@@ -20,6 +20,18 @@ import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
+import com.xanticious.androidgames.view.games.anagrams.AnagramsGame
+import com.xanticious.androidgames.view.games.anagramsarcade.AnagramsArcadeGame
+import com.xanticious.androidgames.view.games.boggle.BoggleGame
+import com.xanticious.androidgames.view.games.letterdrop.LetterDropGame
+import com.xanticious.androidgames.view.games.scrabble.ScrabbleGame
+import com.xanticious.androidgames.view.games.scrabblechallenge.ScrabbleSinglePlayerChallengeGame
+import com.xanticious.androidgames.view.games.typingsprint.TypingSprintGame
+import com.xanticious.androidgames.view.games.wordchain.WordChainGame
+import com.xanticious.androidgames.view.games.wordladder.WordLadderGame
+import com.xanticious.androidgames.view.games.wordle.WordleGame
+import com.xanticious.androidgames.view.games.wordsearch.WordSearchGame
+import com.xanticious.androidgames.view.games.wordslices.WordSlicesGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -50,5 +62,17 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
-    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) }
+    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
+    "anagrams" to { difficulty, onExit -> AnagramsGame(difficulty, onExit) },
+    "anagrams-arcade" to { difficulty, onExit -> AnagramsArcadeGame(difficulty, onExit) },
+    "boggle" to { difficulty, onExit -> BoggleGame(difficulty, onExit) },
+    "letter-drop" to { difficulty, onExit -> LetterDropGame(difficulty, onExit) },
+    "scrabble" to { difficulty, onExit -> ScrabbleGame(difficulty, onExit) },
+    "scrabble-single-player-challenge" to { difficulty, onExit -> ScrabbleSinglePlayerChallengeGame(difficulty, onExit) },
+    "typing-sprint" to { difficulty, onExit -> TypingSprintGame(difficulty, onExit) },
+    "word-chain" to { difficulty, onExit -> WordChainGame(difficulty, onExit) },
+    "word-ladder" to { difficulty, onExit -> WordLadderGame(difficulty, onExit) },
+    "word-search" to { difficulty, onExit -> WordSearchGame(difficulty, onExit) },
+    "wordle" to { difficulty, onExit -> WordleGame(difficulty, onExit) },
+    "word-slices" to { difficulty, onExit -> WordSlicesGame(difficulty, onExit) }
 )

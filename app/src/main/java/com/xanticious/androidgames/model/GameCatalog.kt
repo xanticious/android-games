@@ -3,8 +3,8 @@ package com.xanticious.androidgames.model
 object GameCatalog {
     val allGames: List<GameDefinition> = listOf(
         game("age-of-empires-lite", "Age of Empires Lite", GameCategory.RTS),
-        game("anagrams", "Anagrams", GameCategory.WORD),
-        game("anagrams-arcade", "Anagrams (Arcade)", GameCategory.WORD),
+        game("anagrams", "Anagrams", GameCategory.WORD, released = true, selfConfigured = true),
+        game("anagrams-arcade", "Anagrams (Arcade)", GameCategory.WORD, released = true, selfConfigured = true),
         game("asteroids", "Asteroids", GameCategory.ACTION, released = true, selfConfigured = true),
         game("brick-breaker", "Brick Breaker", GameCategory.ACTION, released = true),
         game("brick-breaker-arcade", "Brick Breaker (Arcade)", GameCategory.ACTION, released = true),
@@ -12,7 +12,7 @@ object GameCatalog {
         game("brick-breaker-cannon-arcade", "Brick Breaker (Cannon Arcade)", GameCategory.ACTION, released = true),
         game("backgammon", "Backgammon", GameCategory.BOARD),
         game("battleships", "Battleships", GameCategory.STRATEGY),
-        game("boggle", "Boggle", GameCategory.WORD),
+        game("boggle", "Boggle", GameCategory.WORD, released = true, selfConfigured = true),
         game("bubbles-pop", "Bubbles Pop", GameCategory.ACTION, released = true),
         game("bubbles-pop-arcade", "Bubbles Pop (Arcade)", GameCategory.ACTION, released = true),
         game("bubbles-pop-snake-arcade", "Bubbles Pop Snake (Arcade)", GameCategory.ACTION, released = true),
@@ -35,7 +35,7 @@ object GameCatalog {
         game("melody-master", "Melody Master", GameCategory.RHYTHM),
         game("morse-code", "Morse Code", GameCategory.RHYTHM),
         game("morse-decoder", "Morse Decoder", GameCategory.RHYTHM),
-        game("word-slices", "Word Slices", GameCategory.WORD),
+        game("word-slices", "Word Slices", GameCategory.WORD, released = true, selfConfigured = true),
         game("hearts", "Hearts", GameCategory.CARD),
         game("hex", "Hex", GameCategory.STRATEGY),
         game("hidden-objects", "Hidden Objects", GameCategory.SEARCH),
@@ -44,7 +44,7 @@ object GameCatalog {
         game("idle-factory", "Idle Factory", GameCategory.IDLE),
         game("idle-farm", "Idle Farm", GameCategory.IDLE),
         game("jigsaw", "Jigsaw", GameCategory.PUZZLE),
-        game("letter-drop", "Letter Drop", GameCategory.WORD),
+        game("letter-drop", "Letter Drop", GameCategory.WORD, released = true, selfConfigured = true),
         game("light-up", "Light Up", GameCategory.PUZZLE),
         game("logic-grid", "Logic Grid", GameCategory.PUZZLE),
         game("love-letter", "Love Letter", GameCategory.BOARD),
@@ -74,8 +74,8 @@ object GameCatalog {
         game("reversi", "Reversi", GameCategory.STRATEGY),
         game("helicopter-dogfight", "Helicopter Dogfight", GameCategory.ACTION, released = true),
         game("pirate-treasure-maze", "Pirate Treasure Maze", GameCategory.SEARCH),
-        game("scrabble", "Scrabble", GameCategory.WORD),
-        game("scrabble-single-player-challenge", "Scrabble Single Player Challenge", GameCategory.WORD),
+        game("scrabble", "Scrabble", GameCategory.WORD, released = true, selfConfigured = true),
+        game("scrabble-single-player-challenge", "Scrabble Single Player Challenge", GameCategory.WORD, released = true, selfConfigured = true),
         game("pair-collector", "Pair Collector", GameCategory.SEARCH),
         game("shogi-lite", "Shogi Lite", GameCategory.STRATEGY),
         game("sim-city-blocks", "Sim City Blocks", GameCategory.EXPLORATION_CREATIVE),
@@ -101,10 +101,10 @@ object GameCatalog {
         game("treasure-mapper", "Treasure Mapper", GameCategory.SEARCH),
         game("trivia-blitz", "Trivia Blitz", GameCategory.EDUCATIONAL),
         game("twenty-forty-eight", "2048", GameCategory.PUZZLE),
-        game("word-chain", "Word Chain", GameCategory.WORD),
-        game("word-ladder", "Word Ladder", GameCategory.WORD),
-        game("word-search", "Word Search", GameCategory.SEARCH),
-        game("wordle", "Wordle", GameCategory.WORD),
+        game("word-chain", "Word Chain", GameCategory.WORD, released = true, selfConfigured = true),
+        game("word-ladder", "Word Ladder", GameCategory.WORD, released = true, selfConfigured = true),
+        game("word-search", "Word Search", GameCategory.SEARCH, released = true, selfConfigured = true),
+        game("wordle", "Wordle", GameCategory.WORD, released = true, selfConfigured = true),
         game("hidden-object", "Hidden Object", GameCategory.SEARCH),
         game("yahtzee", "Yahtzee", GameCategory.DICE),
         game("yatzy", "Yatzy", GameCategory.DICE),
@@ -127,7 +127,7 @@ object GameCatalog {
         game("deck-builder-fleet", "Deck Builder Fleet", GameCategory.CARD),
         game("ludo", "Ludo", GameCategory.BOARD),
         game("reaction-speed", "Reaction Speed", GameCategory.RHYTHM),
-        game("typing-sprint", "Typing Sprint", GameCategory.EDUCATIONAL)
+        game("typing-sprint", "Typing Sprint", GameCategory.EDUCATIONAL, released = true, selfConfigured = true)
     )
 
     private fun game(
