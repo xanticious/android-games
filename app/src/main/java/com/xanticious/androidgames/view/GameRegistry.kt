@@ -3,7 +3,19 @@ package com.xanticious.androidgames.view
 import androidx.compose.runtime.Composable
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.view.games.asteroids.AsteroidsGame
+import com.xanticious.androidgames.view.games.battleships.BattleshipsGame
 import com.xanticious.androidgames.view.games.bombergrid.BomberGridGame
+import com.xanticious.androidgames.view.games.checkers.CheckersGame
+import com.xanticious.androidgames.view.games.chinesecheckers.ChineseCheckersGame
+import com.xanticious.androidgames.view.games.connectfour.ConnectFourGame
+import com.xanticious.androidgames.view.games.dominoes.DominoesGame
+import com.xanticious.androidgames.view.games.gomoku.GomokuGame
+import com.xanticious.androidgames.view.games.hex.HexGame
+import com.xanticious.androidgames.view.games.memory.MemoryGame
+import com.xanticious.androidgames.view.games.reversi.ReversiGame
+import com.xanticious.androidgames.view.games.tictactoe.TicTacToeGame
+import com.xanticious.androidgames.view.games.yahtzee.YahtzeeGame
+import com.xanticious.androidgames.view.games.zilch.ZilchGame
 import com.xanticious.androidgames.view.games.brickbreaker.BrickBreakerGame
 import com.xanticious.androidgames.view.games.brickbreakerarcade.BrickBreakerArcadeGame
 import com.xanticious.androidgames.view.games.brickbreakercannon.BrickBreakerCannonGame
@@ -34,6 +46,7 @@ import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
  */
 val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> Unit> = mapOf(
     "asteroids" to { difficulty, onExit -> AsteroidsGame(difficulty, onExit) },
+    "battleships" to { difficulty, onExit -> BattleshipsGame(difficulty, onExit) },
     "bomber-grid" to { difficulty, onExit -> BomberGridGame(difficulty, onExit) },
     "brick-breaker" to { difficulty, onExit -> BrickBreakerGame(difficulty, onExit) },
     "brick-breaker-arcade" to { difficulty, onExit -> BrickBreakerArcadeGame(difficulty, onExit) },
@@ -42,13 +55,24 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "bubbles-pop" to { difficulty, onExit -> BubblesPopGame(difficulty, onExit) },
     "bubbles-pop-arcade" to { difficulty, onExit -> BubblesPopArcadeGame(difficulty, onExit) },
     "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
+    "checkers" to { difficulty, onExit -> CheckersGame(difficulty, onExit) },
+    "chinese-checkers" to { difficulty, onExit -> ChineseCheckersGame(difficulty, onExit) },
+    "connect-four" to { difficulty, onExit -> ConnectFourGame(difficulty, onExit) },
+    "dominoes" to { difficulty, onExit -> DominoesGame(difficulty, onExit) },
     "drift-racer" to { difficulty, onExit -> DriftRacerGame(difficulty, onExit) },
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
+    "gomoku" to { difficulty, onExit -> GomokuGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
+    "hex" to { difficulty, onExit -> HexGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "memory" to { difficulty, onExit -> MemoryGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
+    "reversi" to { difficulty, onExit -> ReversiGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
-    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) }
+    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
+    "tic-tac-toe" to { difficulty, onExit -> TicTacToeGame(difficulty, onExit) },
+    "yahtzee" to { difficulty, onExit -> YahtzeeGame(difficulty, onExit) },
+    "zilch" to { difficulty, onExit -> ZilchGame(difficulty, onExit) }
 )
