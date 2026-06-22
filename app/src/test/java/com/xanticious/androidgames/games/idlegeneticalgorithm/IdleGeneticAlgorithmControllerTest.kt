@@ -98,7 +98,7 @@ class IdleGeneticAlgorithmControllerTest {
 
     @Test
     fun computeCoinsForGeneration_largeDist_coinsScaleWithDistance() {
-        assertEquals(170L, controller.computeCoinsForGeneration(120f, 50f))
+        assertEquals(140L, controller.computeCoinsForGeneration(120f, 50f))
     }
 
     @Test

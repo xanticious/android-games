@@ -146,8 +146,8 @@ class IdleGeneticAlgorithmController {
         val fuelDuration = DEFAULT_FUEL_DURATION +
             if (GaUpgradeId.EXTENDED_FUEL_TANK in upgradeIds) 4f else 0f
         val maxSpeed = 15f +
-            if (GaUpgradeId.HIGHER_TOP_SPEED in upgradeIds) 5f else 0f +
-            if (GaUpgradeId.EFFICIENT_ENGINE in upgradeIds) 3f else 0f
+            (if (GaUpgradeId.HIGHER_TOP_SPEED in upgradeIds) 5f else 0f) +
+            (if (GaUpgradeId.EFFICIENT_ENGINE in upgradeIds) 3f else 0f)
         val reinforcedFrame = GaUpgradeId.REINFORCED_FRAME in upgradeIds
         val shockAbsorbers = GaUpgradeId.SHOCK_ABSORBERS in upgradeIds
         val trackEnd = track.lastOrNull()?.x ?: 0f
