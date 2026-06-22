@@ -1,6 +1,7 @@
 package com.xanticious.androidgames.view.games.bubblessnakearcade
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.games.bubblespop.BubblesPopController
 import com.xanticious.androidgames.model.GameDifficulty
@@ -63,6 +65,8 @@ fun BubblesPopSnakeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by machine.phase.collectAsState()
 
     var gameState by remember { mutableStateOf(controller.initialSnakeState(config)) }
+    var boardAspect by remember { mutableStateOf(1f) }
+    var sized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { machine.startGame() }
 
@@ -118,7 +122,7 @@ fun BubblesPopSnakeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                         bestScore = bestScore,
                         stars = starsSnake(gameState.score, gameState.level),
                         onReplay = {
-                            gameState = controller.initialSnakeState(config)
+                            gameState = controller.initialSnakeState(config, aspect = boardAspect)
                             machine.resetGame(); machine.startGame()
                         },
                         onMenu = onExit,
@@ -133,7 +137,7 @@ fun BubblesPopSnakeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     score = gameState.score,
                     bestScore = bestScore,
                     onTryAgain = {
-                        gameState = controller.initialSnakeState(config)
+                        gameState = controller.initialSnakeState(config, aspect = boardAspect)
                         machine.resetGame(); machine.startGame()
                     },
                     onMenu = onExit,
@@ -170,13 +174,34 @@ fun BubblesPopSnakeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             config = config,
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { sz ->
+                    if (sz.width > 0 && sz.height > 0) {
+                        val a = sz.width.toFloat() / sz.height.toFloat()
+                        boardAspect = a
+                        if (!sized) {
+                            sized = true
+                            gameState = controller.initialSnakeState(config, aspect = a)
+                        } else if (gameState.aspect != a) {
+                            gameState = gameState.copy(aspect = a)
+                        }
+                    }
+                }
+                .pointerInput(canFire) {
+                    if (!canFire) return@pointerInput
+                    // Touch or drag anywhere to slide the bottom launcher left/right.
+                    detectDragGestures(
+                        onDragStart = { off ->
+                            gameState = controller.moveLauncher(gameState, off.x / size.width)
+                        },
+                        onDrag = { change, _ ->
+                            gameState = controller.moveLauncher(gameState, change.position.x / size.width)
+                        },
+                    )
+                }
                 .pointerInput(canFire) {
                     if (!canFire) return@pointerInput
                     detectTapGestures { tap ->
-                        val tx = tap.x / size.width
-                        val ty = tap.y / size.height
-                        val fired = controller.fireSnakeCannon(gameState, tx, ty)
-                        if (fired.flying != null) gameState = fired
+                        gameState = controller.moveLauncher(gameState, tap.x / size.width)
                     }
                 },
         )
@@ -192,7 +217,7 @@ private fun SnakeBoard(
 ) {
     val r = BubblesPopController.BUBBLE_RADIUS
     val waypoints = BubblesPopController.TRACK_WAYPOINTS
-    val launcherPos = BubblesPopController.LAUNCHER_POS
+    val launcherY = BubblesPopController.LAUNCHER_Y
     val totalLen = controller.trackLength()
 
     // Pre-capture colors
@@ -253,17 +278,14 @@ private fun SnakeBoard(
             drawCircle(Color.White.copy(alpha = 0.3f), r * w * 0.4f, Offset(fb.x * w - r * w * 0.2f, fb.y * h - r * w * 0.3f))
         }
 
-        // Launcher
-        val lx = launcherPos.x * w
-        val ly = launcherPos.y * h
+        // Launcher (bottom of screen, slides horizontally; auto-fires straight up)
+        val lx = gameState.launcherX * w
+        val ly = launcherY * h
         drawCircle(Aqua2.copy(alpha = 0.3f), r * w * 3f, Offset(lx, ly))
         drawCircle(launcherColor, r * w * 1.8f, Offset(lx, ly))
-        // Launcher barrel (points toward launcher angle)
-        val angle = gameState.launcherAngle
+        // Barrel points straight up.
         val barrelLen = r * w * 2.5f
-        val bx2 = lx + kotlin.math.sin(angle) * barrelLen
-        val by2 = ly - kotlin.math.cos(angle) * barrelLen
-        drawLine(launcherColor, Offset(lx, ly), Offset(bx2, by2), strokeWidth = r * w * 1.2f)
+        drawLine(launcherColor, Offset(lx, ly), Offset(lx, ly - barrelLen), strokeWidth = r * w * 1.2f)
 
         // Current bubble on launcher
         drawCircle(bubbleColor(gameState.cannonBubble), r * w * 0.9f, Offset(lx, ly))

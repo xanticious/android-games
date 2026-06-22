@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -73,15 +74,17 @@ fun BubblesPopGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var gameState by remember { mutableStateOf(controller.initialGridState(config)) }
     var aimAngle by remember { mutableFloatStateOf(0f) }
     var isAiming by remember { mutableStateOf(false) }
+    var boardAspect by remember { mutableFloatStateOf(1f) }
+    var sized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { machine.startGame() }
 
-    // GameLoop drives the FIRE phase (bubble in flight)
+    // GameLoop drives the FIRE phase (bubble in flight + destruction animation)
     GameLoop(running = phase == BubblesPopPhase.FIRE) { dt ->
         val (newState, event) = controller.stepGrid(gameState, config, dt)
         gameState = newState
-        // Only signal resolution when the bubble has actually attached (flying == null)
-        if (newState.flying == null) {
+        // Resolve the turn only once the bubble has attached and any pop animation finished.
+        if (newState.flying == null && newState.popping.isEmpty() && newState.popTimer <= 0f) {
             handleGridEvent(event, newState, machine)
         }
     }
@@ -108,7 +111,7 @@ fun BubblesPopGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                         bestScore = bestScore,
                         stars = starsForScore(gameState.score, gameState.level),
                         onReplay = {
-                            gameState = controller.initialGridState(config)
+                            gameState = controller.initialGridState(config, aspect = boardAspect)
                             machine.resetGame(); machine.startGame()
                         },
                         onMenu = onExit,
@@ -125,7 +128,7 @@ fun BubblesPopGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     score = gameState.score,
                     bestScore = bestScore,
                     onTryAgain = {
-                        gameState = controller.initialGridState(config)
+                        gameState = controller.initialGridState(config, aspect = boardAspect)
                         machine.resetGame(); machine.startGame()
                     },
                     onMenu = onExit,
@@ -157,9 +160,22 @@ fun BubblesPopGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             gameState = gameState,
             controller = controller,
             aimAngle = aimAngle,
+            aspect = boardAspect,
             showAimPreview = canInteract && isAiming,
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { sz ->
+                    if (sz.width > 0 && sz.height > 0) {
+                        val a = sz.width.toFloat() / sz.height.toFloat()
+                        boardAspect = a
+                        if (!sized) {
+                            sized = true
+                            gameState = controller.initialGridState(config, aspect = a)
+                        } else if (gameState.aspect != a) {
+                            gameState = gameState.copy(aspect = a)
+                        }
+                    }
+                }
                 .pointerInput(canInteract) {
                     if (!canInteract) return@pointerInput
                     detectDragGestures(
@@ -206,6 +222,7 @@ internal fun BubblesPopBoard(
     gameState: BubblesGridState,
     controller: BubblesPopController,
     aimAngle: Float,
+    aspect: Float,
     showAimPreview: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -236,12 +253,14 @@ internal fun BubblesPopBoard(
 
         // Grid bubbles
         gameState.grid.values.forEach { cell ->
-            val pos = controller.cellPosition(cell.col, cell.row, gameState.topOffset)
+            val pos = controller.cellPosition(cell.col, cell.row, gameState.topOffset, aspect)
             val cx = pos.x * w
             val cy = pos.y * h
             val radius = r * w
             val color = bubbleColor(cell.color)
-            drawCircle(color, radius, Offset(cx, cy))
+            // Bubbles in the pop animation flash before they vanish.
+            val popping = (cell.col to cell.row) in gameState.popping
+            drawCircle(if (popping) Color.White else color, radius, Offset(cx, cy))
             // Overlay for special types
             when (cell.type) {
                 BubbleType.BOMB -> drawCircle(Color.Black.copy(alpha = 0.4f), radius * 0.5f, Offset(cx, cy))
@@ -269,7 +288,7 @@ internal fun BubblesPopBoard(
             var px = cannonX
             var py = cannonY
             var pdx = sin(aimAngle)
-            var pdy = -cos(aimAngle)
+            var pdy = -cos(aimAngle) * aspect
             var dotCount = 0
             while (py > 0f && dotCount < 40) {
                 px += pdx * 0.04f

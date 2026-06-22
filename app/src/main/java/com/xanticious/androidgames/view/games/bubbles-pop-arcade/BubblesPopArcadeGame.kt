@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -63,6 +64,8 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
     var gameState by remember { mutableStateOf(controller.initialGridState(config)) }
     var aimAngle by remember { mutableFloatStateOf(0f) }
+    var boardAspect by remember { mutableFloatStateOf(1f) }
+    var sized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { machine.startGame() }
 
@@ -95,7 +98,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         hud = {
             GameHud(
                 left = "Score: ${gameState.score}",
-                center = "Level ${gameState.level}",
+                center = "Best: $bestScore",
                 right = heartsText,
             )
         },
@@ -116,7 +119,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     bestScore = bestScore,
                     stars = starsArcade(gameState.score, gameState.level),
                     onReplay = {
-                        gameState = controller.initialGridState(config)
+                        gameState = controller.initialGridState(config, aspect = boardAspect)
                         machine.resetGame(); machine.startGame()
                     },
                     onMenu = onExit,
@@ -126,7 +129,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     score = gameState.score,
                     bestScore = bestScore,
                     onTryAgain = {
-                        gameState = controller.initialGridState(config)
+                        gameState = controller.initialGridState(config, aspect = boardAspect)
                         machine.resetGame(); machine.startGame()
                     },
                     onMenu = onExit,
@@ -154,6 +157,18 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { sz ->
+                    if (sz.width > 0 && sz.height > 0) {
+                        val a = sz.width.toFloat() / sz.height.toFloat()
+                        boardAspect = a
+                        if (!sized) {
+                            sized = true
+                            gameState = controller.initialGridState(config, aspect = a)
+                        } else if (gameState.aspect != a) {
+                            gameState = gameState.copy(aspect = a)
+                        }
+                    }
+                }
                 .pointerInput(canFire) {
                     if (!canFire) return@pointerInput
                     detectTapGestures { tap ->
@@ -199,7 +214,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
             // Descent indicator (subtle arrows on bottom row of cluster)
             if (phase == BubblesPopPhase.PLAYING) {
                 val maxRowY = (gameState.grid.values.maxOfOrNull { c ->
-                    gameState.topOffset + c.row * BubblesPopController.ROW_HEIGHT + r * 2f
+                    gameState.topOffset + c.row * controller.rowHeight(gameState.aspect) + r * 2f
                 } ?: 0f) * h
                 drawLine(
                     GameHazard.copy(alpha = 0.5f),
@@ -223,7 +238,7 @@ fun BubblesPopArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
             // Grid bubbles
             gameState.grid.values.forEach { cell ->
-                val pos = controller.cellPosition(cell.col, cell.row, gameState.topOffset)
+                val pos = controller.cellPosition(cell.col, cell.row, gameState.topOffset, gameState.aspect)
                 val bx = pos.x * w
                 val by = pos.y * h
                 val radius = r * w
