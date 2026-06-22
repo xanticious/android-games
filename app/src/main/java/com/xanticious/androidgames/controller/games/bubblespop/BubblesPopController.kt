@@ -53,11 +53,18 @@ class BubblesPopController {
         const val POP_ANIM_SECONDS = 0.22f
         /** Chance a generated row is sparse (only 1–3 bubbles) instead of nearly full. */
         const val SPARSE_ROW_CHANCE = 0.18f
+        /** A sparse row holds 1..[SPARSE_ROW_MAX] bubbles. */
+        const val SPARSE_ROW_MAX = 3
+        /** A nearly-full row is missing 0..[MAX_MISSING_BUBBLES] bubbles. */
+        const val MAX_MISSING_BUBBLES = 2
+        /** Floor score awarded per bubble in a snake run when the table yields less. */
+        const val MIN_BUBBLE_SCORE = 10
         /** Max rows a turn-based level can start with. */
         const val MAX_TURN_BASED_ROWS = 10
 
         // Snake track waypoints in normalized [0, 1] space: enters at the top and
-        // snakes downward toward the exit near the bottom.
+        // snakes downward toward the exit vortex in the lower portion of the board
+        // (the auto-firing launcher sits below it at LAUNCHER_Y).
         val TRACK_WAYPOINTS: List<Vec2> = listOf(
             Vec2(0.12f, 0.10f),
             Vec2(0.88f, 0.10f),
@@ -292,11 +299,11 @@ class BubblesPopController {
         val includeSpecials = level >= config.specialBubbleLevel
         val maxC = maxCols(row)
         val count = if (random.nextFloat() < SPARSE_ROW_CHANCE) {
-            // Sparse row: only 1, 2 or 3 bubbles.
-            (1 + random.nextInt(3)).coerceAtMost(maxC)
+            // Sparse row: only a few bubbles.
+            (1 + random.nextInt(SPARSE_ROW_MAX)).coerceAtMost(maxC)
         } else {
-            // Nearly full: 0, 1 or 2 bubbles missing.
-            (maxC - random.nextInt(3)).coerceAtLeast(1)
+            // Nearly full: a small number of bubbles missing.
+            (maxC - random.nextInt(MAX_MISSING_BUBBLES + 1)).coerceAtLeast(1)
         }
         val chosenCols = (0 until maxC).shuffled(random).take(count)
         for (col in chosenCols) {
@@ -865,7 +872,7 @@ class BubblesPopController {
             ?: return Pair(s.copy(flying = null), BubblesSnakeEvent.None)
 
         val count = run.last - run.first + 1
-        val baseScore = calculatePopScore(count).coerceAtLeast(count * 10)
+        val baseScore = calculatePopScore(count).coerceAtLeast(count * MIN_BUBBLE_SCORE)
         val remaining = contractChain(s.chain.filterIndexed { i, _ -> i !in run })
         val (finalChain, cascadeScore) = checkCascades(remaining)
         val total = baseScore + cascadeScore

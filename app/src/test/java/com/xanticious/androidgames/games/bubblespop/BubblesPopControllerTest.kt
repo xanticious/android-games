@@ -517,6 +517,15 @@ class BubblesPopControllerTest {
         assertEquals(-BubblesPopController.BUBBLE_SPEED * 2f, fired.flying!!.dy, 1e-4f)
     }
 
+    @Test
+    fun fireCannon_wideAspect_leavesHorizontalVelocityUnscaled() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        val state = controller.initialGridState(config, rng).copy(aspect = 2f)
+        val fired = controller.fireCannon(state, (PI / 6).toFloat())
+        val expectedDx = kotlin.math.sin((PI / 6).toFloat()) * BubblesPopController.BUBBLE_SPEED
+        assertEquals(expectedDx, fired.flying!!.dx, 1e-4f)
+    }
+
     // ─── snake launcher + slither-in (requirements 11, 13) ────────────────────
 
     @Test
