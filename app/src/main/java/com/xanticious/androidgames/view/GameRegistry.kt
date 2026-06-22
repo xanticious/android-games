@@ -15,11 +15,15 @@ import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.melodymaster.MelodyMasterGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
+import com.xanticious.androidgames.view.games.morsecode.MorseCodeGame
+import com.xanticious.androidgames.view.games.morsedecoder.MorseDecoderGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
+import com.xanticious.androidgames.view.games.taprhythm.TapRhythmGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -46,9 +50,13 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "melody-master" to { difficulty, onExit -> MelodyMasterGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
+    "morse-code" to { difficulty, onExit -> MorseCodeGame(difficulty, onExit) },
+    "morse-decoder" to { difficulty, onExit -> MorseDecoderGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
-    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) }
+    "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
+    "tap-rhythm" to { difficulty, onExit -> TapRhythmGame(difficulty, onExit) }
 )
