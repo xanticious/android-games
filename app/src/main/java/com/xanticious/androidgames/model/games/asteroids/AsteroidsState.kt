@@ -36,7 +36,9 @@ data class Projectile(
     val id: Int,
     val position: Vec2,
     val velocity: Vec2,
-    val age: Float
+    val age: Float,
+    /** Total distance flown so far; bullets vanish once this exceeds [AsteroidsConfig.projectileMaxDistance]. */
+    val distanceTraveled: Float = 0f
 ) {
     companion object {
         /** Larger, visually prominent bullets. */
@@ -60,6 +62,12 @@ data class Ship(
 
     companion object {
         const val RADIUS = 0.025f
+
+        /**
+         * Collision radius — smaller than the render [RADIUS] so the hit boundary
+         * hugs the sparse triangular ship sprite instead of its bounding circle.
+         */
+        const val COLLISION_RADIUS = 0.014f
         val INITIAL_ANGLE: Float = (-PI / 2.0).toFloat()
 
         /** Default floor speed used when no config-driven value is supplied. */
@@ -104,7 +112,6 @@ data class AsteroidsState(
     val projectiles: List<Projectile>,
     val beacon: Beacon?,
     val beaconsCollectedThisLevel: Int,
-    val beaconSpawnTimer: Float,
     val lives: Int,
     val score: Int,
     val level: Int,
@@ -128,7 +135,6 @@ data class AsteroidsState(
             projectiles = emptyList(),
             beacon = null,
             beaconsCollectedThisLevel = 0,
-            beaconSpawnTimer = 10f,
             lives = INITIAL_LIVES,
             score = 0,
             level = 1,
@@ -149,17 +155,18 @@ data class AsteroidsConfig(
     val asteroidMaxSpeedMultiplier: Float = 1.5f,
     val projectileSpeed: Float = 0.8f,
     val projectileLifetime: Float = 1.5f,
+    /** Bullets are removed once they have flown this far across the field. */
+    val projectileMaxDistance: Float = 0.6f,
     /** Seconds between autofire shots. */
     val fireInterval: Float = 0.35f,
     /** Acceleration applied per second at full knob deflection. */
-    val accelerationForce: Float = 0.9f,
+    val accelerationForce: Float = 0.45f,
     val minShipSpeed: Float = 0.06f,
     val maxShipSpeed: Float = 0.6f,
     val dampening: Float = 0.1f,
     val invincibilityDuration: Float = 2.0f,
     /** Asteroids stay frozen this long after the player takes damage. */
     val freezeDuration: Float = 2.0f,
-    val beaconSpawnDelay: Float = 10f,
     val beaconExplosionRadius: Float = 0.25f
 )
 

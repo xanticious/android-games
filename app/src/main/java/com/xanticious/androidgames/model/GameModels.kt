@@ -24,7 +24,13 @@ data class GameDefinition(
     val name: String,
     val category: GameCategory,
     val released: Boolean = false,
-    val favorite: Boolean = false
+    val favorite: Boolean = false,
+    /**
+     * When true the game owns its full settings flow (difficulty, options, How
+     * to Play) inside its own composable, so the lobby launches it directly and
+     * skips the shared [GameSettings] screen.
+     */
+    val selfConfigured: Boolean = false
 )
 
 data class LobbyFilter(

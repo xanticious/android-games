@@ -38,6 +38,7 @@ private sealed interface NavEvent : Event {
     data object OpenProfiles : NavEvent
     data object OpenSettings : NavEvent
     data object OpenGameSettings : NavEvent
+    data object LaunchGame : NavEvent
     data object OpenHowToPlay : NavEvent
     data object StartGame : NavEvent
     data object BackToLobby : NavEvent
@@ -72,6 +73,10 @@ class AppStateMachine {
             transition<NavEvent.OpenGameSettings> {
                 targetState = NavState.GameSettings
                 onTriggered { _screen.value = AppScreen.GameSettings(selectedGameId) }
+            }
+            transition<NavEvent.LaunchGame> {
+                targetState = NavState.GameStub
+                onTriggered { _screen.value = AppScreen.GameStub(selectedGameId, selectedDifficulty) }
             }
         }
 
@@ -133,6 +138,13 @@ class AppStateMachine {
     fun openGameSettings(gameId: String) {
         selectedGameId = gameId
         machine.processEventByLaunch(NavEvent.OpenGameSettings)
+    }
+
+    /** Launches a self-configured game straight from the lobby, skipping the shared settings screen. */
+    fun launchGame(gameId: String) {
+        selectedGameId = gameId
+        selectedDifficulty = GameDifficulty.MEDIUM
+        machine.processEventByLaunch(NavEvent.LaunchGame)
     }
 
     fun openHowToPlay() = machine.processEventByLaunch(NavEvent.OpenHowToPlay)

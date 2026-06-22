@@ -24,6 +24,23 @@ class AsteroidsStateMachineTest {
     }
 
     @Test
+    fun openHowToPlay_fromSetup_movesToHowToPlay() {
+        val m = machine()
+        m.startGame()
+        m.openHowToPlay()
+        assertEquals(AsteroidsPhase.HOW_TO_PLAY, m.phase.value)
+    }
+
+    @Test
+    fun backToSetup_fromHowToPlay_movesToSetup() {
+        val m = machine()
+        m.startGame()
+        m.openHowToPlay()
+        m.backToSetup()
+        assertEquals(AsteroidsPhase.SETUP, m.phase.value)
+    }
+
+    @Test
     fun confirmConfig_movesToSpawning() {
         val m = machine()
         m.startGame()
