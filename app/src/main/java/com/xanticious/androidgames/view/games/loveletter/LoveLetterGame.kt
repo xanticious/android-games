@@ -168,6 +168,10 @@ fun LoveLetterGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     roundSeed = System.currentTimeMillis()
                     machine.rematch()
                 },
+                onSetPendingTarget = { targetIdx ->
+                    // Guard: target chosen, now need to pick the guess card
+                    game = g.copy(pendingTargetIndex = targetIdx)
+                },
                 onCardPlayed = { card, targetIdx, guardGuess ->
                     val afterPlay = controller.playCard(g, card, targetIdx, guardGuess)
                     val advanced = controller.advanceTurn(afterPlay)
@@ -435,6 +439,7 @@ private fun StatusSlot(
     controller: LoveLetterController,
     onNextRound: () -> Unit,
     onRematch: () -> Unit,
+    onSetPendingTarget: (Int) -> Unit,
     onCardPlayed: (LoveLetterCard, Int?, LoveLetterCard?) -> Unit,
     onExit: () -> Unit
 ) {
