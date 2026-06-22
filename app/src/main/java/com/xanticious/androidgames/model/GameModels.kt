@@ -36,6 +36,11 @@ data class GameDefinition(
 data class LobbyFilter(
     val searchQuery: String = "",
     val onlyFavorites: Boolean = false,
-    val onlyReleased: Boolean = false,
+    val onlyReleased: Boolean = true,
     val categories: Set<GameCategory> = emptySet()
 )
+
+enum class LobbyViewMode {
+    TILES,
+    LIST
+}

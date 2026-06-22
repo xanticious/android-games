@@ -1,6 +1,8 @@
 package com.xanticious.androidgames.view
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,25 +15,34 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +57,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,6 +68,7 @@ import com.xanticious.androidgames.model.GameCategory
 import com.xanticious.androidgames.model.GameDefinition
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.model.LobbyFilter
+import com.xanticious.androidgames.model.LobbyViewMode
 
 @Composable
 fun SplashView(onEnterLobby: () -> Unit) {
@@ -78,6 +93,9 @@ fun SplashView(onEnterLobby: () -> Unit) {
 fun LobbyView(
     games: List<GameDefinition>,
     controller: LobbyController,
+    viewMode: LobbyViewMode,
+    onSetViewMode: (LobbyViewMode) -> Unit,
+    onToggleFavorite: (String) -> Unit,
     onOpenProfiles: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenGame: (String) -> Unit
@@ -85,14 +103,16 @@ fun LobbyView(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     var onlyFavorites by rememberSaveable { mutableStateOf(false) }
-    var selectedCategories by remember { mutableStateOf(emptySet<GameCategory>()) }
+    var onlyReleased by rememberSaveable { mutableStateOf(true) }
+    var selectedCategory by rememberSaveable { mutableStateOf<GameCategory?>(null) }
 
     val visibleGames = controller.visibleGames(
         games,
         LobbyFilter(
             searchQuery = searchQuery,
             onlyFavorites = onlyFavorites,
-            categories = selectedCategories
+            onlyReleased = onlyReleased,
+            categories = selectedCategory?.let { setOf(it) } ?: emptySet()
         )
     )
 
@@ -118,6 +138,21 @@ fun LobbyView(
                 actions = {
                     IconButton(onClick = { searchExpanded = !searchExpanded }) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
+                    val nextMode =
+                        if (viewMode == LobbyViewMode.TILES) LobbyViewMode.LIST else LobbyViewMode.TILES
+                    IconButton(onClick = { onSetViewMode(nextMode) }) {
+                        if (viewMode == LobbyViewMode.TILES) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Switch to list view"
+                            )
+                        } else {
+                            Icon(
+                                gridViewIcon(),
+                                contentDescription = "Switch to tile view"
+                            )
+                        }
                     }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
@@ -153,20 +188,13 @@ fun LobbyView(
                 )
             }
 
-            CategoryFilterRow(
-                selectedCategories = selectedCategories,
+            LobbyFilterRow(
+                selectedCategory = selectedCategory,
+                onSelectCategory = { selectedCategory = it },
                 onlyFavorites = onlyFavorites,
                 onToggleFavorites = { onlyFavorites = !onlyFavorites },
-                onToggleCategory = { category ->
-                    selectedCategories = if (category in selectedCategories)
-                        selectedCategories - category
-                    else
-                        selectedCategories + category
-                },
-                onClearAll = {
-                    selectedCategories = emptySet()
-                    onlyFavorites = false
-                }
+                onlyReleased = onlyReleased,
+                onToggleReleased = { onlyReleased = it }
             )
 
             if (visibleGames.isEmpty()) {
@@ -180,31 +208,42 @@ fun LobbyView(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-            } else {
-                LazyVerticalGrid(
+            } else when (viewMode) {
+                LobbyViewMode.TILES -> LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
                     contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 32.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(visibleGames) { game ->
-                        GameCard(game = game, onClick = { onOpenGame(game.id) })
+                        GameCard(
+                            game = game,
+                            onClick = { onOpenGame(game.id) },
+                            onLongClick = { onToggleFavorite(game.id) }
+                        )
                     }
                 }
+
+                LobbyViewMode.LIST -> GameListView(
+                    games = visibleGames,
+                    onClick = { onOpenGame(it) },
+                    onLongClick = { onToggleFavorite(it) }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryFilterRow(
-    selectedCategories: Set<GameCategory>,
+private fun LobbyFilterRow(
+    selectedCategory: GameCategory?,
+    onSelectCategory: (GameCategory?) -> Unit,
     onlyFavorites: Boolean,
     onToggleFavorites: () -> Unit,
-    onToggleCategory: (GameCategory) -> Unit,
-    onClearAll: () -> Unit
+    onlyReleased: Boolean,
+    onToggleReleased: (Boolean) -> Unit
 ) {
-    val hasActiveFilters = selectedCategories.isNotEmpty() || onlyFavorites
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -212,41 +251,78 @@ private fun CategoryFilterRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        FilterChip(
-            selected = hasActiveFilters,
-            onClick = onClearAll,
-            label = {
-                Text(
-                    text = if (hasActiveFilters) "Clear" else "Filter",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-        )
-        LazyRow(
+        GameTypeDropdown(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            item {
-                FilterChip(
-                    selected = onlyFavorites,
-                    onClick = onToggleFavorites,
-                    label = { Text("Favorites") }
+            selectedCategory = selectedCategory,
+            onSelectCategory = onSelectCategory
+        )
+        FilterChip(
+            selected = onlyFavorites,
+            onClick = onToggleFavorites,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
                 )
-            }
-            items(GameCategory.entries.toList()) { category ->
-                FilterChip(
-                    selected = category in selectedCategories,
-                    onClick = { onToggleCategory(category) },
-                    label = { Text(category.displayName()) },
-                    trailingIcon = if (category in selectedCategories) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Remove ${category.displayName()} filter",
-                                modifier = Modifier.size(FilterChipDefaults.IconSize)
-                            )
-                        }
-                    } else null
+            },
+            label = { Text("Favorites") }
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = onlyReleased, onCheckedChange = onToggleReleased)
+            Text(text = "Released Only", style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GameTypeDropdown(
+    modifier: Modifier = Modifier,
+    selectedCategory: GameCategory?,
+    onSelectCategory: (GameCategory?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = selectedCategory?.displayName() ?: ALL_TYPES_LABEL
+    ExposedDropdownMenuBox(
+        modifier = modifier,
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            readOnly = true,
+            value = label,
+            onValueChange = {},
+            label = { Text("Game Type") },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(ALL_TYPES_LABEL) },
+                onClick = {
+                    onSelectCategory(null)
+                    expanded = false
+                }
+            )
+            GameCategory.entries.sortedBy { it.displayName() }.forEach { category ->
+                DropdownMenuItem(
+                    text = { Text(category.displayName()) },
+                    onClick = {
+                        onSelectCategory(category)
+                        expanded = false
+                    }
                 )
             }
         }
@@ -254,10 +330,87 @@ private fun CategoryFilterRow(
 }
 
 @Composable
-private fun GameCard(game: GameDefinition, onClick: () -> Unit) {
+private fun GameListView(
+    games: List<GameDefinition>,
+    onClick: (String) -> Unit,
+    onLongClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = "Game Name",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Game Type",
+                    modifier = Modifier.width(140.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            HorizontalDivider()
+        }
+        items(games) { game ->
+            GameListRow(
+                game = game,
+                onClick = { onClick(game.id) },
+                onLongClick = { onLongClick(game.id) }
+            )
+            HorizontalDivider()
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun GameListRow(game: GameDefinition, onClick: () -> Unit, onLongClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            if (game.favorite) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favorite",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .padding(end = 4.dp)
+                )
+            }
+            Text(text = game.name, style = MaterialTheme.typography.bodyMedium)
+        }
+        Text(
+            text = game.category.displayName(),
+            modifier = Modifier.width(140.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = game.category.cardColor(),
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun GameCard(game: GameDefinition, onClick: () -> Unit, onLongClick: () -> Unit) {
     Card(
-        onClick = onClick,
-        modifier = Modifier.aspectRatio(1f),
+        modifier = Modifier
+            .aspectRatio(1f)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(12.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -273,6 +426,17 @@ private fun GameCard(game: GameDefinition, onClick: () -> Unit) {
                 color = Color.White.copy(alpha = 0.15f),
                 fontWeight = FontWeight.Black
             )
+            if (game.favorite) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favorite",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(16.dp)
+                )
+            }
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -304,6 +468,33 @@ private fun GameCard(game: GameDefinition, onClick: () -> Unit) {
         }
     }
 }
+
+private const val ALL_TYPES_LABEL = "All Types"
+
+/** Simple 2x2 grid glyph for the tile-view toggle (no extended icon dependency). */
+private fun gridViewIcon(): ImageVector =
+    ImageVector.Builder(
+        name = "GridView",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        val fill = SolidColor(Color.Black)
+        fun square(left: Float, top: Float) {
+            path(fill = fill) {
+                moveTo(left, top)
+                lineTo(left + 7f, top)
+                lineTo(left + 7f, top + 7f)
+                lineTo(left, top + 7f)
+                close()
+            }
+        }
+        square(3f, 3f)
+        square(14f, 3f)
+        square(3f, 14f)
+        square(14f, 14f)
+    }.build()
 
 private fun GameCategory.displayName(): String = when (this) {
     GameCategory.ACTION -> "Action"
