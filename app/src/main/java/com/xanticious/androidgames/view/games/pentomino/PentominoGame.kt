@@ -309,11 +309,6 @@ private fun PentominoBoard(
     val measurer = rememberTextMeasurer()
     val cellMap = state.cellMap
 
-    val previewCells: Set<GridPos> = remember(selectedPiece, orientationIndex) {
-        // Preview cells aren't shown on board (only highlight on tap), kept for future use.
-        emptySet()
-    }
-
     PuzzleBoard(
         rows = state.boardSize.rows,
         cols = state.boardSize.cols,

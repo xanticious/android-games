@@ -63,7 +63,7 @@ object GameCatalog {
         game("othello", "Othello", GameCategory.STRATEGY),
         game("overcooked-lite", "Overcooked Lite", GameCategory.QUEUE_STRATEGY_ACTION),
         game("peg-solitaire", "Peg Solitaire", GameCategory.PUZZLE, released = true, selfConfigured = true),
-        game("pentomino", "Pentomino", GameCategory.PUZZLE),
+        game("pentomino", "Pentomino", GameCategory.PUZZLE, released = true, selfConfigured = true),
         game("pipes", "Pipes", GameCategory.PUZZLE, released = true, selfConfigured = true),
         game("planet-explorer", "Planet Explorer", GameCategory.EXPLORATION_CREATIVE),
         game("poker", "Poker", GameCategory.CARD),

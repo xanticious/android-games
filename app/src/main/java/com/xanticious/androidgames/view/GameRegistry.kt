@@ -29,6 +29,7 @@ import com.xanticious.androidgames.view.games.mastermind.MastermindGame
 import com.xanticious.androidgames.view.games.matchthree.MatchThreeArcadeGame
 import com.xanticious.androidgames.view.games.matchthree.MatchThreeGame
 import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
+import com.xanticious.androidgames.view.games.pentomino.PentominoGame
 import com.xanticious.androidgames.view.games.pipes.PipesGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
@@ -80,6 +81,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "pathfinder" to { difficulty, onExit -> PathfinderGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
+    "pentomino" to { difficulty, onExit -> PentominoGame(difficulty, onExit) },
     "pipes" to { difficulty, onExit -> PipesGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "skyscrapers" to { difficulty, onExit -> SkyscrapersGame(difficulty, onExit) },
