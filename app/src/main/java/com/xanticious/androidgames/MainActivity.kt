@@ -6,7 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.xanticious.androidgames.controller.LobbyController
+import com.xanticious.androidgames.data.LobbyPreferences
 import com.xanticious.androidgames.model.GameCatalog
 import com.xanticious.androidgames.state.AppScreen
 import com.xanticious.androidgames.state.AppStateMachine
@@ -27,13 +31,30 @@ class MainActivity : ComponentActivity() {
             AndroidGamesTheme {
                 val stateMachine = remember { AppStateMachine() }
                 val lobbyController = remember { LobbyController() }
+                val context = LocalContext.current
+                val preferences = remember { LobbyPreferences(context) }
+                var favoriteIds by remember { mutableStateOf(preferences.loadFavorites()) }
+                var viewMode by remember { mutableStateOf(preferences.loadViewMode()) }
                 val screen by stateMachine.screen.collectAsState()
 
                 when (val current = screen) {
                     AppScreen.Splash -> SplashView(onEnterLobby = stateMachine::onSplashFinished)
                     AppScreen.Lobby -> LobbyView(
-                        games = GameCatalog.allGames,
+                        games = GameCatalog.allGames.map { it.copy(favorite = it.id in favoriteIds) },
                         controller = lobbyController,
+                        viewMode = viewMode,
+                        onSetViewMode = { mode ->
+                            viewMode = mode
+                            preferences.saveViewMode(mode)
+                        },
+                        onToggleFavorite = { gameId ->
+                            favoriteIds = if (gameId in favoriteIds) {
+                                favoriteIds - gameId
+                            } else {
+                                favoriteIds + gameId
+                            }
+                            preferences.saveFavorites(favoriteIds)
+                        },
                         onOpenProfiles = stateMachine::openProfiles,
                         onOpenSettings = stateMachine::openAppSettings,
                         onOpenGame = { gameId ->
