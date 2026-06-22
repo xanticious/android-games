@@ -116,22 +116,24 @@ class SpaceDefenderController {
             .coerceIn(SpaceDefenderState.PLAYER_HALF_WIDTH, 1f - SpaceDefenderState.PLAYER_HALF_WIDTH)
         s = s.copy(playerX = newX)
 
-        // -- Auto-fire --
-        val newFireTimer = s.autoFireTimer - dt
-        s = if (newFireTimer <= 0f) {
-            val proj = Projectile(
-                id = s.nextProjectileId,
-                position = Vec2(s.playerX, SpaceDefenderState.PLAYER_Y - 0.04f),
-                velocity = Vec2(0f, -config.playerProjectileSpeed),
-                owner = ProjectileOwner.PLAYER
-            )
-            s.copy(
-                projectiles = s.projectiles + proj,
-                autoFireTimer = config.autoFireInterval,
-                nextProjectileId = s.nextProjectileId + 1
-            )
-        } else {
-            s.copy(autoFireTimer = newFireTimer)
+        // -- Auto-fire -- (paused while invincible)
+        if (!s.isInvincible) {
+            val newFireTimer = s.autoFireTimer - dt
+            s = if (newFireTimer <= 0f) {
+                val proj = Projectile(
+                    id = s.nextProjectileId,
+                    position = Vec2(s.playerX, SpaceDefenderState.PLAYER_Y - 0.04f),
+                    velocity = Vec2(0f, -config.playerProjectileSpeed),
+                    owner = ProjectileOwner.PLAYER
+                )
+                s.copy(
+                    projectiles = s.projectiles + proj,
+                    autoFireTimer = config.autoFireInterval,
+                    nextProjectileId = s.nextProjectileId + 1
+                )
+            } else {
+                s.copy(autoFireTimer = newFireTimer)
+            }
         }
 
         // -- Move projectiles --
@@ -239,25 +241,20 @@ class SpaceDefenderController {
         }
 
         // -- Collision: projectiles vs shields --
+        // Shields are invulnerable: they absorb projectiles (remove them) but never take damage.
         val hitShieldProjIds = mutableSetOf<Int>()
-        val updatedShields = s.shields.map { shield ->
-            if (shield.health == ShieldHealth.BROKEN) return@map shield
-            var sh = shield
+        s.shields.forEach { shield ->
+            if (shield.health == ShieldHealth.BROKEN) return@forEach
             for (proj in s.projectiles.filter { it.id !in hitPlayerProjIds && it.id !in hitShieldProjIds }) {
-                val dx = abs(proj.position.x - sh.position.x)
-                val dy = abs(proj.position.y - sh.position.y)
+                val dx = abs(proj.position.x - shield.position.x)
+                val dy = abs(proj.position.y - shield.position.y)
                 if (dx < shieldHalfWidth && dy < shieldHalfHeight) {
                     hitShieldProjIds.add(proj.id)
-                    sh = sh.copy(health = when (sh.health) {
-                        ShieldHealth.FULL -> ShieldHealth.CRACKED
-                        ShieldHealth.CRACKED -> ShieldHealth.BROKEN
-                        ShieldHealth.BROKEN -> ShieldHealth.BROKEN
-                    })
                     break
                 }
             }
-            sh
         }
+        val updatedShields = s.shields
 
         val survivingProjectiles = s.projectiles.filter { p ->
             p.id !in hitPlayerProjIds && p.id !in hitShieldProjIds
@@ -324,7 +321,7 @@ class SpaceDefenderController {
     fun startNextWave(state: SpaceDefenderState, config: SpaceDefenderConfig): SpaceDefenderState {
         val newWave = state.wave + 1
         val enemies = buildWave(newWave, config, state.nextEnemyId)
-        val shields = if (newWave == 1 || (newWave - 1) % 5 == 0) buildShields(newWave) else state.shields
+        val shields = state.shields  // shields are invulnerable and persist across waves
         return state.copy(
             wave = newWave,
             enemies = enemies,
