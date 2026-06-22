@@ -43,7 +43,7 @@ object GameCatalog {
         game("idle-city-builder", "Idle City Builder", GameCategory.IDLE),
         game("idle-factory", "Idle Factory", GameCategory.IDLE),
         game("idle-farm", "Idle Farm", GameCategory.IDLE),
-        game("jigsaw", "Jigsaw", GameCategory.PUZZLE),
+        game("jigsaw", "Jigsaw", GameCategory.PUZZLE, released = true, selfConfigured = true),
         game("letter-drop", "Letter Drop", GameCategory.WORD),
         game("light-up", "Light Up", GameCategory.PUZZLE, released = true, selfConfigured = true),
         game("logic-grid", "Logic Grid", GameCategory.PUZZLE),

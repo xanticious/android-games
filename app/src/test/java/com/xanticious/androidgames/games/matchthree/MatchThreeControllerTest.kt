@@ -81,10 +81,9 @@ class MatchThreeControllerTest {
 
     @Test
     fun findMatches_pairIsNotAMatch() {
-        // Only 2 AQUA in a row — should not be detected
-        val gems = MutableList<GemType?>(9) { GemType.TEAL }
-        gems[0] = GemType.AQUA; gems[1] = GemType.AQUA
-        val board = MatchThreeBoard(3, 3, gems)
+        // 1-row, 4-col board: only 2 AQUA adjacent — must not be a match (need 3+)
+        val gems: List<GemType?> = listOf(GemType.AQUA, GemType.AQUA, GemType.TEAL, GemType.CORAL)
+        val board = MatchThreeBoard(1, 4, gems)
         assertTrue(controller.findMatches(board).isEmpty())
     }
 

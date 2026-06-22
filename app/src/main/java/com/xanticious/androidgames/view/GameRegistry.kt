@@ -17,6 +17,7 @@ import com.xanticious.androidgames.view.games.dominosa.DominosaGame
 import com.xanticious.androidgames.view.games.flood.FloodGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.jigsaw.JigsawGame
 import com.xanticious.androidgames.view.games.lightup.LightUpGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
@@ -63,6 +64,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "flood" to { difficulty, onExit -> FloodGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "jigsaw" to { difficulty, onExit -> JigsawGame(difficulty, onExit) },
     "light-up" to { difficulty, onExit -> LightUpGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "mastermind" to { difficulty, onExit -> MastermindGame(difficulty, onExit) },
