@@ -96,10 +96,14 @@ internal fun DrawScope.drawBricks(
     val topM = BrickField.TOP_MARGIN
 
     for (brick in state.bricks) {
+        val rowPos = brick.row + descentOffset
+        // Skip rows stacked above the field (CLASSIC feed): they must not render
+        // over the HUD until they descend into view.
+        if (rowPos < 0f) continue
         val left = (brick.col / cols) * w
         val right = ((brick.col + 1) / cols - pad) * w
-        val top = (topM + (brick.row + descentOffset) * rowH) * h
-        val bottom = (topM + (brick.row + descentOffset) * rowH + rowH - pad) * h
+        val top = (topM + rowPos * rowH) * h
+        val bottom = (topM + rowPos * rowH + rowH - pad) * h
         val bw = right - left
         val bh = bottom - top
         if (bh <= 0 || bw <= 0) continue
@@ -109,11 +113,15 @@ internal fun DrawScope.drawBricks(
         val hpFrac = (brick.hp.toFloat() / brick.maxHp.toFloat()).coerceIn(0.3f, 1f)
         val fillColor = baseColor.copy(alpha = hpFrac)
 
+        val corner = CornerRadius(
+            BrickField.BRICK_CORNER_RADIUS * w,
+            BrickField.BRICK_CORNER_RADIUS * h,
+        )
         drawRoundRect(
             color = fillColor,
             topLeft = Offset(left, top),
             size = Size(bw, bh),
-            cornerRadius = CornerRadius(4f, 4f),
+            cornerRadius = corner,
         )
         // Target bricks get a glowing border.
         if (brick.type == BrickType.TARGET) {
@@ -121,7 +129,7 @@ internal fun DrawScope.drawBricks(
                 color = GameAccent.copy(alpha = 0.8f),
                 topLeft = Offset(left, top),
                 size = Size(bw, bh),
-                cornerRadius = CornerRadius(4f, 4f),
+                cornerRadius = corner,
                 style = Stroke(width = 3f),
             )
         }
@@ -169,12 +177,23 @@ internal fun DrawScope.drawBottomPaddle(paddleX: Float) {
     )
 }
 
-/** Draw the left-side cannon (CANNON / CANNON_ARCADE). */
+/** Draw the ground line (CANNON / CANNON_ARCADE) the cannon and towers rest on. */
+internal fun DrawScope.drawGround() {
+    val y = BrickField.GROUND_Y * size.height
+    drawLine(
+        color = GameCourtLine,
+        start = Offset(0f, y),
+        end = Offset(size.width, y),
+        strokeWidth = 4f,
+    )
+}
+
+/** Draw the left-side cannon (CANNON / CANNON_ARCADE) resting on the ground. */
 internal fun DrawScope.drawLeftCannon(cannonAngleDeg: Float) {
     val w = size.width
     val h = size.height
     val cx = BrickField.CANNON_X * w
-    val cy = 0.5f * h
+    val cy = BrickField.GROUND_Y * h
     val barrelLen = w * 0.07f
     val rad = Math.toRadians(cannonAngleDeg.toDouble()).toFloat()
     val endX = cx + kotlin.math.cos(rad) * barrelLen

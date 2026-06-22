@@ -114,6 +114,7 @@ fun BrickBreakerArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                 level = state.level,
                 ballCount = state.ballCount,
                 strength = state.strength,
+                showBalls = false,
                 trailingLabel = "Lives",
                 trailingValue = "♥".repeat(state.lives.coerceAtLeast(0)),
             )
