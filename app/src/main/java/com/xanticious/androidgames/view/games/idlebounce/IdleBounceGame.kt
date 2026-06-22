@@ -75,7 +75,8 @@ fun IdleBounceGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         machine.startGame()
     }
 
-    GameLoop(running = phase == IdleBouncePhase.PLAYING) { dt ->
+    // Ball keeps bouncing even while the upgrade menu is open.
+    GameLoop(running = phase == IdleBouncePhase.PLAYING || phase == IdleBouncePhase.UPGRADE_MENU_OPEN) { dt ->
         state = controller.step(state, dt).state
     }
 
