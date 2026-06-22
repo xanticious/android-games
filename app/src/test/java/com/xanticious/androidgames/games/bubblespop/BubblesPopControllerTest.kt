@@ -314,11 +314,11 @@ class BubblesPopControllerTest {
     // ─── generateGrid ────────────────────────────────────────────────────────
 
     @Test
-    fun generateGrid_easyConfig_generatesExpectedRowCount() {
+    fun generateGrid_turnBasedLevelOne_generatesOneRow() {
         val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
         val grid = controller.generateGrid(config, 1, rng)
         val rows = grid.keys.map { it.second }.toSet()
-        assertEquals(config.startingRows, rows.size)
+        assertEquals(1, rows.size)
     }
 
     @Test
@@ -461,5 +461,83 @@ class BubblesPopControllerTest {
         val state = controller.initialSnakeState(config, rng).copy(swapRemaining = 0)
         val swapped = controller.swapBubbles(state)
         assertEquals(state.cannonBubble, swapped.cannonBubble)
+    }
+
+    // ─── rowsForLevel (requirement 7) ─────────────────────────────────────────
+
+    @Test
+    fun rowsForLevel_turnBasedLevelOne_returnsOne() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        assertEquals(1, controller.rowsForLevel(config, 1))
+    }
+
+    @Test
+    fun rowsForLevel_turnBasedLevelThree_returnsThree() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        assertEquals(3, controller.rowsForLevel(config, 3))
+    }
+
+    @Test
+    fun rowsForLevel_turnBasedBeyondMax_capsAtTen() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        assertEquals(BubblesPopController.MAX_TURN_BASED_ROWS, controller.rowsForLevel(config, 25))
+    }
+
+    @Test
+    fun rowsForLevel_arcade_usesStartingRows() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.ARCADE)
+        assertEquals(config.startingRows, controller.rowsForLevel(config, 7))
+    }
+
+    // ─── partial rows (requirement 6) ─────────────────────────────────────────
+
+    @Test
+    fun generateGrid_someRowIsNotCompletelyFull() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        val grid = controller.generateGrid(config, BubblesPopController.MAX_TURN_BASED_ROWS, kotlin.random.Random(7))
+        val full = (0 until BubblesPopController.MAX_TURN_BASED_ROWS).sumOf { controller.maxCols(it) }
+        assertTrue(grid.size < full)
+    }
+
+    @Test
+    fun generateGrid_everyRowHasAtLeastOneBubble() {
+        val config = controller.configFor(GameDifficulty.MEDIUM, BubblesVariant.TURN_BASED)
+        val grid = controller.generateGrid(config, 5, kotlin.random.Random(3))
+        val rows = grid.keys.map { it.second }.toSet()
+        assertEquals(5, rows.size)
+    }
+
+    // ─── aspect-aware aim (requirement 5) ─────────────────────────────────────
+
+    @Test
+    fun fireCannon_wideAspect_scalesVerticalVelocity() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.TURN_BASED)
+        val state = controller.initialGridState(config, rng).copy(aspect = 2f)
+        val fired = controller.fireCannon(state, 0f)
+        assertEquals(-BubblesPopController.BUBBLE_SPEED * 2f, fired.flying!!.dy, 1e-4f)
+    }
+
+    // ─── snake launcher + slither-in (requirements 11, 13) ────────────────────
+
+    @Test
+    fun moveLauncher_clampsWithinBounds() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.SNAKE_ARCADE)
+        val state = controller.initialSnakeState(config, rng)
+        val moved = controller.moveLauncher(state, 5f)
+        assertTrue(moved.launcherX <= 1f - BubblesPopController.BUBBLE_RADIUS)
+    }
+
+    @Test
+    fun initialSnakeState_startsWithEmptyChain() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.SNAKE_ARCADE)
+        val state = controller.initialSnakeState(config, rng)
+        assertTrue(state.chain.isEmpty())
+    }
+
+    @Test
+    fun initialSnakeState_spawnRemainingEqualsChainLength() {
+        val config = controller.configFor(GameDifficulty.EASY, BubblesVariant.SNAKE_ARCADE)
+        val state = controller.initialSnakeState(config, rng)
+        assertEquals(config.chainLength, state.spawnRemaining)
     }
 }

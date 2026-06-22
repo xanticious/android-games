@@ -83,6 +83,16 @@ data class BubblesGridState(
     val wildShotActive: Boolean,
     val shieldActive: Boolean,
     val bestScore: Int,
+    /**
+     * Board aspect ratio (width / height) of the play area, used to keep bubble
+     * spacing, collisions and aiming visually correct on non-square boards.
+     * Defaults to 1 (square) so pure logic tests remain unaffected.
+     */
+    val aspect: Float = 1f,
+    /** Cells currently mid-destruction; rendered briefly before they are removed. */
+    val popping: Set<Pair<Int, Int>> = emptySet(),
+    /** Seconds remaining before [popping] cells are removed (0 = nothing pending). */
+    val popTimer: Float = 0f,
 )
 
 /** Events produced by [com.xanticious.androidgames.controller.games.bubblespop.BubblesPopController.stepGrid]. */
@@ -144,6 +154,12 @@ data class BubblesSnakeState(
     /** Extra bubbles added to chain when a shot has no match. */
     val backfirePenalty: Int,
     val bestScore: Int,
+    /** Normalized x of the bottom launcher; the player drags to slide it. */
+    val launcherX: Float = 0.5f,
+    /** Chain bubbles still waiting to slither in from the top of the path. */
+    val spawnRemaining: Int = 0,
+    /** Board aspect ratio (width / height); keeps collisions visually correct. */
+    val aspect: Float = 1f,
 )
 
 /** Events produced by [com.xanticious.androidgames.controller.games.bubblespop.BubblesPopController.stepSnake]. */

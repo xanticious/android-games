@@ -36,32 +36,53 @@ class BubblesPopController {
         const val GRID_COLS = 9
         /** Normalized bubble radius: fits GRID_COLS bubbles exactly across width [0, 1]. */
         val BUBBLE_RADIUS = 1f / (GRID_COLS * 2f)
-        /** Center-to-center vertical distance in hex packing. */
-        val ROW_HEIGHT = BUBBLE_RADIUS * 2f * (sqrt(3f) / 2f)
+        /**
+         * Center-to-center vertical distance in hex packing for a square board.
+         * Multiply by the board aspect (width / height) via [rowHeight] to keep
+         * offset rows visually touching on non-square boards.
+         */
+        val ROW_HEIGHT = BUBBLE_RADIUS * sqrt(3f)
         const val CANNON_X = 0.5f
         const val CANNON_Y = 0.93f
         const val DANGER_LINE_Y = 0.75f
         const val BUBBLE_SPEED = 1.8f
         const val COMBO_WINDOW_SECONDS = 2f
+        /** Rows of the cluster visible at the start; extra rows hide above the ceiling. */
+        const val VISIBLE_ROWS = 4
+        /** Turn-based: seconds the connected bubble lingers before it and its cluster pop. */
+        const val POP_ANIM_SECONDS = 0.22f
+        /** Chance a generated row is sparse (only 1–3 bubbles) instead of nearly full. */
+        const val SPARSE_ROW_CHANCE = 0.18f
+        /** Max rows a turn-based level can start with. */
+        const val MAX_TURN_BASED_ROWS = 10
 
-        // S-shaped snake track waypoints in normalized [0, 1] space
+        // Snake track waypoints in normalized [0, 1] space: enters at the top and
+        // snakes downward toward the exit near the bottom.
         val TRACK_WAYPOINTS: List<Vec2> = listOf(
-            Vec2(0.10f, 0.12f),
-            Vec2(0.90f, 0.12f),
-            Vec2(0.90f, 0.45f),
-            Vec2(0.10f, 0.45f),
-            Vec2(0.10f, 0.78f),
-            Vec2(0.90f, 0.78f),
+            Vec2(0.12f, 0.10f),
+            Vec2(0.88f, 0.10f),
+            Vec2(0.88f, 0.30f),
+            Vec2(0.12f, 0.30f),
+            Vec2(0.12f, 0.50f),
+            Vec2(0.88f, 0.50f),
+            Vec2(0.88f, 0.70f),
+            Vec2(0.12f, 0.70f),
         )
 
-        /** Launcher position in normalized space (center of the S-track board). */
-        val LAUNCHER_POS = Vec2(0.5f, 0.38f)
+        /** Bottom launcher Y in normalized space (snake variant). */
+        const val LAUNCHER_Y = 0.92f
 
         /** Center-to-center spacing of chain bubbles along the track. */
         val CHAIN_BUBBLE_SPACING = BUBBLE_RADIUS * 2.1f
 
         private val ALL_COLORS = BubbleColor.values()
     }
+
+    /** Center-to-center vertical row distance for the given board [aspect] (w / h). */
+    fun rowHeight(aspect: Float = 1f): Float = ROW_HEIGHT * aspect
+
+    /** Vertical bubble radius in height-fraction units for the given [aspect]. */
+    private fun vRadius(aspect: Float = 1f): Float = BUBBLE_RADIUS * aspect
 
     // ─── Config factory ──────────────────────────────────────────────────────
 
@@ -71,8 +92,8 @@ class BubblesPopController {
                 variant = variant,
                 colorsInPlay = 5,
                 startingRows = if (variant == BubblesVariant.SNAKE_ARCADE) 0 else 5,
-                missesPerDescend = 2,
-                descentSpeed = 0.018f,
+                missesPerDescend = 3,
+                descentSpeed = 0.009f,
                 cannonCooldown = cooldownFor(variant),
                 initialLives = livesFor(variant),
                 chainLength = 40,
@@ -86,8 +107,8 @@ class BubblesPopController {
                 variant = variant,
                 colorsInPlay = 6,
                 startingRows = if (variant == BubblesVariant.SNAKE_ARCADE) 0 else 6,
-                missesPerDescend = 1,
-                descentSpeed = 0.028f,
+                missesPerDescend = 3,
+                descentSpeed = 0.014f,
                 cannonCooldown = cooldownFor(variant),
                 initialLives = livesFor(variant),
                 chainLength = 50,
@@ -101,8 +122,8 @@ class BubblesPopController {
                 variant = variant,
                 colorsInPlay = 7,
                 startingRows = if (variant == BubblesVariant.SNAKE_ARCADE) 0 else 7,
-                missesPerDescend = 1,
-                descentSpeed = 0.04f,
+                missesPerDescend = 3,
+                descentSpeed = 0.02f,
                 cannonCooldown = cooldownFor(variant),
                 initialLives = livesFor(variant),
                 chainLength = 60,
@@ -129,13 +150,13 @@ class BubblesPopController {
      * Normalized center position of grid cell (col, row) with the cluster shifted by [topOffset].
      * Even rows have GRID_COLS columns; odd rows have GRID_COLS-1 columns, offset by half a diameter.
      */
-    fun cellPosition(col: Int, row: Int, topOffset: Float): Vec2 {
+    fun cellPosition(col: Int, row: Int, topOffset: Float, aspect: Float = 1f): Vec2 {
         val x = if (row % 2 == 0) {
             (col + 0.5f) / GRID_COLS
         } else {
             (col + 1.0f) / GRID_COLS
         }
-        val y = topOffset + row * ROW_HEIGHT + BUBBLE_RADIUS
+        val y = topOffset + row * rowHeight(aspect) + vRadius(aspect)
         return Vec2(x, y)
     }
 
@@ -203,8 +224,8 @@ class BubblesPopController {
     }
 
     /** Nearest valid (col, row) hex coordinate to the continuous position (x, y). */
-    fun nearestGridCoord(x: Float, y: Float, topOffset: Float): Pair<Int, Int> {
-        val rowF = (y - topOffset - BUBBLE_RADIUS) / ROW_HEIGHT
+    fun nearestGridCoord(x: Float, y: Float, topOffset: Float, aspect: Float = 1f): Pair<Int, Int> {
+        val rowF = (y - topOffset - vRadius(aspect)) / rowHeight(aspect)
         val row = rowF.roundToInt().coerceAtLeast(0)
         val colF = if (row % 2 == 0) x * GRID_COLS - 0.5f else x * GRID_COLS - 1f
         val col = colF.roundToInt().coerceIn(0, maxCols(row) - 1)
@@ -217,10 +238,16 @@ class BubblesPopController {
         y: Float,
         grid: Map<Pair<Int, Int>, GridCell>,
         topOffset: Float,
+        aspect: Float = 1f,
     ): Pair<Int, Int>? {
-        val candidate = nearestGridCoord(x, y, topOffset)
+        val candidate = nearestGridCoord(x, y, topOffset, aspect)
         if (candidate !in grid && candidate.first in 0 until maxCols(candidate.second)) return candidate
         val pos = Vec2(x, y)
+        fun aspectDist(c: Int, r: Int): Float {
+            val cp = cellPosition(c, r, topOffset, aspect)
+            val dy = (cp.y - pos.y) / aspect
+            return hypot(cp.x - pos.x, dy)
+        }
         val firstRing = hexNeighbors(candidate.first, candidate.second)
             .filter { (c, r) -> r >= 0 && c in 0 until maxCols(r) && (c to r) !in grid }
         val secondRing by lazy {
@@ -229,33 +256,66 @@ class BubblesPopController {
                 .filter { (c, r) -> r >= 0 && c in 0 until maxCols(r) && (c to r) !in grid }
         }
         return (firstRing.ifEmpty { secondRing })
-            .minByOrNull { (c, r) -> cellPosition(c, r, topOffset).distanceTo(pos) }
+            .minByOrNull { (c, r) -> aspectDist(c, r) }
     }
 
     // ─── Grid generation ─────────────────────────────────────────────────────
+
+    /** Rows the cluster starts with for the given variant and level. */
+    fun rowsForLevel(config: BubblesPopConfig, level: Int): Int = when (config.variant) {
+        BubblesVariant.TURN_BASED -> level.coerceIn(1, MAX_TURN_BASED_ROWS)
+        else -> config.startingRows
+    }
 
     fun generateGrid(
         config: BubblesPopConfig,
         level: Int,
         random: Random,
     ): Map<Pair<Int, Int>, GridCell> {
-        val colors = ALL_COLORS.take(config.colorsInPlay.coerceIn(1, ALL_COLORS.size))
-        val includeSpecials = level >= config.specialBubbleLevel
+        val rows = rowsForLevel(config, level)
         val cells = mutableMapOf<Pair<Int, Int>, GridCell>()
-        for (row in 0 until config.startingRows) {
-            for (col in 0 until maxCols(row)) {
-                val color = colors[random.nextInt(colors.size)]
-                val type = when {
-                    includeSpecials && random.nextFloat() < config.powerUpFrequency -> BubbleType.POWER_UP
-                    includeSpecials && random.nextFloat() < 0.05f -> BubbleType.BOMB
-                    includeSpecials && random.nextFloat() < 0.08f -> BubbleType.STONE
-                    else -> BubbleType.NORMAL
-                }
-                val powerUp = if (type == BubbleType.POWER_UP) randomGridPowerUp(random) else null
-                cells[col to row] = GridCell(col, row, color, type, powerUp)
-            }
+        for (row in 0 until rows) {
+            generateRow(config, level, row, random, cells)
         }
         return cells
+    }
+
+    /** Fill a single row into [cells]; rows are not always full (see requirement 6). */
+    private fun generateRow(
+        config: BubblesPopConfig,
+        level: Int,
+        row: Int,
+        random: Random,
+        cells: MutableMap<Pair<Int, Int>, GridCell>,
+    ) {
+        val colors = ALL_COLORS.take(config.colorsInPlay.coerceIn(1, ALL_COLORS.size))
+        val includeSpecials = level >= config.specialBubbleLevel
+        val maxC = maxCols(row)
+        val count = if (random.nextFloat() < SPARSE_ROW_CHANCE) {
+            // Sparse row: only 1, 2 or 3 bubbles.
+            (1 + random.nextInt(3)).coerceAtMost(maxC)
+        } else {
+            // Nearly full: 0, 1 or 2 bubbles missing.
+            (maxC - random.nextInt(3)).coerceAtLeast(1)
+        }
+        val chosenCols = (0 until maxC).shuffled(random).take(count)
+        for (col in chosenCols) {
+            val color = colors[random.nextInt(colors.size)]
+            val type = when {
+                includeSpecials && random.nextFloat() < config.powerUpFrequency -> BubbleType.POWER_UP
+                includeSpecials && random.nextFloat() < 0.05f -> BubbleType.BOMB
+                includeSpecials && random.nextFloat() < 0.08f -> BubbleType.STONE
+                else -> BubbleType.NORMAL
+            }
+            val powerUp = if (type == BubbleType.POWER_UP) randomGridPowerUp(random) else null
+            cells[col to row] = GridCell(col, row, color, type, powerUp)
+        }
+    }
+
+    /** Initial top offset that keeps at most [VISIBLE_ROWS] rows on screen at start. */
+    private fun initialTopOffset(rows: Int, aspect: Float): Float {
+        val hidden = (rows - VISIBLE_ROWS).coerceAtLeast(0)
+        return -hidden * rowHeight(aspect)
     }
 
     private fun randomGridPowerUp(random: Random): BubblePowerUp {
@@ -276,7 +336,11 @@ class BubblesPopController {
 
     // ─── Grid-game initialization ─────────────────────────────────────────────
 
-    fun initialGridState(config: BubblesPopConfig, random: Random = Random.Default): BubblesGridState {
+    fun initialGridState(
+        config: BubblesPopConfig,
+        random: Random = Random.Default,
+        aspect: Float = 1f,
+    ): BubblesGridState {
         val grid = generateGrid(config, 1, random)
         val (cannon, cannonType) = randomBubble(config, random)
         val (next, nextType) = randomBubble(config, random)
@@ -292,13 +356,14 @@ class BubblesPopController {
             lives = config.initialLives,
             missStreak = 0,
             cannonCooldown = 0f,
-            topOffset = 0f,
+            topOffset = initialTopOffset(rowsForLevel(config, 1), aspect),
             activePowerUps = emptyList(),
             comboMultiplier = 1f,
             comboTimer = 0f,
             wildShotActive = false,
             shieldActive = false,
             bestScore = 0,
+            aspect = aspect,
         )
     }
 
@@ -307,6 +372,9 @@ class BubblesPopController {
     /**
      * Place a flying bubble in the cannon pointed at [aimAngle] radians from vertical
      * (0 = straight up, positive = right). Does nothing if cooldown > 0 or already flying.
+     *
+     * The vertical velocity is scaled by the board aspect so the trajectory follows the
+     * on-screen aim direction rather than biasing toward straight up.
      */
     fun fireCannon(state: BubblesGridState, aimAngle: Float): BubblesGridState {
         if (state.flying != null || state.cannonCooldown > 0f) return state
@@ -315,7 +383,7 @@ class BubblesPopController {
             flying = FlyingBubble(
                 x = CANNON_X, y = CANNON_Y,
                 dx = sin(aimAngle) * BUBBLE_SPEED,
-                dy = -cos(aimAngle) * BUBBLE_SPEED,
+                dy = -cos(aimAngle) * BUBBLE_SPEED * state.aspect,
                 color = state.cannonBubble,
                 type = effType,
             ),
@@ -336,6 +404,7 @@ class BubblesPopController {
         random: Random = Random.Default,
     ): Pair<BubblesGridState, BubblesGridEvent> {
         var s = state
+        val aspect = s.aspect
 
         // Decay timers
         if (s.cannonCooldown > 0f)
@@ -350,9 +419,18 @@ class BubblesPopController {
                 .filter { it.remainingSeconds > 0f },
         )
 
-        // Arcade: continuous cluster descent (only when no bubble is in flight)
-        if (config.variant == BubblesVariant.ARCADE && s.flying == null)
+        // Destruction animation: the connected bubble lingers, then pops with its cluster.
+        if (s.popTimer > 0f) {
+            val newTimer = s.popTimer - dt
+            return if (newTimer <= 0f) applyPop(s, config, random)
+            else Pair(s.copy(popTimer = newTimer), BubblesGridEvent.None)
+        }
+
+        // Arcade: continuous cluster descent + endless rows generated above.
+        if (config.variant == BubblesVariant.ARCADE && s.flying == null) {
             s = s.copy(topOffset = s.topOffset + config.descentSpeed * dt)
+            s = maybeInsertTopRow(s, config, random)
+        }
 
         // Danger-line check
         val dangerResult = checkDangerLine(s, config, random)
@@ -370,12 +448,12 @@ class BubblesPopController {
         if (fx < BUBBLE_RADIUS) { fx = BUBBLE_RADIUS * 2f - fx; fdx = -fdx }
         if (fx > 1f - BUBBLE_RADIUS) { fx = (1f - BUBBLE_RADIUS) * 2f - fx; fdx = -fdx }
 
-        // Collision with grid
+        // Collision with grid (aspect-corrected so the boundary matches the drawn bubbles)
         val hitCell = s.grid.values.firstOrNull { cell ->
-            val cp = cellPosition(cell.col, cell.row, s.topOffset)
-            hypot(fx - cp.x, fy - cp.y) < BUBBLE_RADIUS * 2f
+            val cp = cellPosition(cell.col, cell.row, s.topOffset, aspect)
+            hypot(fx - cp.x, (fy - cp.y) / aspect) < BUBBLE_RADIUS * 2f
         }
-        val reachedCeiling = fy < BUBBLE_RADIUS
+        val reachedCeiling = fy < vRadius(aspect)
 
         if (hitCell != null || reachedCeiling) {
             return attachAndResolve(s, config, fx, fy, flying, random)
@@ -384,23 +462,42 @@ class BubblesPopController {
         return Pair(s.copy(flying = flying.copy(x = fx, y = fy, dx = fdx, dy = fdy)), BubblesGridEvent.None)
     }
 
+    /** Arcade: once the cluster has descended a full row, push a fresh row in at the top. */
+    private fun maybeInsertTopRow(
+        s: BubblesGridState,
+        config: BubblesPopConfig,
+        random: Random,
+    ): BubblesGridState {
+        val rh = rowHeight(s.aspect)
+        if (s.topOffset < rh) return s
+        val shifted = s.grid.values.associate { c ->
+            (c.col to c.row + 1) to c.copy(row = c.row + 1)
+        }
+        val newRow = mutableMapOf<Pair<Int, Int>, GridCell>()
+        generateRow(config, s.level, 0, random, newRow)
+        return s.copy(grid = shifted + newRow, topOffset = s.topOffset - rh)
+    }
+
     private fun checkDangerLine(
         s: BubblesGridState,
         config: BubblesPopConfig,
         random: Random,
     ): Pair<BubblesGridState, BubblesGridEvent>? {
-        val maxY = s.grid.values.maxOfOrNull { c -> s.topOffset + c.row * ROW_HEIGHT + BUBBLE_RADIUS * 2f }
+        val rh = rowHeight(s.aspect)
+        val maxY = s.grid.values.maxOfOrNull { c -> s.topOffset + c.row * rh + vRadius(s.aspect) * 2f }
             ?: return null
         if (maxY < DANGER_LINE_Y) return null
         return if (s.shieldActive) {
-            Pair(s.copy(shieldActive = false, topOffset = s.topOffset - ROW_HEIGHT), BubblesGridEvent.None)
+            Pair(s.copy(shieldActive = false, topOffset = s.topOffset - rh), BubblesGridEvent.None)
         } else if (s.lives > 1) {
             val newGrid = generateGrid(config, s.level, random)
             val (c, ct) = randomBubble(config, random)
             val (n, nt) = randomBubble(config, random)
             Pair(
                 s.copy(
-                    lives = s.lives - 1, topOffset = 0f, grid = newGrid,
+                    lives = s.lives - 1,
+                    topOffset = initialTopOffset(rowsForLevel(config, s.level), s.aspect),
+                    grid = newGrid,
                     flying = null, cannonBubble = c, cannonBubbleType = ct, nextBubble = n, nextBubbleType = nt,
                 ),
                 BubblesGridEvent.LifeLost,
@@ -418,7 +515,7 @@ class BubblesPopController {
         flying: FlyingBubble,
         random: Random,
     ): Pair<BubblesGridState, BubblesGridEvent> {
-        val attachPos = nearestEmptyCell(fx, fy, s.grid, s.topOffset)
+        val attachPos = nearestEmptyCell(fx, fy, s.grid, s.topOffset, s.aspect)
             ?: (0 to 0)
         val (ac, ar) = attachPos
         val newCell = GridCell(ac, ar, flying.color, flying.type)
@@ -429,7 +526,7 @@ class BubblesPopController {
         val (nc, nct) = randomBubble(config, random)
 
         return if (cluster.size >= 3 || flying.type == BubbleType.BOMB) {
-            resolveMatch(s, config, workGrid, attachPos, cluster, flying, nc, nct, random)
+            resolveMatch(s, config, workGrid, attachPos, cluster, flying, random)
         } else {
             resolveMiss(s, config, workGrid, nc, nct, random)
         }
@@ -442,8 +539,6 @@ class BubblesPopController {
         attachPos: Pair<Int, Int>,
         cluster: Set<Pair<Int, Int>>,
         flying: FlyingBubble,
-        nc: BubbleColor,
-        nct: BubbleType,
         random: Random,
     ): Pair<BubblesGridState, BubblesGridEvent> {
         val (ac, ar) = attachPos
@@ -457,9 +552,30 @@ class BubblesPopController {
                 hexNeighbors(pos.first, pos.second).filter { it in workGrid }
             else emptyList()
         }
-        val finalPop = explodeSet + extraBombs
-        var resultGrid = workGrid - finalPop
-        var score = calculatePopScore(finalPop.size)
+        val finalPop = (explodeSet + extraBombs).toSet()
+
+        val pending = s.copy(grid = workGrid, flying = null, popping = finalPop)
+
+        // Turn-based: linger on the connected bubble before destroying the cluster.
+        return if (config.variant == BubblesVariant.TURN_BASED) {
+            Pair(pending.copy(popTimer = POP_ANIM_SECONDS), BubblesGridEvent.None)
+        } else {
+            applyPop(pending, config, random)
+        }
+    }
+
+    /**
+     * Remove [BubblesGridState.popping] from the grid, drop disconnected bubbles, award
+     * score, advance the cannon, and resolve level / screen-clear consequences.
+     */
+    private fun applyPop(
+        s: BubblesGridState,
+        config: BubblesPopConfig,
+        random: Random,
+    ): Pair<BubblesGridState, BubblesGridEvent> {
+        val popping = s.popping
+        var resultGrid = s.grid - popping
+        var score = calculatePopScore(popping.size)
 
         val fallen = findDisconnected(resultGrid)
         resultGrid -= fallen
@@ -468,31 +584,43 @@ class BubblesPopController {
         val multiplied = (score * s.comboMultiplier).toInt()
         val newCombo = minOf(s.comboMultiplier + 0.5f, 4f)
         val newScore = s.score + multiplied
+        val (nc, nct) = randomBubble(config, random)
+
+        val base = s.copy(
+            flying = null, popping = emptySet(), popTimer = 0f,
+            missStreak = 0,
+            cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
+            nextBubble = nc, nextBubbleType = nct,
+            cannonCooldown = config.cannonCooldown,
+            comboMultiplier = newCombo, comboTimer = COMBO_WINDOW_SECONDS,
+        )
 
         if (resultGrid.isEmpty()) {
-            val levelBonus = 300 * s.level
-            return Pair(
-                s.copy(
-                    grid = resultGrid, flying = null,
-                    score = newScore + levelBonus, missStreak = 0,
-                    cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                    nextBubble = nc, nextBubbleType = nct,
-                    cannonCooldown = config.cannonCooldown,
-                    comboMultiplier = newCombo, comboTimer = COMBO_WINDOW_SECONDS,
-                ),
-                BubblesGridEvent.ClusterEmpty,
-            )
+            return if (config.variant == BubblesVariant.TURN_BASED) {
+                val levelBonus = 300 * s.level
+                Pair(base.copy(grid = resultGrid, score = newScore + levelBonus), BubblesGridEvent.ClusterEmpty)
+            } else {
+                // Arcade: never ends on a clear — refill and keep the run going.
+                val refill = generateGrid(config, s.level, random)
+                Pair(
+                    base.copy(
+                        grid = refill, score = newScore,
+                        topOffset = initialTopOffset(rowsForLevel(config, s.level), s.aspect),
+                    ),
+                    BubblesGridEvent.BubblePopped(popping.size, multiplied),
+                )
+            }
         }
+
+        // Requirement 4: clearing every bubble on screen descends one row to reveal more.
+        val anyVisible = resultGrid.values.any { c ->
+            cellPosition(c.col, c.row, s.topOffset, s.aspect).y >= 0f
+        }
+        val revealedOffset = if (!anyVisible) s.topOffset + rowHeight(s.aspect) else s.topOffset
+
         return Pair(
-            s.copy(
-                grid = resultGrid, flying = null,
-                score = newScore, missStreak = 0,
-                cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                nextBubble = nc, nextBubbleType = nct,
-                cannonCooldown = config.cannonCooldown,
-                comboMultiplier = newCombo, comboTimer = COMBO_WINDOW_SECONDS,
-            ),
-            BubblesGridEvent.BubblePopped(finalPop.size, multiplied),
+            base.copy(grid = resultGrid, score = newScore, topOffset = revealedOffset),
+            BubblesGridEvent.BubblePopped(popping.size, multiplied),
         )
     }
 
@@ -504,12 +632,13 @@ class BubblesPopController {
         nct: BubbleType,
         random: Random,
     ): Pair<BubblesGridState, BubblesGridEvent> {
-        val newMiss = s.missStreak + 1
-        var newOffset = s.topOffset
-        if (config.variant == BubblesVariant.TURN_BASED && newMiss % config.missesPerDescend == 0) {
-            newOffset += ROW_HEIGHT
-        }
-        var ns = s.copy(
+        // Requirement 3: only descend after missesPerDescend (3) misses in a row,
+        // then reset the streak. A match resets the streak elsewhere.
+        val reachedDescend = s.missStreak + 1 >= config.missesPerDescend
+        val descend = config.variant == BubblesVariant.TURN_BASED && reachedDescend
+        val newMiss = if (descend) 0 else s.missStreak + 1
+        val newOffset = if (descend) s.topOffset + rowHeight(s.aspect) else s.topOffset
+        val ns = s.copy(
             grid = workGrid, flying = null,
             missStreak = newMiss, topOffset = newOffset,
             cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
@@ -544,8 +673,9 @@ class BubblesPopController {
         val (cannon, ct) = randomBubble(newConfig, random)
         val (next, nt) = randomBubble(newConfig, random)
         return state.copy(
-            grid = newGrid, level = newLevel, topOffset = 0f,
-            flying = null, missStreak = 0,
+            grid = newGrid, level = newLevel,
+            topOffset = initialTopOffset(rowsForLevel(newConfig, newLevel), state.aspect),
+            flying = null, missStreak = 0, popping = emptySet(), popTimer = 0f,
             cannonBubble = cannon, cannonBubbleType = ct,
             nextBubble = next, nextBubbleType = nt,
             cannonCooldown = 0f, comboMultiplier = 1f, comboTimer = 0f,
@@ -587,13 +717,11 @@ class BubblesPopController {
         }
     }
 
-    fun initialSnakeState(config: BubblesPopConfig, random: Random = Random.Default): BubblesSnakeState {
-        val chain = generateChain(config, 1, random)
-        val colors = ALL_COLORS.take(config.colorsInPlay.coerceIn(1, ALL_COLORS.size))
+    fun initialSnakeState(config: BubblesPopConfig, random: Random = Random.Default, aspect: Float = 1f): BubblesSnakeState {
         val (cannon, ct) = randomBubble(config, random)
         val (next, nt) = randomBubble(config, random)
         return BubblesSnakeState(
-            chain = chain,
+            chain = emptyList(),
             launcherAngle = 0f,
             cannonBubble = cannon, cannonBubbleType = ct,
             nextBubble = next, nextBubbleType = nt,
@@ -606,30 +734,31 @@ class BubblesPopController {
             reverseTimer = 0f, colorStormTimer = 0f, colorStormColor = null,
             backfirePenalty = config.backfirePenalty,
             bestScore = 0,
+            launcherX = 0.5f,
+            spawnRemaining = config.chainLength,
+            aspect = aspect,
         )
     }
 
     // ─── Snake shooting ───────────────────────────────────────────────────────
 
-    /** Fire the snake cannon toward point (targetX, targetY). */
-    fun fireSnakeCannon(
-        state: BubblesSnakeState,
-        targetX: Float,
-        targetY: Float,
-    ): BubblesSnakeState {
-        if (state.flying != null || state.cannonCooldown > 0f) return state
-        val dx = targetX - LAUNCHER_POS.x
-        val dy = targetY - LAUNCHER_POS.y
-        val dist = hypot(dx, dy).coerceAtLeast(1e-6f)
+    /** Slide the bottom launcher to normalized x [targetX] (the player drags to move it). */
+    fun moveLauncher(state: BubblesSnakeState, targetX: Float): BubblesSnakeState =
+        state.copy(launcherX = targetX.coerceIn(BUBBLE_RADIUS, 1f - BUBBLE_RADIUS))
+
+    /** Auto-fire a bubble straight up from the bottom launcher. */
+    private fun autoFire(state: BubblesSnakeState, config: BubblesPopConfig, random: Random): BubblesSnakeState {
+        val (nc, nct) = randomBubble(config, random)
         return state.copy(
             flying = SnakeFlyingBubble(
-                x = LAUNCHER_POS.x, y = LAUNCHER_POS.y,
-                dx = dx / dist * BUBBLE_SPEED,
-                dy = dy / dist * BUBBLE_SPEED,
-                color = state.cannonBubble,
-                type = state.cannonBubbleType,
+                x = state.launcherX, y = LAUNCHER_Y,
+                dx = 0f, dy = -BUBBLE_SPEED,
+                color = state.cannonBubble, type = state.cannonBubbleType,
             ),
-            launcherAngle = kotlin.math.atan2(dx, -dy),
+            cannonBubble = state.nextBubble, cannonBubbleType = state.nextBubbleType,
+            nextBubble = nc, nextBubbleType = nct,
+            cannonCooldown = config.cannonCooldown,
+            launcherAngle = 0f,
         )
     }
 
@@ -668,110 +797,109 @@ class BubblesPopController {
         }
         val advancedChain = s.chain.map { it.copy(t = it.t + s.chainSpeed * speedMult * dt) }
 
+        // Requirement 13: the snake slithers in from the top of the path over time.
+        var newChain = advancedChain
+        var spawnRemaining = s.spawnRemaining
+        if (spawnRemaining > 0 && (newChain.isEmpty() || newChain.minOf { it.t } >= CHAIN_BUBBLE_SPACING)) {
+            val colors = ALL_COLORS.take(config.colorsInPlay.coerceIn(1, ALL_COLORS.size))
+            newChain = newChain + ChainBubble(0f, colors[random.nextInt(colors.size)])
+            spawnRemaining -= 1
+        }
+        s = s.copy(chain = newChain.sortedBy { it.t }, spawnRemaining = spawnRemaining)
+
         // Check for bubbles that exited the vortex (t > totalLen)
-        if (advancedChain.any { it.t > totalLen }) {
-            s = s.copy(chain = advancedChain)
+        if (s.chain.any { it.t > totalLen }) {
             return if (s.lives > 1) {
-                val newChain = generateChain(config, s.level, random)
-                val (c, ct) = randomBubble(config, random)
-                val (n, nt) = randomBubble(config, random)
                 Pair(
                     s.copy(
-                        chain = newChain, lives = s.lives - 1,
-                        flying = null, cannonBubble = c, cannonBubbleType = ct,
-                        nextBubble = n, nextBubbleType = nt,
+                        chain = emptyList(), spawnRemaining = config.chainLength,
+                        lives = s.lives - 1, flying = null,
                     ),
                     BubblesSnakeEvent.BubbleExited,
                 )
             } else {
-                Pair(s.copy(chain = advancedChain, lives = 0), BubblesSnakeEvent.BubbleExited)
+                Pair(s.copy(lives = 0), BubblesSnakeEvent.BubbleExited)
             }
         }
-        s = s.copy(chain = advancedChain)
+
+        // Requirement 14: the launcher auto-fires whenever it is ready.
+        if (s.flying == null && s.cannonCooldown <= 0f) {
+            s = autoFire(s, config, random)
+        }
 
         // Advance flying bubble
         val flying = s.flying ?: return Pair(s, BubblesSnakeEvent.None)
         val fx = flying.x + flying.dx * dt
         val fy = flying.y + flying.dy * dt
 
+        // Requirement 15: a missed shot has no penalty — it just disappears.
         if (fx < 0f || fx > 1f || fy < 0f || fy > 1f) {
-            val (nc, nct) = randomBubble(config, random)
-            return Pair(
-                s.copy(flying = null, cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                    nextBubble = nc, nextBubbleType = nct, cannonCooldown = config.cannonCooldown),
-                BubblesSnakeEvent.None,
-            )
+            return Pair(s.copy(flying = null), BubblesSnakeEvent.None)
         }
 
-        // Collision with chain bubbles
+        // Collision with chain bubbles (aspect-corrected)
         val hitIndex = s.chain.indexOfFirst { bubble ->
             val pos = trackPosition(bubble.t)
-            hypot(fx - pos.x, fy - pos.y) < BUBBLE_RADIUS * 2f
+            hypot(fx - pos.x, (fy - pos.y) / s.aspect) < BUBBLE_RADIUS * 2f
         }
 
         if (hitIndex < 0) {
             return Pair(s.copy(flying = flying.copy(x = fx, y = fy)), BubblesSnakeEvent.None)
         }
 
-        // Insert bubble into chain
-        return resolveSnakeHit(s, config, flying, hitIndex, random)
+        return resolveSnakeHit(s, config, flying, hitIndex)
     }
 
+    /**
+     * Requirement 16: a shot removes the whole contiguous run of its own color at the
+     * impact point (1 or more bubbles). A non-matching hit does nothing (requirement 15).
+     */
     private fun resolveSnakeHit(
         s: BubblesSnakeState,
         config: BubblesPopConfig,
         flying: SnakeFlyingBubble,
         hitIndex: Int,
-        random: Random,
     ): Pair<BubblesSnakeState, BubblesSnakeEvent> {
-        val insertT = (s.chain[hitIndex].t - CHAIN_BUBBLE_SPACING * 0.5f).coerceAtLeast(0f)
-        val effColor = s.colorStormColor ?: flying.color
-        val newBubble = ChainBubble(insertT, effColor, flying.type)
-        val inserted = (s.chain + newBubble).sortedBy { it.t }
-        val insertedIdx = inserted.indexOfFirst { it === newBubble }
+        val shotColor = s.colorStormColor ?: flying.color
+        val run = contiguousColorRun(s.chain, hitIndex, shotColor, flying.type)
+            ?: return Pair(s.copy(flying = null), BubblesSnakeEvent.None)
 
-        val matchRange = findChainMatch(inserted, insertedIdx)
-        val (nc, nct) = randomBubble(config, random)
+        val count = run.last - run.first + 1
+        val baseScore = calculatePopScore(count).coerceAtLeast(count * 10)
+        val remaining = contractChain(s.chain.filterIndexed { i, _ -> i !in run })
+        val (finalChain, cascadeScore) = checkCascades(remaining)
+        val total = baseScore + cascadeScore
 
-        return if (matchRange != null) {
-            val matchCount = matchRange.last - matchRange.first + 1
-            val baseScore = calculatePopScore(matchCount)
-            val popped = matchRange.toSet()
-            val contracted = contractChain(inserted.filterIndexed { i, _ -> i !in popped })
-            val (finalChain, cascadeScore) = checkCascades(contracted)
-            val total = baseScore + cascadeScore
-            if (finalChain.isEmpty()) {
-                val levelBonus = 300 * s.level
-                Pair(
-                    s.copy(chain = emptyList(), flying = null, score = s.score + total + levelBonus,
-                        cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                        nextBubble = nc, nextBubbleType = nct, cannonCooldown = config.cannonCooldown),
-                    BubblesSnakeEvent.ChainCleared,
-                )
-            } else {
-                Pair(
-                    s.copy(chain = finalChain, flying = null, score = s.score + total,
-                        cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                        nextBubble = nc, nextBubbleType = nct, cannonCooldown = config.cannonCooldown),
-                    BubblesSnakeEvent.BubblePopped(matchCount, total),
-                )
-            }
-        } else {
-            // Backfire: add penalty bubbles near the chain's tail
-            val colors = ALL_COLORS.take(config.colorsInPlay.coerceIn(1, ALL_COLORS.size))
-            val penColor = colors[random.nextInt(colors.size)]
-            val minT = inserted.minOfOrNull { it.t } ?: 0f
-            val penBubbles = (1..s.backfirePenalty).map { i ->
-                ChainBubble(minT - i * CHAIN_BUBBLE_SPACING, penColor)
-            }
-            val extended = contractChain((inserted + penBubbles).sortedBy { it.t })
+        return if (finalChain.isEmpty() && s.spawnRemaining <= 0) {
+            val levelBonus = 300 * s.level
             Pair(
-                s.copy(chain = extended, flying = null,
-                    cannonBubble = s.nextBubble, cannonBubbleType = s.nextBubbleType,
-                    nextBubble = nc, nextBubbleType = nct, cannonCooldown = config.cannonCooldown),
-                BubblesSnakeEvent.Backfire,
+                s.copy(chain = emptyList(), flying = null, score = s.score + total + levelBonus),
+                BubblesSnakeEvent.ChainCleared,
+            )
+        } else {
+            Pair(
+                s.copy(chain = finalChain, flying = null, score = s.score + total),
+                BubblesSnakeEvent.BubblePopped(count, total),
             )
         }
+    }
+
+    /** Maximal contiguous range of [color] around [index], or null if the hit bubble doesn't match. */
+    private fun contiguousColorRun(
+        chain: List<ChainBubble>,
+        index: Int,
+        color: BubbleColor,
+        shotType: BubbleType,
+    ): IntRange? {
+        if (index < 0 || index >= chain.size) return null
+        fun matches(b: ChainBubble) = b.type != BubbleType.STONE &&
+                (b.color == color || b.type == BubbleType.RAINBOW || shotType == BubbleType.RAINBOW)
+        if (!matches(chain[index])) return null
+        var start = index
+        var end = index
+        while (start > 0 && matches(chain[start - 1])) start--
+        while (end < chain.size - 1 && matches(chain[end + 1])) end++
+        return start..end
     }
 
     /** Find indices of a 3+ same-color run in [chain] centered around [index]. */
@@ -837,11 +965,10 @@ class BubblesPopController {
         val newLevel = state.level + 1
         val newColors = minOf(config.colorsInPlay + 1, ALL_COLORS.size)
         val newConfig = config.copy(colorsInPlay = newColors)
-        val newChain = generateChain(newConfig, newLevel, random)
         val (cannon, ct) = randomBubble(newConfig, random)
         val (next, nt) = randomBubble(newConfig, random)
         return state.copy(
-            chain = newChain, level = newLevel,
+            chain = emptyList(), spawnRemaining = newConfig.chainLength, level = newLevel,
             chainSpeed = state.chainSpeed + config.chainSpeedIncrement,
             cannonBubble = cannon, cannonBubbleType = ct,
             nextBubble = next, nextBubbleType = nt,
