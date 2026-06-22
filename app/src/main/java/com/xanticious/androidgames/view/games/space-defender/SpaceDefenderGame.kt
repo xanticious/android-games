@@ -171,7 +171,7 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                         onDrag = { change, _ ->
                             change.consume()
                             val origin = dragOriginX ?: change.position.x.also { dragOriginX = it }
-                            val dx = ((change.position.x - origin) / (size.width * 0.35f)).coerceIn(-1f, 1f)
+                            val dx = ((change.position.x - origin) / (size.width * DRAG_SENSITIVITY)).coerceIn(-1f, 1f)
                             joystickInput = JoystickInput(dx = dx, dy = 0f)
                         },
                         onDragEnd = { dragOriginX = null; joystickInput = JoystickInput.NONE },
@@ -207,12 +207,12 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
                 // Player cannon
                 val invincible = gameState.isInvincible
-                val blink = invincible && (gameState.invincibilityTimer * 8f).toInt() % 2 == 0
+                val blink = invincible && (gameState.invincibilityTimer * BLINK_FREQUENCY).toInt() % 2 == 0
                 drawPlayerCannon(
                     x = gameState.playerX * w,
                     y = SpaceDefenderState.PLAYER_Y * h,
                     w = w,
-                    color = if (blink) playerColor.copy(alpha = 0.15f) else playerColor,
+                    color = if (blink) playerColor.copy(alpha = BLINK_ALPHA) else playerColor,
                     accentColor = accentColor
                 )
 
@@ -242,6 +242,9 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 // ---------------------------------------------------------------------------
 
 private const val DAMAGE_FLASH_DURATION = 0.4f
+private const val DRAG_SENSITIVITY = 0.35f
+private const val BLINK_FREQUENCY = 8f
+private const val BLINK_ALPHA = 0.15f
 
 // ---------------------------------------------------------------------------
 // Canvas draw helpers (pure DrawScope — no @Composable, no MaterialTheme access)
