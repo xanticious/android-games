@@ -72,7 +72,6 @@ fun HelicopterDogfightGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var rotorAngle by remember { mutableStateOf(0f) }
 
     // Capture color tokens outside the Canvas lambda (DrawScope is not @Composable).
-    val courtColor = GameCourt
     val playerColor = GamePlayer
     val enemyColor = GameEnemy
     val accentColor = GameAccent
