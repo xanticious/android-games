@@ -207,12 +207,15 @@ class MahjongSolitaireController {
         val result = remaining.toMutableList()
 
         // Reverse-solve: assign matching faces to free slot pairs.
+        // Each step records (slotA.id, slotB.id) as the corresponding FORWARD solution step.
+        val solutionPath = mutableListOf<Pair<Int, Int>>()
         for ((faceA, faceB) in facePairs) {
             val free = remaining.filter { isFree(it, remaining) }
             if (free.size < 2) break
             val shuffled = free.shuffled(random)
             val slotA = shuffled[0]
             val slotB = shuffled[1]
+            solutionPath.add(slotA.id to slotB.id)
             remaining = remaining.filter { it.id != slotA.id && it.id != slotB.id }
             val ia = result.indexOfFirst { it.id == slotA.id }
             val ib = result.indexOfFirst { it.id == slotB.id }
@@ -231,7 +234,7 @@ class MahjongSolitaireController {
             else slot.copy(face = pool.getOrElse(fillIdx++) { TileFace(TileSuit.DOTS, 1) })
         }
 
-        return MahjongSolitaireState(slots = finalSlots, layout = layout)
+        return MahjongSolitaireState(slots = finalSlots, layout = layout, solutionPath = solutionPath)
     }
 
     // ── Interaction ──────────────────────────────────────────────────────────

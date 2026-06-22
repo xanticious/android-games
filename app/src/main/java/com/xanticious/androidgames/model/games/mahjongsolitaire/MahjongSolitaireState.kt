@@ -59,7 +59,10 @@ data class MahjongSolitaireState(
     val layout: MahjongLayout = MahjongLayout.TURTLE,
     val faceSet: TileFaceSet = TileFaceSet.TRADITIONAL,
     val hintsEnabled: Boolean = true,
-    val guaranteedSolvable: Boolean = true
+    val guaranteedSolvable: Boolean = true,
+    /** The slot-ID pairs to remove in order to solve the board (populated when
+     *  [guaranteedSolvable] is true; each entry is the forward solution step). */
+    val solutionPath: List<Pair<Int, Int>> = emptyList()
 ) {
     val activeTiles: List<TileSlot> get() = slots.filter { it.face != null }
     val pairsRemoved: Int get() = (slots.size - activeTiles.size) / 2
