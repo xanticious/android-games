@@ -77,32 +77,27 @@ fun LoveLetterGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     // Player-count selection screen before the first round
     var playerCount by rememberSaveable { mutableStateOf(0) }
     var game by remember { mutableStateOf<LoveLetterGame?>(null) }
-    var roundSeed by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
-    val aiRandom = remember { Random(roundSeed) }
+    val aiRandom = remember { Random.Default }
+
+    // Helper: start a brand-new round, preserving token counts from the current game
+    fun startNewRound(base: LoveLetterGame): LoveLetterGame {
+        val seed = System.currentTimeMillis()
+        return controller.startRound(base, seed)
+    }
 
     // ── Player count lobby ────────────────────────────────────────────────────
     if (playerCount == 0) {
         PlayerCountLobby(difficulty = difficulty) { count ->
             playerCount = count
-            game = controller.initialGame(count, difficulty, roundSeed)
+            val initial = controller.initialGame(count, difficulty, System.currentTimeMillis())
+            game = startNewRound(initial)
             machine.startGame()
+            machine.roundSetup()
         }
         return
     }
 
     val currentGame = game ?: return
-
-    // ── Round setup (triggered once when entering SETUP phase) ────────────────
-    LaunchedEffect(phase) {
-        if (phase == LoveLetterPhase.SETUP) {
-            val g = controller.initialGame(playerCount, difficulty, roundSeed)
-                .copy(roundNumber = game?.roundNumber ?: 1)
-            game = controller.startRound(g.copy(players = g.players.mapIndexed { i, p ->
-                p.copy(tokens = currentGame.players.getOrNull(i)?.tokens ?: 0)
-            }), roundSeed)
-            machine.roundSetup()
-        }
-    }
 
     // ── Human draw at start of turn ───────────────────────────────────────────
     LaunchedEffect(currentGame.currentPlayerIndex, phase) {
@@ -120,14 +115,13 @@ fun LoveLetterGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         if (phase == LoveLetterPhase.PLAYING && !currentGame.currentPlayer.isHuman) {
             delay(700L)
             val afterTurn = controller.takeAiTurn(currentGame, aiRandom)
-            val advanced = controller.advanceTurn(afterTurn)
             if (controller.checkRoundOver(afterTurn)) {
                 val winnerIdx = controller.roundWinnerIndex(afterTurn)
                 val afterToken = controller.awardToken(afterTurn, winnerIdx)
                 game = afterToken
                 if (controller.gameWinner(afterToken) != null) machine.gameWon() else machine.roundOver()
             } else {
-                game = advanced
+                game = controller.advanceTurn(afterTurn)
             }
         }
     }
@@ -158,15 +152,15 @@ fun LoveLetterGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                 controller = controller,
                 onNextRound = {
                     val next = controller.nextRound(g)
-                    game = next
-                    roundSeed = System.currentTimeMillis()
+                    val withNewRound = startNewRound(next)
+                    game = withNewRound
                     machine.nextRound()
                 },
                 onRematch = {
-                    val fresh = controller.initialGame(playerCount, difficulty, roundSeed)
-                    game = fresh
-                    roundSeed = System.currentTimeMillis()
+                    val fresh = controller.initialGame(playerCount, difficulty, System.currentTimeMillis())
+                    game = startNewRound(fresh)
                     machine.rematch()
+                    machine.roundSetup()
                 },
                 onSetPendingTarget = { targetIdx ->
                     // Guard: target chosen, now need to pick the guess card

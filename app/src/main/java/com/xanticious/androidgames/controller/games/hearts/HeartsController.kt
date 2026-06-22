@@ -318,22 +318,22 @@ object HeartsController {
             GameDifficulty.MEDIUM -> hand
                 .sortedByDescending { card ->
                     when {
-                        card == HeartsGameState.QUEEN_OF_SPADES          -> 200
-                        card.suit == Suit.HEARTS                         -> 100 + card.rank.value
-                        card.suit == Suit.SPADES && card.rank.value >= 11 -> 80 + card.rank.value
-                        else                                             -> card.rank.value
+                        card == HeartsGameState.QUEEN_OF_SPADES           -> 200
+                        card.suit == Suit.HEARTS                          -> 100 + card.rank.highValue
+                        card.suit == Suit.SPADES && card.rank.highValue >= 11 -> 80 + card.rank.highValue
+                        else                                              -> card.rank.highValue
                     }
                 }.take(3)
 
             GameDifficulty.HARD -> hand
                 .sortedByDescending { card ->
                     when {
-                        card == HeartsGameState.QUEEN_OF_SPADES              -> 300
-                        card.suit == Suit.SPADES && card.rank.value >= 11    -> 200 + card.rank.value
-                        card.suit == Suit.HEARTS && card.rank == Rank.ACE    -> 180
-                        card.suit == Suit.HEARTS && card.rank.value >= 10    -> 150 + card.rank.value
-                        card.suit == Suit.HEARTS                             -> 100 + card.rank.value
-                        else                                                 -> card.rank.value
+                        card == HeartsGameState.QUEEN_OF_SPADES               -> 300
+                        card.suit == Suit.SPADES && card.rank.highValue >= 11 -> 200 + card.rank.highValue
+                        card.suit == Suit.HEARTS && card.rank == Rank.ACE     -> 180
+                        card.suit == Suit.HEARTS && card.rank.highValue >= 10 -> 150 + card.rank.highValue
+                        card.suit == Suit.HEARTS                              -> 100 + card.rank.highValue
+                        else                                                  -> card.rank.highValue
                     }
                 }.take(3)
         }
@@ -371,14 +371,14 @@ object HeartsController {
     private fun aiEasyCard(legal: List<Card>, trick: List<TrickCard>, random: Random): Card {
         // Carelessly dumps high cards or plays randomly
         return if (random.nextFloat() < 0.4f) legal.random(random)
-        else legal.maxBy { it.rank.value }
+        else legal.maxBy { it.rank.highValue }
     }
 
     private fun aiMediumCard(legal: List<Card>, trick: List<TrickCard>, random: Random): Card {
         if (trick.isEmpty()) {
             // Leading: play the lowest non-heart
             val nonHearts = legal.filter { it.suit != Suit.HEARTS }
-            return (nonHearts.ifEmpty { legal }).minBy { it.rank.value }
+            return (nonHearts.ifEmpty { legal }).minBy { it.rank.highValue }
         }
 
         val ledSuit = trick.first().card.suit
@@ -387,19 +387,19 @@ object HeartsController {
         if (followingLed) {
             val ledCards = legal.filter { it.suit == ledSuit }
             val currentWinnerRank = trick.filter { it.card.suit == ledSuit }
-                .maxOfOrNull { it.card.rank.value } ?: 0
+                .maxOfOrNull { it.card.rank.highValue } ?: 0
             // Try to duck under the current winner
-            val duckCards = ledCards.filter { it.rank.value < currentWinnerRank }
-            return if (duckCards.isNotEmpty()) duckCards.maxBy { it.rank.value }
-            else ledCards.minBy { it.rank.value }   // must win; play low winner
+            val duckCards = ledCards.filter { it.rank.highValue < currentWinnerRank }
+            return if (duckCards.isNotEmpty()) duckCards.maxBy { it.rank.highValue }
+            else ledCards.minBy { it.rank.highValue }   // must win; play low winner
         }
 
         // Void in led suit: dump the most dangerous penalty card
         val qos = legal.firstOrNull { it == HeartsGameState.QUEEN_OF_SPADES }
         if (qos != null) return qos
-        val highHeart = legal.filter { it.suit == Suit.HEARTS }.maxByOrNull { it.rank.value }
+        val highHeart = legal.filter { it.suit == Suit.HEARTS }.maxByOrNull { it.rank.highValue }
         if (highHeart != null) return highHeart
-        return legal.maxBy { it.rank.value }
+        return legal.maxBy { it.rank.highValue }
     }
 
     private fun aiHardCard(
@@ -414,7 +414,7 @@ object HeartsController {
         if (trick.isEmpty()) {
             // Leading: prefer a safe low card in a short suit to void it
             val nonDanger = legal.filter { it.suit != Suit.HEARTS && it != HeartsGameState.QUEEN_OF_SPADES }
-            return (nonDanger.ifEmpty { legal }).minBy { it.rank.value }
+            return (nonDanger.ifEmpty { legal }).minBy { it.rank.highValue }
         }
 
         val ledSuit = trick.first().card.suit
@@ -423,32 +423,32 @@ object HeartsController {
         if (followingLed) {
             val ledCards = legal.filter { it.suit == ledSuit }
             val currentWinnerRank = trick.filter { it.card.suit == ledSuit }
-                .maxOfOrNull { it.card.rank.value } ?: 0
+                .maxOfOrNull { it.card.rank.highValue } ?: 0
             val trickHasPoints = trick.any {
                 it.card.suit == Suit.HEARTS || it.card == HeartsGameState.QUEEN_OF_SPADES
             }
-            val duckCards = ledCards.filter { it.rank.value < currentWinnerRank }
+            val duckCards = ledCards.filter { it.rank.highValue < currentWinnerRank }
             return when {
                 duckCards.isNotEmpty() && trickHasPoints ->
-                    duckCards.maxBy { it.rank.value }    // duck to avoid points
+                    duckCards.maxBy { it.rank.highValue }    // duck to avoid points
                 duckCards.isNotEmpty() ->
-                    duckCards.maxBy { it.rank.value }    // duck to stay safe
+                    duckCards.maxBy { it.rank.highValue }    // duck to stay safe
                 else ->
-                    ledCards.minBy { it.rank.value }     // must win; take cheaply
+                    ledCards.minBy { it.rank.highValue }     // must win; take cheaply
             }
         }
 
         // Void in led suit: dump most dangerous card first
         val qos = legal.firstOrNull { it == HeartsGameState.QUEEN_OF_SPADES }
         if (qos != null) return qos
-        val highHeart = legal.filter { it.suit == Suit.HEARTS }.maxByOrNull { it.rank.value }
+        val highHeart = legal.filter { it.suit == Suit.HEARTS }.maxByOrNull { it.rank.highValue }
         if (highHeart != null) return highHeart
         // Dump high spades if Q♠ not yet played (protect ourselves from winning Q♠ later)
         if (!qosPlayed) {
-            val highSpade = legal.filter { it.suit == Suit.SPADES && it.rank.value >= 11 }
-                .maxByOrNull { it.rank.value }
+            val highSpade = legal.filter { it.suit == Suit.SPADES && it.rank.highValue >= 11 }
+                .maxByOrNull { it.rank.highValue }
             if (highSpade != null) return highSpade
         }
-        return legal.maxBy { it.rank.value }
+        return legal.maxBy { it.rank.highValue }
     }
 }
