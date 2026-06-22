@@ -84,7 +84,7 @@ fun AnomalyDefenseGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val machine = remember { AnomalyDefenseStateMachine() }
     val phase by machine.phase.collectAsState()
 
-    var gameState by rememberSaveable {
+    var gameState by remember {
         mutableStateOf<AnomalyDefenseState?>(null)
     }
     var bestUnitsThrough by rememberSaveable { mutableStateOf(0) }

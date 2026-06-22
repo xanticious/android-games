@@ -56,9 +56,10 @@ import com.xanticious.androidgames.model.games.ageofempirelite.UpgradePriority
 import com.xanticious.androidgames.model.games.ageofempirelite.UnitType
 import com.xanticious.androidgames.state.games.ageofempirelite.AgeOfEmpiresLitePhase
 import com.xanticious.androidgames.state.games.ageofempirelite.AgeOfEmpiresLiteStateMachine
-import com.xanticious.androidgames.ui.theme.Aqua2
 import com.xanticious.androidgames.ui.theme.Aqua3
+import com.xanticious.androidgames.ui.theme.Dark1
 import com.xanticious.androidgames.ui.theme.Dark2
+import com.xanticious.androidgames.ui.theme.GameAccent
 import com.xanticious.androidgames.ui.theme.GameCourt
 import com.xanticious.androidgames.ui.theme.GameEnemy
 import com.xanticious.androidgames.ui.theme.GameHazard
@@ -207,7 +208,7 @@ private fun BattlefieldCanvas(state: AgeOfEmpiresLiteState?) {
             val scaleY = size.height / BOARD_HEIGHT
 
             // Ground
-            drawRect(color = Color(0xFF1A3A1A), size = Size(size.width, size.height))
+            drawRect(color = Dark1, size = Size(size.width, size.height))
             // Battlefield path line
             drawLine(
                 color = GameNeutral.copy(alpha = 0.3f),
@@ -271,8 +272,6 @@ private fun BattlefieldCanvas(state: AgeOfEmpiresLiteState?) {
         }
     }
 }
-
-private val GameAccent = Color(0xFFFFD43B)
 
 private fun DrawScope.drawVillage(centerX: Float, isPlayer: Boolean, scaleX: Float, scaleY: Float) {
     val color = if (isPlayer) GamePlayer else GameEnemy
