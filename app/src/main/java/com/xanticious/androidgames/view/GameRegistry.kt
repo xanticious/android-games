@@ -15,6 +15,8 @@ import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.idlebounce.IdleBounceGame
+import com.xanticious.androidgames.view.games.idlecombattraining.IdleCombatTrainingGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
@@ -46,6 +48,8 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "idle-bounce" to { difficulty, onExit -> IdleBounceGame(difficulty, onExit) },
+    "idle-combat-training" to { difficulty, onExit -> IdleCombatTrainingGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
