@@ -140,7 +140,12 @@ class AppStateMachine {
         machine.processEventByLaunch(NavEvent.OpenGameSettings)
     }
 
-    /** Launches a self-configured game straight from the lobby, skipping the shared settings screen. */
+    /**
+     * Launches a self-configured game straight from the lobby, skipping the shared settings screen.
+     *
+     * Such games own their full settings flow (including difficulty) inside their own composable,
+     * so the difficulty passed here is just a placeholder default that the game overrides.
+     */
     fun launchGame(gameId: String) {
         selectedGameId = gameId
         selectedDifficulty = GameDifficulty.MEDIUM

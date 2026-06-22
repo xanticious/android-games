@@ -64,7 +64,7 @@ class AsteroidsController {
         )
     }
 
-    /** Builds a fresh wave of [largeAsteroidCount] large asteroids for [level], avoiding [avoid]. */
+    /** Builds a fresh wave of large asteroids for [level], avoiding the [avoid] point. */
     private fun largeAsteroidWave(
         level: Int,
         config: AsteroidsConfig,
