@@ -21,6 +21,7 @@ import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
 import com.xanticious.androidgames.view.games.nonogram.NonogramGame
 import com.xanticious.androidgames.view.games.numberlink.NumberlinkGame
+import com.xanticious.androidgames.view.games.pathfinder.PathfinderGame
 import com.xanticious.androidgames.view.games.mastermind.MastermindGame
 import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
 import com.xanticious.androidgames.view.games.pipes.PipesGame
@@ -28,6 +29,7 @@ import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
 import com.xanticious.androidgames.view.games.sokoban.SokobanGame
+import com.xanticious.androidgames.view.games.sudokucolors.SudokuColorsGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
 import com.xanticious.androidgames.view.games.twentyfortyeight.TwentyFortyEightGame
@@ -64,12 +66,14 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "minesweeper" to { difficulty, onExit -> MinesweeperGame(difficulty, onExit) },
     "nonogram" to { difficulty, onExit -> NonogramGame(difficulty, onExit) },
     "numberlink" to { difficulty, onExit -> NumberlinkGame(difficulty, onExit) },
+    "pathfinder" to { difficulty, onExit -> PathfinderGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
     "pipes" to { difficulty, onExit -> PipesGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
     "sokoban" to { difficulty, onExit -> SokobanGame(difficulty, onExit) },
+    "sudoku-colors" to { difficulty, onExit -> SudokuColorsGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
     "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
     "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) }
