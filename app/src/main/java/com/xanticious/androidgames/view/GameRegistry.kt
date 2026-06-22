@@ -19,12 +19,15 @@ import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfi
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
 import com.xanticious.androidgames.view.games.jigsaw.JigsawGame
 import com.xanticious.androidgames.view.games.lightup.LightUpGame
+import com.xanticious.androidgames.view.games.logicgrid.LogicGridGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
 import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
 import com.xanticious.androidgames.view.games.nonogram.NonogramGame
 import com.xanticious.androidgames.view.games.numberlink.NumberlinkGame
 import com.xanticious.androidgames.view.games.pathfinder.PathfinderGame
 import com.xanticious.androidgames.view.games.mastermind.MastermindGame
+import com.xanticious.androidgames.view.games.matchthree.MatchThreeArcadeGame
+import com.xanticious.androidgames.view.games.matchthree.MatchThreeGame
 import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
 import com.xanticious.androidgames.view.games.pipes.PipesGame
 import com.xanticious.androidgames.view.games.pong.PongGame
@@ -66,8 +69,11 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
     "jigsaw" to { difficulty, onExit -> JigsawGame(difficulty, onExit) },
     "light-up" to { difficulty, onExit -> LightUpGame(difficulty, onExit) },
+    "logic-grid" to { difficulty, onExit -> LogicGridGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "mastermind" to { difficulty, onExit -> MastermindGame(difficulty, onExit) },
+    "match-three" to { difficulty, onExit -> MatchThreeGame(difficulty, onExit) },
+    "match-three-arcade" to { difficulty, onExit -> MatchThreeArcadeGame(difficulty, onExit) },
     "minesweeper" to { difficulty, onExit -> MinesweeperGame(difficulty, onExit) },
     "nonogram" to { difficulty, onExit -> NonogramGame(difficulty, onExit) },
     "numberlink" to { difficulty, onExit -> NumberlinkGame(difficulty, onExit) },
