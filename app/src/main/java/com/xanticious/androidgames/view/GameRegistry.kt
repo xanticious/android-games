@@ -16,7 +16,10 @@ import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
+import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
+import com.xanticious.androidgames.view.games.mastermind.MastermindGame
 import com.xanticious.androidgames.view.games.pegsolitaire.PegSolitaireGame
+import com.xanticious.androidgames.view.games.pipes.PipesGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
@@ -50,8 +53,11 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
+    "mastermind" to { difficulty, onExit -> MastermindGame(difficulty, onExit) },
+    "minesweeper" to { difficulty, onExit -> MinesweeperGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "peg-solitaire" to { difficulty, onExit -> PegSolitaireGame(difficulty, onExit) },
+    "pipes" to { difficulty, onExit -> PipesGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
