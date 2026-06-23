@@ -19,6 +19,12 @@ import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.hearts.HeartsGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.idleanimalmerge.IdleAnimalMergeGame
+import com.xanticious.androidgames.view.games.idlebounce.IdleBounceGame
+import com.xanticious.androidgames.view.games.idlecombattraining.IdleCombatTrainingGame
+import com.xanticious.androidgames.view.games.idlefarmers.IdleFarmersGame
+import com.xanticious.androidgames.view.games.idlegeneticalgorithm.IdleGeneticAlgorithmGame
+import com.xanticious.androidgames.view.games.idleplayerpiano.IdlePlayerPianoGame
 import com.xanticious.androidgames.view.games.melodymaster.MelodyMasterGame
 import com.xanticious.androidgames.view.games.morsecode.MorseCodeGame
 import com.xanticious.androidgames.view.games.morsedecoder.MorseDecoderGame
@@ -91,6 +97,12 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "hidden-object" to { difficulty, onExit -> HiddenObjectGame(difficulty, onExit) },
     "hidden-objects" to { difficulty, onExit -> HiddenObjectsGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "idle-animal-merge" to { difficulty, onExit -> IdleAnimalMergeGame(difficulty, onExit) },
+    "idle-bounce" to { difficulty, onExit -> IdleBounceGame(difficulty, onExit) },
+    "idle-combat-training" to { difficulty, onExit -> IdleCombatTrainingGame(difficulty, onExit) },
+    "idle-farmers" to { difficulty, onExit -> IdleFarmersGame(difficulty, onExit) },
+    "idle-genetic-algorithm" to { difficulty, onExit -> IdleGeneticAlgorithmGame(difficulty, onExit) },
+    "idle-player-piano" to { difficulty, onExit -> IdlePlayerPianoGame(difficulty, onExit) },
     "melody-master" to { difficulty, onExit -> MelodyMasterGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "morse-code" to { difficulty, onExit -> MorseCodeGame(difficulty, onExit) },
