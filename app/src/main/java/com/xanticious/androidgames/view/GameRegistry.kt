@@ -11,13 +11,21 @@ import com.xanticious.androidgames.view.games.brickbreakercannonarcade.BrickBrea
 import com.xanticious.androidgames.view.games.bubblesarcade.BubblesPopArcadeGame
 import com.xanticious.androidgames.view.games.bubblespop.BubblesPopGame
 import com.xanticious.androidgames.view.games.bubblessnakearcade.BubblesPopSnakeArcadeGame
+import com.xanticious.androidgames.view.games.dotart.DotArtGame
 import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
+import com.xanticious.androidgames.view.games.hiddenobject.HiddenObjectGame
+import com.xanticious.androidgames.view.games.hiddenobjects.HiddenObjectsGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.memorylanes.MemoryLanesGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
+import com.xanticious.androidgames.view.games.paircollector.PairCollectorGame
+import com.xanticious.androidgames.view.games.piratetreasuremaze.PirateTreasureMazeGame
+import com.xanticious.androidgames.view.games.planetexplorer.PlanetExplorerGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
+import com.xanticious.androidgames.view.games.simcityblocks.SimCityBlocksGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
 import com.xanticious.androidgames.view.games.ageofempirelite.AgeOfEmpiresLiteGame
@@ -26,6 +34,7 @@ import com.xanticious.androidgames.view.games.basedefense.BaseDefenseGame
 import com.xanticious.androidgames.view.games.empireskirmish.EmpireSkirmishGame
 import com.xanticious.androidgames.view.games.randomizeddice.RandomizedDiceTdGame
 import com.xanticious.androidgames.view.games.roguecaverns.RogueCavernsGame
+import com.xanticious.androidgames.view.games.treasuremapper.TreasureMapperGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -49,12 +58,20 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "bubbles-pop-arcade" to { difficulty, onExit -> BubblesPopArcadeGame(difficulty, onExit) },
     "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
     "drift-racer" to { difficulty, onExit -> DriftRacerGame(difficulty, onExit) },
+    "dot-art" to { difficulty, onExit -> DotArtGame(difficulty, onExit) },
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
+    "hidden-object" to { difficulty, onExit -> HiddenObjectGame(difficulty, onExit) },
+    "hidden-objects" to { difficulty, onExit -> HiddenObjectsGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "memory-lanes" to { difficulty, onExit -> MemoryLanesGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
+    "pair-collector" to { difficulty, onExit -> PairCollectorGame(difficulty, onExit) },
+    "pirate-treasure-maze" to { difficulty, onExit -> PirateTreasureMazeGame(difficulty, onExit) },
+    "planet-explorer" to { difficulty, onExit -> PlanetExplorerGame(difficulty, onExit) },
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
+    "sim-city-blocks" to { difficulty, onExit -> SimCityBlocksGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
     "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
     "age-of-empires-lite" to { difficulty, onExit -> AgeOfEmpiresLiteGame(difficulty, onExit) },
@@ -63,4 +80,5 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "empire-skirmish" to { difficulty, onExit -> EmpireSkirmishGame(difficulty, onExit) },
     "randomized-dice-td" to { difficulty, onExit -> RandomizedDiceTdGame(difficulty, onExit) },
     "rogue-caverns" to { difficulty, onExit -> RogueCavernsGame(difficulty, onExit) }
+    "treasure-mapper" to { difficulty, onExit -> TreasureMapperGame(difficulty, onExit) }
 )
