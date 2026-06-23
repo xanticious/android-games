@@ -6,6 +6,7 @@ import com.xanticious.androidgames.view.games.ageofempirelite.AgeOfEmpiresLiteGa
 import com.xanticious.androidgames.view.games.anomalydefense.AnomalyDefenseGame
 import com.xanticious.androidgames.view.games.asteroids.AsteroidsGame
 import com.xanticious.androidgames.view.games.basedefense.BaseDefenseGame
+import com.xanticious.androidgames.view.games.battleships.BattleshipsGame
 import com.xanticious.androidgames.view.games.bombergrid.BomberGridGame
 import com.xanticious.androidgames.view.games.brickbreaker.BrickBreakerGame
 import com.xanticious.androidgames.view.games.brickbreakerarcade.BrickBreakerArcadeGame
@@ -14,9 +15,13 @@ import com.xanticious.androidgames.view.games.brickbreakercannonarcade.BrickBrea
 import com.xanticious.androidgames.view.games.bubblesarcade.BubblesPopArcadeGame
 import com.xanticious.androidgames.view.games.bubblespop.BubblesPopGame
 import com.xanticious.androidgames.view.games.bubblessnakearcade.BubblesPopSnakeArcadeGame
+import com.xanticious.androidgames.view.games.checkers.CheckersGame
+import com.xanticious.androidgames.view.games.chinesecheckers.ChineseCheckersGame
+import com.xanticious.androidgames.view.games.connectfour.ConnectFourGame
 import com.xanticious.androidgames.view.games.cribbage.CribbageGame
 import com.xanticious.androidgames.view.games.deckbuilderfleet.DeckBuilderFleetGame
 import com.xanticious.androidgames.view.games.deckbuildersuperhero.DeckBuilderSuperheroGame
+import com.xanticious.androidgames.view.games.dominoes.DominoesGame
 import com.xanticious.androidgames.view.games.dominosa.DominosaGame
 import com.xanticious.androidgames.view.games.dotart.DotArtGame
 import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
@@ -24,8 +29,10 @@ import com.xanticious.androidgames.view.games.empireskirmish.EmpireSkirmishGame
 import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.flashcards.FlashCardGame
 import com.xanticious.androidgames.view.games.flood.FloodGame
+import com.xanticious.androidgames.view.games.gomoku.GomokuGame
 import com.xanticious.androidgames.view.games.hearts.HeartsGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
+import com.xanticious.androidgames.view.games.hex.HexGame
 import com.xanticious.androidgames.view.games.hiddenobject.HiddenObjectGame
 import com.xanticious.androidgames.view.games.hiddenobjects.HiddenObjectsGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
@@ -44,6 +51,7 @@ import com.xanticious.androidgames.view.games.matchthree.MatchThreeArcadeGame
 import com.xanticious.androidgames.view.games.matchthree.MatchThreeGame
 import com.xanticious.androidgames.view.games.mathquiz.MathQuizGame
 import com.xanticious.androidgames.view.games.melodymaster.MelodyMasterGame
+import com.xanticious.androidgames.view.games.memory.MemoryGame
 import com.xanticious.androidgames.view.games.memorylanes.MemoryLanesGame
 import com.xanticious.androidgames.view.games.minesweeper.MinesweeperGame
 import com.xanticious.androidgames.view.games.missilecommand.MissileCommandGame
@@ -62,6 +70,7 @@ import com.xanticious.androidgames.view.games.poker.PokerGame
 import com.xanticious.androidgames.view.games.pong.PongGame
 import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.randomizeddice.RandomizedDiceTdGame
+import com.xanticious.androidgames.view.games.reversi.ReversiGame
 import com.xanticious.androidgames.view.games.roguecaverns.RogueCavernsGame
 import com.xanticious.androidgames.view.games.simcityblocks.SimCityBlocksGame
 import com.xanticious.androidgames.view.games.skyscrapers.SkyscrapersGame
@@ -78,8 +87,11 @@ import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
 import com.xanticious.androidgames.view.games.spades.SpadesGame
 import com.xanticious.androidgames.view.games.sudokucolors.SudokuColorsGame
 import com.xanticious.androidgames.view.games.taprhythm.TapRhythmGame
+import com.xanticious.androidgames.view.games.tictactoe.TicTacToeGame
 import com.xanticious.androidgames.view.games.treasuremapper.TreasureMapperGame
 import com.xanticious.androidgames.view.games.twentyfortyeight.TwentyFortyEightGame
+import com.xanticious.androidgames.view.games.yahtzee.YahtzeeGame
+import com.xanticious.androidgames.view.games.zilch.ZilchGame
 
 /**
  * Central dispatch from a game id to its in-game composable.
@@ -97,6 +109,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "anomaly-defense" to { difficulty, onExit -> AnomalyDefenseGame(difficulty, onExit) },
     "asteroids" to { difficulty, onExit -> AsteroidsGame(difficulty, onExit) },
     "base-defense" to { difficulty, onExit -> BaseDefenseGame(difficulty, onExit) },
+    "battleships" to { difficulty, onExit -> BattleshipsGame(difficulty, onExit) },
     "bomber-grid" to { difficulty, onExit -> BomberGridGame(difficulty, onExit) },
     "brick-breaker" to { difficulty, onExit -> BrickBreakerGame(difficulty, onExit) },
     "brick-breaker-arcade" to { difficulty, onExit -> BrickBreakerArcadeGame(difficulty, onExit) },
@@ -105,9 +118,13 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "bubbles-pop" to { difficulty, onExit -> BubblesPopGame(difficulty, onExit) },
     "bubbles-pop-arcade" to { difficulty, onExit -> BubblesPopArcadeGame(difficulty, onExit) },
     "bubbles-pop-snake-arcade" to { difficulty, onExit -> BubblesPopSnakeArcadeGame(difficulty, onExit) },
+    "checkers" to { difficulty, onExit -> CheckersGame(difficulty, onExit) },
+    "chinese-checkers" to { difficulty, onExit -> ChineseCheckersGame(difficulty, onExit) },
+    "connect-four" to { difficulty, onExit -> ConnectFourGame(difficulty, onExit) },
     "cribbage" to { difficulty, onExit -> CribbageGame(difficulty, onExit) },
     "deck-builder-fleet" to { difficulty, onExit -> DeckBuilderFleetGame(difficulty, onExit) },
     "deck-builder-superhero" to { difficulty, onExit -> DeckBuilderSuperheroGame(difficulty, onExit) },
+    "dominoes" to { difficulty, onExit -> DominoesGame(difficulty, onExit) },
     "dominosa" to { difficulty, onExit -> DominosaGame(difficulty, onExit) },
     "dot-art" to { difficulty, onExit -> DotArtGame(difficulty, onExit) },
     "drift-racer" to { difficulty, onExit -> DriftRacerGame(difficulty, onExit) },
@@ -115,8 +132,10 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "endless-runner" to { difficulty, onExit -> EndlessRunnerGame(difficulty, onExit) },
     "flash-cards" to { difficulty, onExit -> FlashCardGame(difficulty, onExit) },
     "flood" to { difficulty, onExit -> FloodGame(difficulty, onExit) },
+    "gomoku" to { difficulty, onExit -> GomokuGame(difficulty, onExit) },
     "hearts" to { difficulty, onExit -> HeartsGame(difficulty, onExit) },
     "helicopter-dogfight" to { difficulty, onExit -> HelicopterDogfightGame(difficulty, onExit) },
+    "hex" to { difficulty, onExit -> HexGame(difficulty, onExit) },
     "hidden-object" to { difficulty, onExit -> HiddenObjectGame(difficulty, onExit) },
     "hidden-objects" to { difficulty, onExit -> HiddenObjectsGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
@@ -135,6 +154,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "match-three-arcade" to { difficulty, onExit -> MatchThreeArcadeGame(difficulty, onExit) },
     "math-quiz" to { difficulty, onExit -> MathQuizGame(difficulty, onExit) },
     "melody-master" to { difficulty, onExit -> MelodyMasterGame(difficulty, onExit) },
+    "memory" to { difficulty, onExit -> MemoryGame(difficulty, onExit) },
     "memory-lanes" to { difficulty, onExit -> MemoryLanesGame(difficulty, onExit) },
     "minesweeper" to { difficulty, onExit -> MinesweeperGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
@@ -153,6 +173,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "pong" to { difficulty, onExit -> PongGame(difficulty, onExit) },
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "randomized-dice-td" to { difficulty, onExit -> RandomizedDiceTdGame(difficulty, onExit) },
+    "reversi" to { difficulty, onExit -> ReversiGame(difficulty, onExit) },
     "rogue-caverns" to { difficulty, onExit -> RogueCavernsGame(difficulty, onExit) },
     "sim-city-blocks" to { difficulty, onExit -> SimCityBlocksGame(difficulty, onExit) },
     "skyscrapers" to { difficulty, onExit -> SkyscrapersGame(difficulty, onExit) },
@@ -169,6 +190,9 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "spades" to { difficulty, onExit -> SpadesGame(difficulty, onExit) },
     "sudoku-colors" to { difficulty, onExit -> SudokuColorsGame(difficulty, onExit) },
     "tap-rhythm" to { difficulty, onExit -> TapRhythmGame(difficulty, onExit) },
+    "tic-tac-toe" to { difficulty, onExit -> TicTacToeGame(difficulty, onExit) },
     "treasure-mapper" to { difficulty, onExit -> TreasureMapperGame(difficulty, onExit) },
-    "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) }
+    "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) },
+    "yahtzee" to { difficulty, onExit -> YahtzeeGame(difficulty, onExit) },
+    "zilch" to { difficulty, onExit -> ZilchGame(difficulty, onExit) }
 )
