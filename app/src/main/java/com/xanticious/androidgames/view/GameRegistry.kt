@@ -28,6 +28,12 @@ import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.simcityblocks.SimCityBlocksGame
 import com.xanticious.androidgames.view.games.snakes2d.SnakesGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
+import com.xanticious.androidgames.view.games.ageofempirelite.AgeOfEmpiresLiteGame
+import com.xanticious.androidgames.view.games.anomalydefense.AnomalyDefenseGame
+import com.xanticious.androidgames.view.games.basedefense.BaseDefenseGame
+import com.xanticious.androidgames.view.games.empireskirmish.EmpireSkirmishGame
+import com.xanticious.androidgames.view.games.randomizeddice.RandomizedDiceTdGame
+import com.xanticious.androidgames.view.games.roguecaverns.RogueCavernsGame
 import com.xanticious.androidgames.view.games.treasuremapper.TreasureMapperGame
 
 /**
@@ -68,5 +74,11 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "sim-city-blocks" to { difficulty, onExit -> SimCityBlocksGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
     "space-defender" to { difficulty, onExit -> SpaceDefenderGame(difficulty, onExit) },
+    "age-of-empires-lite" to { difficulty, onExit -> AgeOfEmpiresLiteGame(difficulty, onExit) },
+    "anomaly-defense" to { difficulty, onExit -> AnomalyDefenseGame(difficulty, onExit) },
+    "base-defense" to { difficulty, onExit -> BaseDefenseGame(difficulty, onExit) },
+    "empire-skirmish" to { difficulty, onExit -> EmpireSkirmishGame(difficulty, onExit) },
+    "randomized-dice-td" to { difficulty, onExit -> RandomizedDiceTdGame(difficulty, onExit) },
+    "rogue-caverns" to { difficulty, onExit -> RogueCavernsGame(difficulty, onExit) }
     "treasure-mapper" to { difficulty, onExit -> TreasureMapperGame(difficulty, onExit) }
 )
