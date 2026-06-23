@@ -25,3 +25,42 @@ val GameHazard = Color(0xFFF76707)   // hazards, danger zones (Open Color Orange
 val GameNeutral = Color(0xFFADB5BD)  // bricks, walls, debris (Open Color Gray 5)
 val GameSuccess = Color(0xFF37B24D)  // success / collectibles (Open Color Green 7)
 
+// ---------------------------------------------------------------------------
+// Puzzle-game board palette tokens (see design/common/puzzle-grid-board.md).
+// Puzzle composables must reference these tokens — never inline hex.
+// ---------------------------------------------------------------------------
+val PuzzleBoard = Dark1         // board background
+val PuzzleCell = Dark0          // empty / default cell fill
+val PuzzleGridLine = Dark2      // cell outlines, grid lines
+val PuzzleGiven = Aqua4         // given / locked clues, fixed tiles
+val PuzzlePlayer = Aqua1        // player-entered content
+val PuzzlePlayerAlt = Aqua0     // alternate player content / labels
+val PuzzleHighlight = Aqua2     // current selection / highlight / movable tile
+val PuzzleSolved = Aqua1        // correctly placed / solved emphasis
+
+// Distinct hues for color-coded puzzle tokens (Flood, Sudoku Colors, Match
+// Three, Pipes endpoints, Numberlink pairs). Shape/label always disambiguates
+// per design/common/puzzle-controls.md so these never rely on color alone.
+val PuzzleHueRed = Color(0xFFE03131)     // Open Color Red 8
+val PuzzleHueOrange = Color(0xFFF76707)  // Open Color Orange 7
+val PuzzleHueYellow = Color(0xFFFFD43B)  // Open Color Yellow 5
+val PuzzleHueGreen = Color(0xFF37B24D)   // Open Color Green 7
+val PuzzleHueTeal = Color(0xFF20C997)    // Open Color Teal 5
+val PuzzleHueBlue = Color(0xFF1C7ED6)    // Open Color Blue 7
+val PuzzleHueViolet = Color(0xFF7048E8)  // Open Color Violet 7
+val PuzzleHuePink = Color(0xFFE64980)    // Open Color Pink 6
+// Card-game palette tokens. Shared by every game in the Card category so card
+// rendering stays consistent. Per AGENTS.md, no hex values may live outside
+// this file, so card composables reference these tokens only.
+// ---------------------------------------------------------------------------
+val CardFace = Color(0xFFF8F9FA)       // card face background (Open Color Gray 0)
+val CardFaceShadow = Color(0xFFDEE2E6) // subtle inner edge / pip wash (Gray 3)
+val CardBack = Aqua4                    // face-down card back fill
+val CardBackPattern = Aqua2            // face-down card back accent
+val CardBorder = Color(0xFF495057)     // card outline (Open Color Gray 7)
+val CardRed = Color(0xFFE03131)        // hearts / diamonds pips (Open Color Red 8)
+val CardBlack = Color(0xFF212529)      // clubs / spades pips (Open Color Gray 9)
+val CardSlot = Dark2                    // empty pile / foundation outline fill
+val CardHighlight = GameAccent          // selected / legal-move highlight
+val CardTableFelt = Color(0xFF0B7285)  // card table background (Open Color Cyan 9)
+
