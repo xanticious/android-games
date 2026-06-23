@@ -19,6 +19,9 @@ import com.xanticious.androidgames.view.games.endlessrunner.EndlessRunnerGame
 import com.xanticious.androidgames.view.games.helicopterdogfight.HelicopterDogfightGame
 import com.xanticious.androidgames.view.games.hearts.HeartsGame
 import com.xanticious.androidgames.view.games.holeswallowing.HoleSwallowingGame
+import com.xanticious.androidgames.view.games.melodymaster.MelodyMasterGame
+import com.xanticious.androidgames.view.games.morsecode.MorseCodeGame
+import com.xanticious.androidgames.view.games.morsedecoder.MorseDecoderGame
 import com.xanticious.androidgames.view.games.loveletter.LoveLetterGame
 import com.xanticious.androidgames.view.games.dotart.DotArtGame
 import com.xanticious.androidgames.view.games.driftracer.DriftRacerGame
@@ -44,6 +47,7 @@ import com.xanticious.androidgames.view.games.solitairepyramid.PyramidGame
 import com.xanticious.androidgames.view.games.solitairetripeaks.TriPeaksGame
 import com.xanticious.androidgames.view.games.solitairetripeaks.TriPeaksTimedGame
 import com.xanticious.androidgames.view.games.spacedefender.SpaceDefenderGame
+import com.xanticious.androidgames.view.games.taprhythm.TapRhythmGame
 import com.xanticious.androidgames.view.games.spades.SpadesGame
 import com.xanticious.androidgames.view.games.ageofempirelite.AgeOfEmpiresLiteGame
 import com.xanticious.androidgames.view.games.anomalydefense.AnomalyDefenseGame
@@ -87,6 +91,10 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "hidden-object" to { difficulty, onExit -> HiddenObjectGame(difficulty, onExit) },
     "hidden-objects" to { difficulty, onExit -> HiddenObjectsGame(difficulty, onExit) },
     "hole-swallowing-game" to { difficulty, onExit -> HoleSwallowingGame(difficulty, onExit) },
+    "melody-master" to { difficulty, onExit -> MelodyMasterGame(difficulty, onExit) },
+    "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
+    "morse-code" to { difficulty, onExit -> MorseCodeGame(difficulty, onExit) },
+    "morse-decoder" to { difficulty, onExit -> MorseDecoderGame(difficulty, onExit) },
     "memory-lanes" to { difficulty, onExit -> MemoryLanesGame(difficulty, onExit) },
     "missile-command" to { difficulty, onExit -> MissileCommandGame(difficulty, onExit) },
     "pair-collector" to { difficulty, onExit -> PairCollectorGame(difficulty, onExit) },
@@ -97,6 +105,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "qix" to { difficulty, onExit -> QixGame(difficulty, onExit) },
     "sim-city-blocks" to { difficulty, onExit -> SimCityBlocksGame(difficulty, onExit) },
     "snakes-2d" to { difficulty, onExit -> SnakesGame(difficulty, onExit) },
+    "tap-rhythm" to { difficulty, onExit -> TapRhythmGame(difficulty, onExit) }
     "solitaire-clock-timed" to { difficulty, onExit -> SolitaireClockGame(difficulty, onExit) },
     "solitaire-freecell" to { difficulty, onExit -> FreeCellGame(difficulty, onExit) },
     "solitaire-klondike" to { difficulty, onExit -> SolitaireKlondikeGame(difficulty, onExit) },
