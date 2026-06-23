@@ -3,10 +3,13 @@ package com.xanticious.androidgames.view
 import androidx.compose.runtime.Composable
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.view.games.ageofempirelite.AgeOfEmpiresLiteGame
+import com.xanticious.androidgames.view.games.anagrams.AnagramsGame
+import com.xanticious.androidgames.view.games.anagramsarcade.AnagramsArcadeGame
 import com.xanticious.androidgames.view.games.anomalydefense.AnomalyDefenseGame
 import com.xanticious.androidgames.view.games.asteroids.AsteroidsGame
 import com.xanticious.androidgames.view.games.basedefense.BaseDefenseGame
 import com.xanticious.androidgames.view.games.battleships.BattleshipsGame
+import com.xanticious.androidgames.view.games.boggle.BoggleGame
 import com.xanticious.androidgames.view.games.bombergrid.BomberGridGame
 import com.xanticious.androidgames.view.games.brickbreaker.BrickBreakerGame
 import com.xanticious.androidgames.view.games.brickbreakerarcade.BrickBreakerArcadeGame
@@ -43,6 +46,7 @@ import com.xanticious.androidgames.view.games.idlefarmers.IdleFarmersGame
 import com.xanticious.androidgames.view.games.idlegeneticalgorithm.IdleGeneticAlgorithmGame
 import com.xanticious.androidgames.view.games.idleplayerpiano.IdlePlayerPianoGame
 import com.xanticious.androidgames.view.games.jigsaw.JigsawGame
+import com.xanticious.androidgames.view.games.letterdrop.LetterDropGame
 import com.xanticious.androidgames.view.games.lightup.LightUpGame
 import com.xanticious.androidgames.view.games.logicgrid.LogicGridGame
 import com.xanticious.androidgames.view.games.loveletter.LoveLetterGame
@@ -72,6 +76,8 @@ import com.xanticious.androidgames.view.games.qix.QixGame
 import com.xanticious.androidgames.view.games.randomizeddice.RandomizedDiceTdGame
 import com.xanticious.androidgames.view.games.reversi.ReversiGame
 import com.xanticious.androidgames.view.games.roguecaverns.RogueCavernsGame
+import com.xanticious.androidgames.view.games.scrabble.ScrabbleGame
+import com.xanticious.androidgames.view.games.scrabblechallenge.ScrabbleSinglePlayerChallengeGame
 import com.xanticious.androidgames.view.games.simcityblocks.SimCityBlocksGame
 import com.xanticious.androidgames.view.games.skyscrapers.SkyscrapersGame
 import com.xanticious.androidgames.view.games.slidingpuzzle.SlidingPuzzleGame
@@ -90,6 +96,12 @@ import com.xanticious.androidgames.view.games.taprhythm.TapRhythmGame
 import com.xanticious.androidgames.view.games.tictactoe.TicTacToeGame
 import com.xanticious.androidgames.view.games.treasuremapper.TreasureMapperGame
 import com.xanticious.androidgames.view.games.twentyfortyeight.TwentyFortyEightGame
+import com.xanticious.androidgames.view.games.typingsprint.TypingSprintGame
+import com.xanticious.androidgames.view.games.wordchain.WordChainGame
+import com.xanticious.androidgames.view.games.wordladder.WordLadderGame
+import com.xanticious.androidgames.view.games.wordle.WordleGame
+import com.xanticious.androidgames.view.games.wordsearch.WordSearchGame
+import com.xanticious.androidgames.view.games.wordslices.WordSlicesGame
 import com.xanticious.androidgames.view.games.yahtzee.YahtzeeGame
 import com.xanticious.androidgames.view.games.zilch.ZilchGame
 
@@ -106,10 +118,13 @@ import com.xanticious.androidgames.view.games.zilch.ZilchGame
  */
 val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> Unit> = mapOf(
     "age-of-empires-lite" to { difficulty, onExit -> AgeOfEmpiresLiteGame(difficulty, onExit) },
+    "anagrams" to { difficulty, onExit -> AnagramsGame(difficulty, onExit) },
+    "anagrams-arcade" to { difficulty, onExit -> AnagramsArcadeGame(difficulty, onExit) },
     "anomaly-defense" to { difficulty, onExit -> AnomalyDefenseGame(difficulty, onExit) },
     "asteroids" to { difficulty, onExit -> AsteroidsGame(difficulty, onExit) },
     "base-defense" to { difficulty, onExit -> BaseDefenseGame(difficulty, onExit) },
     "battleships" to { difficulty, onExit -> BattleshipsGame(difficulty, onExit) },
+    "boggle" to { difficulty, onExit -> BoggleGame(difficulty, onExit) },
     "bomber-grid" to { difficulty, onExit -> BomberGridGame(difficulty, onExit) },
     "brick-breaker" to { difficulty, onExit -> BrickBreakerGame(difficulty, onExit) },
     "brick-breaker-arcade" to { difficulty, onExit -> BrickBreakerArcadeGame(difficulty, onExit) },
@@ -146,6 +161,7 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "idle-genetic-algorithm" to { difficulty, onExit -> IdleGeneticAlgorithmGame(difficulty, onExit) },
     "idle-player-piano" to { difficulty, onExit -> IdlePlayerPianoGame(difficulty, onExit) },
     "jigsaw" to { difficulty, onExit -> JigsawGame(difficulty, onExit) },
+    "letter-drop" to { difficulty, onExit -> LetterDropGame(difficulty, onExit) },
     "light-up" to { difficulty, onExit -> LightUpGame(difficulty, onExit) },
     "logic-grid" to { difficulty, onExit -> LogicGridGame(difficulty, onExit) },
     "love-letter" to { difficulty, onExit -> LoveLetterGame(difficulty, onExit) },
@@ -175,6 +191,8 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "randomized-dice-td" to { difficulty, onExit -> RandomizedDiceTdGame(difficulty, onExit) },
     "reversi" to { difficulty, onExit -> ReversiGame(difficulty, onExit) },
     "rogue-caverns" to { difficulty, onExit -> RogueCavernsGame(difficulty, onExit) },
+    "scrabble" to { difficulty, onExit -> ScrabbleGame(difficulty, onExit) },
+    "scrabble-single-player-challenge" to { difficulty, onExit -> ScrabbleSinglePlayerChallengeGame(difficulty, onExit) },
     "sim-city-blocks" to { difficulty, onExit -> SimCityBlocksGame(difficulty, onExit) },
     "skyscrapers" to { difficulty, onExit -> SkyscrapersGame(difficulty, onExit) },
     "sliding-puzzle" to { difficulty, onExit -> SlidingPuzzleGame(difficulty, onExit) },
@@ -193,6 +211,12 @@ val actionGameRegistry: Map<String, @Composable (GameDifficulty, () -> Unit) -> 
     "tic-tac-toe" to { difficulty, onExit -> TicTacToeGame(difficulty, onExit) },
     "treasure-mapper" to { difficulty, onExit -> TreasureMapperGame(difficulty, onExit) },
     "twenty-forty-eight" to { difficulty, onExit -> TwentyFortyEightGame(difficulty, onExit) },
+    "typing-sprint" to { difficulty, onExit -> TypingSprintGame(difficulty, onExit) },
+    "word-chain" to { difficulty, onExit -> WordChainGame(difficulty, onExit) },
+    "word-ladder" to { difficulty, onExit -> WordLadderGame(difficulty, onExit) },
+    "word-search" to { difficulty, onExit -> WordSearchGame(difficulty, onExit) },
+    "word-slices" to { difficulty, onExit -> WordSlicesGame(difficulty, onExit) },
+    "wordle" to { difficulty, onExit -> WordleGame(difficulty, onExit) },
     "yahtzee" to { difficulty, onExit -> YahtzeeGame(difficulty, onExit) },
     "zilch" to { difficulty, onExit -> ZilchGame(difficulty, onExit) }
 )
