@@ -49,4 +49,18 @@ val PuzzleHueTeal = Color(0xFF20C997)    // Open Color Teal 5
 val PuzzleHueBlue = Color(0xFF1C7ED6)    // Open Color Blue 7
 val PuzzleHueViolet = Color(0xFF7048E8)  // Open Color Violet 7
 val PuzzleHuePink = Color(0xFFE64980)    // Open Color Pink 6
+// Card-game palette tokens. Shared by every game in the Card category so card
+// rendering stays consistent. Per AGENTS.md, no hex values may live outside
+// this file, so card composables reference these tokens only.
+// ---------------------------------------------------------------------------
+val CardFace = Color(0xFFF8F9FA)       // card face background (Open Color Gray 0)
+val CardFaceShadow = Color(0xFFDEE2E6) // subtle inner edge / pip wash (Gray 3)
+val CardBack = Aqua4                    // face-down card back fill
+val CardBackPattern = Aqua2            // face-down card back accent
+val CardBorder = Color(0xFF495057)     // card outline (Open Color Gray 7)
+val CardRed = Color(0xFFE03131)        // hearts / diamonds pips (Open Color Red 8)
+val CardBlack = Color(0xFF212529)      // clubs / spades pips (Open Color Gray 9)
+val CardSlot = Dark2                    // empty pile / foundation outline fill
+val CardHighlight = GameAccent          // selected / legal-move highlight
+val CardTableFelt = Color(0xFF0B7285)  // card table background (Open Color Cyan 9)
 
