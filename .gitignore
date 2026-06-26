@@ -15,3 +15,7 @@ local.properties
 
 # Java heap dumps
 *.hprof
+
+# Compiled class files / Kotlin module metadata (build artifacts)
+*.class
+/META-INF/
