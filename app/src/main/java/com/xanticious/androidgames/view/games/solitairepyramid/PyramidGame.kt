@@ -172,6 +172,7 @@ private fun PyramidBoardView(
         val cardH   = cardW / CardAspectRatio
         val rowStep = cardH * 0.60f         // vertical offset per row (40 % overlap)
         val pyramidH = rowStep * 6f + cardH // total height of the 7-row pyramid
+        val boardWidth = maxWidth
 
         Column(modifier = Modifier.fillMaxSize()) {
             // ── Pyramid ──────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ private fun PyramidBoardView(
                 for (row in 0 until PyramidGameState.ROWS) {
                     val cols      = row + 1
                     val rowTotalW = cardW * cols.toFloat()
-                    val rowStartX = (maxWidth - rowTotalW) / 2f
+                    val rowStartX = (boardWidth - rowTotalW) / 2f
                     val yOffset   = rowStep * row.toFloat()
 
                     for (col in 0 until cols) {

@@ -151,7 +151,7 @@ fun JigsawGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         }
 
         else -> {
-            val state = gameState ?: return@let
+            val state = gameState ?: return@JigsawGame
             val solved = phase == PuzzlePhase.SOLVED
             val image = imageForId(state.imageId)
 
@@ -248,6 +248,10 @@ private fun JigsawBoard(
         val boardW = state.cols * cellSize
         val boardH = state.rows * cellSize
         val pos = current
+        val cellTopLeft = topLeft
+        val cell = cellSize
+        val ox = originX
+        val oy = originY
         val isPlaced = state.placedPieces.containsKey(pos)
         val isTarget = selectedPiece != null &&
                 selectedPiece.correctRow == pos.row &&
@@ -259,37 +263,37 @@ private fun JigsawBoard(
             // with the board's top-left corner (originX, originY).
             withTransform({
                 clipRect(
-                    left = topLeft.x, top = topLeft.y,
-                    right = topLeft.x + cellSize, bottom = topLeft.y + cellSize
+                    left = cellTopLeft.x, top = cellTopLeft.y,
+                    right = cellTopLeft.x + cell, bottom = cellTopLeft.y + cell
                 )
-                translate(left = originX, top = originY)
+                translate(left = ox, top = oy)
             }) {
                 image.draw(this, boardW, boardH)
             }
             // Subtle solved border
             drawRect(
                 color = PuzzleSolved.copy(alpha = 0.35f),
-                topLeft = topLeft,
-                size = Size(cellSize, cellSize),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = cellSize * 0.03f)
+                topLeft = cellTopLeft,
+                size = Size(cell, cell),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = cell * 0.03f)
             )
         } else {
             // Empty cell background
-            drawRect(color = PuzzleCell, topLeft = topLeft, size = Size(cellSize, cellSize))
+            drawRect(color = PuzzleCell, topLeft = cellTopLeft, size = Size(cell, cell))
             if (showReference) {
                 // Faint full-image reference behind empty cells
                 withTransform({
                     clipRect(
-                        left = topLeft.x, top = topLeft.y,
-                        right = topLeft.x + cellSize, bottom = topLeft.y + cellSize
+                        left = cellTopLeft.x, top = cellTopLeft.y,
+                        right = cellTopLeft.x + cell, bottom = cellTopLeft.y + cell
                     )
-                    translate(left = originX, top = originY)
+                    translate(left = ox, top = oy)
                 }) {
                     val alphaLayer = androidx.compose.ui.graphics.Paint().also { it.alpha = 0.18f }
                     drawContext.canvas.saveLayer(
                         androidx.compose.ui.geometry.Rect(
-                            topLeft.x - originX, topLeft.y - originY,
-                            topLeft.x - originX + cellSize, topLeft.y - originY + cellSize
+                            cellTopLeft.x - ox, cellTopLeft.y - oy,
+                            cellTopLeft.x - ox + cell, cellTopLeft.y - oy + cell
                         ),
                         alphaLayer
                     )

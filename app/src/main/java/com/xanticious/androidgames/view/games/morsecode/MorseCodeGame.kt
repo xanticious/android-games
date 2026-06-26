@@ -361,8 +361,8 @@ private fun HowToPlayScreen(
             InstructionSection(
                 title = "The Button",
                 body = "Use the single TAP/KEY button to send Morse code.\n" +
-                        "• Short press (dit) → "." \n" +
-                        "• Long press (dah)  → "-"\n\n" +
+                        "• Short press (dit) → \".\" \n" +
+                        "• Long press (dah)  → \"-\"\n\n" +
                         "The threshold is 2× the dit unit. Aim to feel the rhythm, not count milliseconds."
             )
 

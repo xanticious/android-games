@@ -92,7 +92,7 @@ fun HowToPlaySection(title: String, content: @Composable ColumnScope.() -> Unit)
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 8.dp)
     )
-    content()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 }
 
 /** A labelled difficulty chip row used by most puzzle settings screens. */

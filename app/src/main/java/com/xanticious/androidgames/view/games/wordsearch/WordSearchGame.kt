@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -222,27 +223,31 @@ private fun WordSearchGameplay(
         title = "Word Search",
         onExit = onExit,
         hud = {
+            val mins = state.timeRemainingSeconds / 60
+            val secs = state.timeRemainingSeconds % 60
             GameHud(
-                left = { Text("Found: ${state.foundWords.size}/${state.targetWords.size}") },
-                center = {},
-                right = {
-                    val mins = state.timeRemainingSeconds / 60
-                    val secs = state.timeRemainingSeconds % 60
-                    Text("Time: %d:%02d".format(mins, secs))
-                }
+                left = "Found: ${state.foundWords.size}/${state.targetWords.size}",
+                center = "",
+                right = "Time: %d:%02d".format(mins, secs)
             )
         },
         status = {
             when (phase) {
                 WordSearchPhase.SOLVED -> VictoryPanel(
-                    message = "Puzzle Solved!",
-                    onContinue = onNewGame,
-                    continueLabel = "New Puzzle"
+                    score = state.foundWords.size,
+                    bestScore = state.targetWords.size,
+                    stars = 3,
+                    onReplay = onNewGame,
+                    onMenu = onExit,
+                    headline = "Puzzle Solved!",
+                    primaryLabel = "New Puzzle"
                 )
                 WordSearchPhase.TIME_UP -> DefeatPanel(
-                    message = "Time's Up!",
-                    onRetry = onNewGame,
-                    retryLabel = "Try Again"
+                    score = state.foundWords.size,
+                    bestScore = state.targetWords.size,
+                    onTryAgain = onNewGame,
+                    onMenu = onExit,
+                    headline = "Time's Up!"
                 )
                 else -> {}
             }

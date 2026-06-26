@@ -131,7 +131,7 @@ fun RogueCavernsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         stateMachine.runStarted()
     }
 
-    val onMove: (GridPos) -> Unit = { target ->
+    val onMove: (GridPos) -> Unit = onMove@{ target ->
         val moved = Exploration.moveHero(gameState, target)
         val level = moved.currentLevel ?: return@onMove
         val room = level.rooms.firstOrNull { it.pos == target } ?: return@onMove
@@ -155,7 +155,7 @@ fun RogueCavernsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         stateMachine.bankedAndExited()
     }
 
-    val onCombatAction: (CombatAction) -> Unit = { action ->
+    val onCombatAction: (CombatAction) -> Unit = onCombatAction@{ action ->
         val hero = gameState.hero
         val monster = gameState.currentMonster ?: return@onCombatAction
         val monsterAction = MonsterAi.chooseMonsterAction(monster, hero.hp, difficulty)

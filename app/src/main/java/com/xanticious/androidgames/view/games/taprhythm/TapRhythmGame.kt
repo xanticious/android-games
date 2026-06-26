@@ -32,7 +32,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -172,8 +172,8 @@ fun TapRhythmGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     }
 
     // ── Game loop ─────────────────────────────────────────────────────────────
-    GameLoop(running = phase == TapRhythmPhase.PLAYING) { dtMs ->
-        survivedMs += dtMs
+    GameLoop(running = phase == TapRhythmPhase.PLAYING) { dtSeconds ->
+        survivedMs += (dtSeconds * 1000f).toLong()
 
         // Generate lookahead
         val lookaheadMs = survivedMs + LEAD_TIME_MS + 2_000L

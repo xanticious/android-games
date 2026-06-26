@@ -220,7 +220,7 @@ private fun ScrabbleBoardView(
                                 .padding(1.dp)
                                 .background(
                                     when (board.getPremium(pos)) {
-                                        PremiumSquare.TRIPLE_WORD -> Aqua5
+                                        PremiumSquare.TRIPLE_WORD -> PuzzleHueViolet
                                         PremiumSquare.DOUBLE_WORD -> Aqua4
                                         PremiumSquare.TRIPLE_LETTER -> Aqua3
                                         PremiumSquare.DOUBLE_LETTER -> Aqua2

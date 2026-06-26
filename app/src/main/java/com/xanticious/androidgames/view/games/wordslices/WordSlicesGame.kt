@@ -224,28 +224,32 @@ private fun WordSlicesGameplayScreen(
             onExit = onExit,
             hud = {
                 GameHud(
-                    left = { Text("Slices: ${state.slicesRemaining}/12") },
-                    center = null,
-                    right = null
+                    left = "Slices: ${state.slicesRemaining}/12",
+                    center = "",
+                    right = ""
                 )
             },
             status = {
                 when (phase) {
                     WordSlicesPhase.WON -> VictoryPanel(
-                        message = if (settings.revealDefinition && state.definition != null) {
+                        score = state.slicesRemaining,
+                        bestScore = 12,
+                        stars = 3,
+                        onReplay = onNewWord,
+                        onMenu = onMenu,
+                        headline = if (settings.revealDefinition && state.definition != null) {
                             "${state.word.uppercase()}: ${state.definition}"
                         } else {
                             "You got it!"
                         },
-                        onNext = onNewWord,
-                        onMenu = onMenu,
-                        nextLabel = "New Word"
+                        primaryLabel = "New Word"
                     )
                     WordSlicesPhase.LOST -> DefeatPanel(
-                        message = "Out of cake! The word was: ${state.word.uppercase()}",
-                        onRetry = onNewWord,
+                        score = state.slicesRemaining,
+                        bestScore = 12,
+                        onTryAgain = onNewWord,
                         onMenu = onMenu,
-                        retryLabel = "New Word"
+                        headline = "Out of cake! The word was: ${state.word.uppercase()}"
                     )
                     else -> {}
                 }

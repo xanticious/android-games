@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -240,24 +241,28 @@ private fun WordleGameplayScreen(
             onExit = onExit,
             hud = {
                 GameHud(
-                    left = { Text("Round ${state.guesses.size}/${settings.maxGuesses}") },
-                    center = null,
-                    right = null
+                    left = "Round ${state.guesses.size}/${settings.maxGuesses}",
+                    center = "",
+                    right = ""
                 )
             },
             status = {
                 when (phase) {
                     WordlePhase.WON -> VictoryPanel(
-                        message = "You guessed it!",
-                        onNext = onNextRound,
+                        score = state.guesses.size,
+                        bestScore = state.guesses.size,
+                        stars = 3,
+                        onReplay = onNextRound,
                         onMenu = onMenu,
-                        nextLabel = "Next Round"
+                        headline = "You guessed it!",
+                        primaryLabel = "Next Round"
                     )
                     WordlePhase.LOST -> DefeatPanel(
-                        message = "The word was: ${state.targetWord}",
-                        onRetry = onNextRound,
+                        score = state.guesses.size,
+                        bestScore = state.guesses.size,
+                        onTryAgain = onNextRound,
                         onMenu = onMenu,
-                        retryLabel = "Next Round"
+                        headline = "The word was: ${state.targetWord}"
                     )
                     else -> {}
                 }

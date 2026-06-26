@@ -30,7 +30,7 @@ class PuzzleCellScope(
         get() = Offset(originX + current.col * cellSize, originY + current.row * cellSize)
 
     /** Centre pixel offset of [current]. */
-    val center: Offset
+    override val center: Offset
         get() = Offset(originX + (current.col + 0.5f) * cellSize, originY + (current.row + 0.5f) * cellSize)
 
     /** Square [Size] of one cell. */

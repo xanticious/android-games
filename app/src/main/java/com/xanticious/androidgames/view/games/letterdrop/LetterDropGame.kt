@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -197,8 +198,7 @@ private fun LetterDropPlayingScreen(
                 center = "Words ${state.totalWordsFormed}",
                 right = "Time ${state.elapsedSeconds.toInt()}s"
             )
-        },
-        status = null
+        }
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Canvas(

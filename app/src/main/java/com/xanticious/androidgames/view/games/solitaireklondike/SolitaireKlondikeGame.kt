@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.games.solitaireklondike.KlondikeController
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.model.games.cards.Suit
+import com.xanticious.androidgames.model.games.solitaireklondike.KlondikeConfig
 import com.xanticious.androidgames.model.games.solitaireklondike.KlondikeMove
 import com.xanticious.androidgames.model.games.solitaireklondike.KlondikeState
 import com.xanticious.androidgames.state.games.solitaireklondike.KlondikePhase
@@ -272,10 +273,10 @@ fun SolitaireKlondikeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                         hintMove = null
                     }
                 ) {
-                    Icon(Icons.Default.Undo, contentDescription = "Undo", tint = CardHighlight)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Undo", tint = CardHighlight)
                 }
                 IconButton(onClick = { hintMove = KlondikeController.hint(gameState) }) {
-                    Icon(Icons.Default.Lightbulb, contentDescription = "Hint", tint = CardHighlight)
+                    Icon(Icons.Default.Star, contentDescription = "Hint", tint = CardHighlight)
                 }
                 IconButton(
                     onClick = {
@@ -332,9 +333,6 @@ fun SolitaireKlondikeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         }
     }
 }
-
-// Needed by the status panel inside the composable.
-private val KlondikeConfig.INFINITE_PASSES get() = com.xanticious.androidgames.model.games.solitaireklondike.KlondikeConfig.INFINITE_PASSES
 
 @Composable
 private fun TopRow(

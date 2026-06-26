@@ -22,7 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -212,7 +212,7 @@ fun LogicGridGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                                     // Left spacer mirrors skipped columns for catA > 0
                                     Spacer(
                                         modifier = Modifier.width(
-                                            labelDp + cA * (cellDp * state.numItems + 2.dp)
+                                            labelDp + (cellDp * state.numItems + 2.dp) * cA
                                         )
                                     )
                                     // Sub-matrices for this row (catA vs each catB > catA)

@@ -66,10 +66,9 @@ fun IdleBounceGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val controller = remember { IdleBounceController() }
     val machine = remember { IdleBounceStateMachine() }
     val phase by machine.phase.collectAsState()
-    val stateHolder = rememberSaveable(stateSaver = IdleBounceGameStateSaver) {
+    var state by rememberSaveable(stateSaver = IdleBounceGameStateSaver) {
         mutableStateOf(IdleBounceGameState.initial())
     }
-    var state by stateHolder
 
     LaunchedEffect(Unit) {
         machine.startGame()
@@ -339,25 +338,25 @@ private fun LayerType.readableName(): String = name.lowercase().split('_').joinT
     it.replaceFirstChar { char -> char.titlecase() }
 }
 
-private val IdleBounceGameStateSaver: Saver<androidx.compose.runtime.MutableState<IdleBounceGameState>, Any> = listSaver(
-    save = { holder ->
+private val IdleBounceGameStateSaver: Saver<IdleBounceGameState, Any> = listSaver(
+    save = { value ->
         listOf(
-            holder.value.coins,
-            holder.value.depth,
-            holder.value.currentLayer.type.name,
-            holder.value.currentLayer.maxHp,
-            holder.value.currentLayer.hp,
-            holder.value.currentLayer.reward,
-            holder.value.ball.power,
-            holder.value.ball.hitsPerSecond,
-            holder.value.upgrades.joinToString(",") { it.level.toString() },
-            holder.value.prestigeMultiplier,
-            holder.value.prestigeCount,
-            holder.value.bounceTimer,
-            holder.value.bedrockReached,
-            holder.value.carryOverDamage,
-            holder.value.lastHitCritical,
-            holder.value.totalLayersDestroyed
+            value.coins,
+            value.depth,
+            value.currentLayer.type.name,
+            value.currentLayer.maxHp,
+            value.currentLayer.hp,
+            value.currentLayer.reward,
+            value.ball.power,
+            value.ball.hitsPerSecond,
+            value.upgrades.joinToString(",") { it.level.toString() },
+            value.prestigeMultiplier,
+            value.prestigeCount,
+            value.bounceTimer,
+            value.bedrockReached,
+            value.carryOverDamage,
+            value.lastHitCritical,
+            value.totalLayersDestroyed
         )
     },
     restore = { values ->
@@ -365,29 +364,27 @@ private val IdleBounceGameStateSaver: Saver<androidx.compose.runtime.MutableStat
         val upgrades = IdleBounceGameState.INITIAL_UPGRADES.mapIndexed { index, upgrade ->
             upgrade.copy(level = upgradeLevels.getOrElse(index) { upgrade.level })
         }
-        mutableStateOf(
-            IdleBounceGameState(
-                coins = values[0] as Long,
-                depth = values[1] as Int,
-                currentLayer = Layer(
-                    type = LayerType.valueOf(values[2] as String),
-                    maxHp = values[3] as Long,
-                    hp = values[4] as Long,
-                    reward = values[5] as Long
-                ),
-                ball = Ball(
-                    power = values[6] as Long,
-                    hitsPerSecond = values[7] as Float
-                ),
-                upgrades = upgrades,
-                prestigeMultiplier = values[9] as Float,
-                prestigeCount = values[10] as Int,
-                bounceTimer = values[11] as Float,
-                bedrockReached = values[12] as Boolean,
-                carryOverDamage = values[13] as Long,
-                lastHitCritical = values[14] as Boolean,
-                totalLayersDestroyed = values[15] as Int
-            )
+        IdleBounceGameState(
+            coins = values[0] as Long,
+            depth = values[1] as Int,
+            currentLayer = Layer(
+                type = LayerType.valueOf(values[2] as String),
+                maxHp = values[3] as Long,
+                hp = values[4] as Long,
+                reward = values[5] as Long
+            ),
+            ball = Ball(
+                power = values[6] as Long,
+                hitsPerSecond = values[7] as Float
+            ),
+            upgrades = upgrades,
+            prestigeMultiplier = values[9] as Float,
+            prestigeCount = values[10] as Int,
+            bounceTimer = values[11] as Float,
+            bedrockReached = values[12] as Boolean,
+            carryOverDamage = values[13] as Long,
+            lastHitCritical = values[14] as Boolean,
+            totalLayersDestroyed = values[15] as Int
         )
     }
 )

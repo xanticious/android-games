@@ -16,6 +16,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import com.xanticious.androidgames.controller.games.sokoban.SokobanController
 import com.xanticious.androidgames.model.GameDifficulty
 import com.xanticious.androidgames.model.games.puzzle.Direction
@@ -184,7 +185,7 @@ private fun SokobanBoard(
         rows = level.rows,
         cols = level.cols,
         drawGridLines = false,
-        maxCellSize = androidx.compose.ui.unit.dp * 72,
+        maxCellSize = 72.dp,
         onCellTap = if (enabled) onCellTap else null
     ) {
         val cellType = state.cell(current)

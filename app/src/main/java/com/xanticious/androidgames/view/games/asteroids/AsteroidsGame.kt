@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -437,7 +438,7 @@ private fun HowToPlaySection(title: String, content: @Composable ColumnScope.() 
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 8.dp)
     )
-    content()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 }
 
 private fun KnobPlacement.label(): String = when (this) {

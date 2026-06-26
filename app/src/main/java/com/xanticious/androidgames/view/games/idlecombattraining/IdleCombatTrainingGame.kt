@@ -65,10 +65,9 @@ fun IdleCombatTrainingGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val controller = remember { IdleCombatTrainingController() }
     val machine = remember { IdleCombatTrainingStateMachine() }
     val phase by machine.phase.collectAsState()
-    val stateHolder = rememberSaveable(stateSaver = IdleCombatStateSaver) {
+    var state by rememberSaveable(stateSaver = IdleCombatStateSaver) {
         mutableStateOf(IdleCombatState.initial())
     }
-    var state by stateHolder
     var lastReward by rememberSaveable { mutableStateOf(0L) }
 
     LaunchedEffect(Unit) {
@@ -420,23 +419,23 @@ private fun CombatStatus(
     }
 }
 
-private val IdleCombatStateSaver: Saver<androidx.compose.runtime.MutableState<IdleCombatState>, Any> = listSaver(
-    save = { holder ->
+private val IdleCombatStateSaver: Saver<IdleCombatState, Any> = listSaver(
+    save = { value ->
         listOf(
-            holder.value.coins,
-            holder.value.dummy.number,
-            holder.value.dummy.maxHp,
-            holder.value.dummy.hp,
-            holder.value.dummy.reward,
-            holder.value.dummiesDefeated,
-            holder.value.moves.joinToString(",") { if (it.unlocked) "1" else "0" },
-            holder.value.upgrades.joinToString(",") { if (it.purchased) "1" else "0" },
-            holder.value.currentMoveIndex,
-            holder.value.hitStreak,
-            holder.value.moveTimer,
-            holder.value.moveInterval,
-            holder.value.lastMoveResult.name,
-            holder.value.totalDamageDealt
+            value.coins,
+            value.dummy.number,
+            value.dummy.maxHp,
+            value.dummy.hp,
+            value.dummy.reward,
+            value.dummiesDefeated,
+            value.moves.joinToString(",") { if (it.unlocked) "1" else "0" },
+            value.upgrades.joinToString(",") { if (it.purchased) "1" else "0" },
+            value.currentMoveIndex,
+            value.hitStreak,
+            value.moveTimer,
+            value.moveInterval,
+            value.lastMoveResult.name,
+            value.totalDamageDealt
         )
     },
     restore = { values ->
@@ -448,25 +447,23 @@ private val IdleCombatStateSaver: Saver<androidx.compose.runtime.MutableState<Id
         val upgrades = IdleCombatState.INITIAL_UPGRADES.mapIndexed { index, upgrade ->
             upgrade.copy(purchased = purchasedFlags.getOrElse(index) { upgrade.purchased })
         }
-        mutableStateOf(
-            IdleCombatState(
-                coins = values[0] as Long,
-                dummy = Dummy(
-                    number = values[1] as Int,
-                    maxHp = values[2] as Long,
-                    hp = values[3] as Long,
-                    reward = values[4] as Long
-                ),
-                dummiesDefeated = values[5] as Int,
-                moves = moves,
-                upgrades = upgrades,
-                currentMoveIndex = values[8] as Int,
-                hitStreak = values[9] as Int,
-                moveTimer = values[10] as Float,
-                moveInterval = values[11] as Float,
-                lastMoveResult = LastMoveResult.valueOf(values[12] as String),
-                totalDamageDealt = values[13] as Long
-            )
+        IdleCombatState(
+            coins = values[0] as Long,
+            dummy = Dummy(
+                number = values[1] as Int,
+                maxHp = values[2] as Long,
+                hp = values[3] as Long,
+                reward = values[4] as Long
+            ),
+            dummiesDefeated = values[5] as Int,
+            moves = moves,
+            upgrades = upgrades,
+            currentMoveIndex = values[8] as Int,
+            hitStreak = values[9] as Int,
+            moveTimer = values[10] as Float,
+            moveInterval = values[11] as Float,
+            lastMoveResult = LastMoveResult.valueOf(values[12] as String),
+            totalDamageDealt = values[13] as Long
         )
     }
 )

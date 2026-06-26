@@ -278,7 +278,7 @@ private fun WordChainGameplay(
                     DefeatPanel(
                         score = controller.calculateScore(gameState.chainLength, gameState.totalLetters),
                         bestScore = 0,
-                        onReplay = {
+                        onTryAgain = {
                             val seedWord = wordData.randomWord(minLength = config.minWordLength, maxLength = 8) ?: "apple"
                             gameState = WordChainState(
                                 chain = listOf(seedWord),
@@ -291,8 +291,7 @@ private fun WordChainGameplay(
                             onNewGame()
                         },
                         onMenu = onExit,
-                        headline = "Chain Broken!",
-                        primaryLabel = "New Chain"
+                        headline = "Chain Broken!"
                     )
                     Text(
                         "Chain length: ${gameState.chainLength} words (${gameState.totalLetters} letters)",

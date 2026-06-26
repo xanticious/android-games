@@ -59,11 +59,12 @@ fun WordGameSetup(
     onDifficulty: (GameDifficulty) -> Unit,
     onHowToPlay: () -> Unit,
     onStart: () -> Unit,
+    modifier: Modifier = Modifier,
     startLabel: String = "Start Game",
     options: @Composable ColumnScope.() -> Unit = {}
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
@@ -93,10 +94,11 @@ fun WordGameHowToPlay(
     title: String,
     intro: String,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
@@ -120,5 +122,5 @@ fun HowToPlaySection(title: String, content: @Composable ColumnScope.() -> Unit)
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 8.dp)
     )
-    content()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
 }

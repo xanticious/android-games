@@ -118,7 +118,7 @@ fun BattleshipsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                     .pointerInput(phase, state) {
                         detectTapGestures { offset ->
                             if (phase == BattleshipsPhase.PLAYER_TURN) {
-                                val cellSize = size.minDimension / state.aiBoard.size
+                                val cellSize = minOf(size.width, size.height).toFloat() / state.aiBoard.size
                                 val col = (offset.x / cellSize).toInt()
                                 val row = (offset.y / cellSize).toInt()
                                 machine.playerFireSelected(row, col)
