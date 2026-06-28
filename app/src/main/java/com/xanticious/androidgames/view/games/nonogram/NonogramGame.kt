@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,7 +62,7 @@ fun NonogramGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 10
         GameDifficulty.HARD -> 15
     }
-    var selectedSize by remember { mutableStateOf(defaultSize) }
+    var selectedSize by remember { mutableIntStateOf(defaultSize) }
     var state by remember { mutableStateOf(controller.newGame(defaultSize, difficulty)) }
 
     fun deal() {

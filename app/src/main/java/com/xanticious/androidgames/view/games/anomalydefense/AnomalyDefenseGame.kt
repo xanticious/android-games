@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -87,7 +88,7 @@ fun AnomalyDefenseGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var gameState by remember {
         mutableStateOf<AnomalyDefenseState?>(null)
     }
-    var bestUnitsThrough by rememberSaveable { mutableStateOf(0) }
+    var bestUnitsThrough by rememberSaveable { mutableIntStateOf(0) }
 
     // ── Level loading ─────────────────────────────────────────────────────────
     LaunchedEffect(Unit) {

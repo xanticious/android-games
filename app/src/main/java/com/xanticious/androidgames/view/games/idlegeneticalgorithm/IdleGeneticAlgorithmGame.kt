@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,7 +73,7 @@ fun IdleGeneticAlgorithmGame(
     val phase by machine.phase.collectAsState()
 
     var state by remember { mutableStateOf(controller.initialState()) }
-    var cameraX by rememberSaveable { mutableStateOf(0f) }
+    var cameraX by rememberSaveable { mutableFloatStateOf(0f) }
 
     LaunchedEffect(Unit) { machine.startSimulation() }
 

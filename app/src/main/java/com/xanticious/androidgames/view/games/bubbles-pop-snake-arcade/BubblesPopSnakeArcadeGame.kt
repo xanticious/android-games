@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,7 +66,7 @@ fun BubblesPopSnakeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by machine.phase.collectAsState()
 
     var gameState by remember { mutableStateOf(controller.initialSnakeState(config)) }
-    var boardAspect by remember { mutableStateOf(1f) }
+    var boardAspect by remember { mutableFloatStateOf(1f) }
     var sized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { machine.startGame() }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,8 +54,8 @@ fun MatchThreeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 7
         GameDifficulty.HARD -> 8
     }
-    var boardSize by remember { mutableStateOf(defaultSize) }
-    var gemTypes by remember { mutableStateOf(6) }
+    var boardSize by remember { mutableIntStateOf(defaultSize) }
+    var gemTypes by remember { mutableIntStateOf(6) }
     var timerLimit by remember { mutableFloatStateOf(5f) }
     var cascadeBonus by remember { mutableStateOf(true) }
 
@@ -67,7 +68,7 @@ fun MatchThreeArcadeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var boardResolving by remember { mutableStateOf(false) }
 
     // Best score across runs in this session
-    var bestScore by remember { mutableStateOf(0) }
+    var bestScore by remember { mutableIntStateOf(0) }
 
     fun deal() {
         gameState = MatchThreeState(

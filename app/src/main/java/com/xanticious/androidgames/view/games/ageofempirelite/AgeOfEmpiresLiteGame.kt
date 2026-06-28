@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,7 +82,7 @@ fun AgeOfEmpiresLiteGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by stateMachine.phase.collectAsState()
     val gameState by stateMachine.gameState.collectAsState()
 
-    var foodPct by rememberSaveable { mutableStateOf(70) }
+    var foodPct by rememberSaveable { mutableIntStateOf(70) }
     var armyRatios by remember {
         mutableStateOf(
             mapOf(UnitType.INFANTRY to 3, UnitType.ARCHER to 2, UnitType.CAVALRY to 1)
@@ -90,7 +91,7 @@ fun AgeOfEmpiresLiteGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var upgradePriority by remember {
         mutableStateOf(AgeOfEmpiresLiteController.defaultPlayerUpgradePriority())
     }
-    var cannonQueueBuffer by rememberSaveable { mutableStateOf(0) }
+    var cannonQueueBuffer by rememberSaveable { mutableIntStateOf(0) }
 
     // Start match on first composition
     LaunchedEffect(Unit) {

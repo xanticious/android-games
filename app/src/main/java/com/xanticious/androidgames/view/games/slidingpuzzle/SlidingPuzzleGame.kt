@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,7 +55,7 @@ fun SlidingPuzzleGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 4
         GameDifficulty.HARD -> 5
     }
-    var selectedSize by remember { mutableStateOf(defaultSize) }
+    var selectedSize by remember { mutableIntStateOf(defaultSize) }
     var state by remember { mutableStateOf(SlidingPuzzleState.solved(defaultSize)) }
 
     fun deal() {

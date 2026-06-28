@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -69,12 +71,12 @@ fun PairCollectorGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val random = remember { Random(System.currentTimeMillis()) }
 
     var setupScreen by rememberSaveable { mutableStateOf(PairSetupScreen.SETTINGS) }
-    var cardCount by rememberSaveable { mutableStateOf(defaultConfig.cardCount) }
+    var cardCount by rememberSaveable { mutableIntStateOf(defaultConfig.cardCount) }
     var timeLimit by rememberSaveable { mutableStateOf(defaultConfig.timeLimit) }
     var cardBackStyle by rememberSaveable { mutableStateOf(defaultConfig.cardBackStyle) }
     var showRoundTimer by rememberSaveable { mutableStateOf(defaultConfig.showRoundTimer) }
-    var bestTime by rememberSaveable { mutableStateOf(0f) }
-    var bestRound by rememberSaveable { mutableStateOf(0) }
+    var bestTime by rememberSaveable { mutableFloatStateOf(0f) }
+    var bestRound by rememberSaveable { mutableIntStateOf(0) }
     var gameState by remember { mutableStateOf<PairCollectorGameState?>(null) }
 
     val settings = PairCollectorSettings(cardCount, timeLimit, cardBackStyle, showRoundTimer)

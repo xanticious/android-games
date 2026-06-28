@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,7 +85,7 @@ fun DotArtGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var canvasSize by rememberSaveable { mutableStateOf(sizeFor(difficulty)) }
     var paperTone by rememberSaveable { mutableStateOf(DotArtPaperTone.WHITE) }
     var showOutlines by rememberSaveable { mutableStateOf(true) }
-    var brushOpacity by rememberSaveable { mutableStateOf(0.8f) }
+    var brushOpacity by rememberSaveable { mutableFloatStateOf(0.8f) }
     var selectedColor by rememberSaveable { mutableStateOf(DotArtPaletteColor.LAGOON) }
     var brushSize by rememberSaveable { mutableStateOf(DotArtBrushSize.MEDIUM) }
     var eraser by rememberSaveable { mutableStateOf(false) }

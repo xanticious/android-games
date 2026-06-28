@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +60,7 @@ fun EndlessRunnerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by machine.phase.collectAsState()
 
     var state by remember { mutableStateOf(EndlessRunnerState.initial(config.initialSpeed)) }
-    var bestDistance by remember { mutableStateOf(0) }
+    var bestDistance by remember { mutableIntStateOf(0) }
 
     // Input flags mutated by the gesture handler and consumed by the game loop.
     var jumpRequested by remember { mutableStateOf(false) }

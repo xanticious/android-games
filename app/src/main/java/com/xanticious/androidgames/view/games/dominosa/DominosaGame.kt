@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,7 +60,7 @@ fun DominosaGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 6
         GameDifficulty.HARD -> 8
     }
-    var selectedN by rememberSaveable { mutableStateOf(defaultN) }
+    var selectedN by rememberSaveable { mutableIntStateOf(defaultN) }
     var showConflicts by rememberSaveable { mutableStateOf(true) }
     var state by remember { mutableStateOf(controller.newGame(defaultN)) }
 

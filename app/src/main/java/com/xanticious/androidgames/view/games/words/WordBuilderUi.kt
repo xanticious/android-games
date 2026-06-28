@@ -172,8 +172,8 @@ fun WordBuilderActions(
 fun TargetWordsDisplay(
     targetWords: List<String>,
     foundWords: Set<String>,
-    groupByLength: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    groupByLength: Boolean = true
 ) {
     Column(
         modifier = modifier

@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,11 +67,11 @@ fun HelicopterDogfightGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
     var gameState by remember { mutableStateOf(HelicopterDogfightState.initial()) }
     var joystick by remember { mutableStateOf(JoystickInput.NONE) }
-    var allClearTimer by remember { mutableStateOf(0f) }
-    var scrollTimer by remember { mutableStateOf(0f) }
-    var respawnTimer by remember { mutableStateOf(0f) }
-    var bestScore by remember { mutableStateOf(0) }
-    var rotorAngle by remember { mutableStateOf(0f) }
+    var allClearTimer by remember { mutableFloatStateOf(0f) }
+    var scrollTimer by remember { mutableFloatStateOf(0f) }
+    var respawnTimer by remember { mutableFloatStateOf(0f) }
+    var bestScore by remember { mutableIntStateOf(0) }
+    var rotorAngle by remember { mutableFloatStateOf(0f) }
 
     // Capture color tokens outside the Canvas lambda (DrawScope is not @Composable).
     val playerColor = GamePlayer

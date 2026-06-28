@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -62,7 +63,7 @@ fun LetterDropGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val phase by machine.phase.collectAsState()
 
     var selectedDifficulty by rememberSaveable { mutableStateOf(difficulty) }
-    var minWordLength by rememberSaveable { mutableStateOf(3) }
+    var minWordLength by rememberSaveable { mutableIntStateOf(3) }
     var vowelRich by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current

@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -88,10 +89,10 @@ fun MastermindGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> Quad(5, 7, true, 10)
         GameDifficulty.HARD -> Quad(6, 8, false, 8)
     }
-    var selectedLength by remember { mutableStateOf(defaultLength) }
-    var selectedColors by remember { mutableStateOf(defaultColors) }
+    var selectedLength by remember { mutableIntStateOf(defaultLength) }
+    var selectedColors by remember { mutableIntStateOf(defaultColors) }
     var selectedDuplicates by remember { mutableStateOf(defaultDuplicates) }
-    var selectedGuesses by remember { mutableStateOf(defaultGuesses) }
+    var selectedGuesses by remember { mutableIntStateOf(defaultGuesses) }
 
     // In-game state
     var state by remember {

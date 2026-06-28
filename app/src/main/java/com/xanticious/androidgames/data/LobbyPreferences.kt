@@ -2,6 +2,7 @@ package com.xanticious.androidgames.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.xanticious.androidgames.model.LobbyViewMode
 
 /**
@@ -20,14 +21,14 @@ class LobbyPreferences(context: Context) {
         }
 
     fun saveViewMode(mode: LobbyViewMode) {
-        prefs.edit().putString(KEY_VIEW_MODE, mode.name).apply()
+        prefs.edit { putString(KEY_VIEW_MODE, mode.name) }
     }
 
     fun loadFavorites(): Set<String> =
         prefs.getStringSet(KEY_FAVORITES, emptySet())?.toSet() ?: emptySet()
 
     fun saveFavorites(ids: Set<String>) {
-        prefs.edit().putStringSet(KEY_FAVORITES, ids.toSet()).apply()
+        prefs.edit { putStringSet(KEY_FAVORITES, ids.toSet()) }
     }
 
     private companion object {

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -68,7 +69,7 @@ fun IdleCombatTrainingGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var state by rememberSaveable(stateSaver = IdleCombatStateSaver) {
         mutableStateOf(IdleCombatState.initial())
     }
-    var lastReward by rememberSaveable { mutableStateOf(0L) }
+    var lastReward by rememberSaveable { mutableLongStateOf(0L) }
 
     LaunchedEffect(Unit) {
         machine.startGame()

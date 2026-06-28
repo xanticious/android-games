@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,7 +68,7 @@ fun DominoesGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val config = remember(difficulty) { controller.configFor(difficulty) }
     val machine = remember { DominoesStateMachine() }
     val phase by machine.phase.collectAsState()
-    var dealSeed by remember { mutableStateOf(41) }
+    var dealSeed by remember { mutableIntStateOf(41) }
     var state by remember { mutableStateOf(controller.deal(Random(dealSeed), config)) }
     var selectedTile by remember { mutableStateOf<DominoTile?>(null) }
 

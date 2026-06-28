@@ -26,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -87,8 +89,8 @@ fun MathQuizGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var session by remember { mutableStateOf<MathQuizSession?>(null) }
     var currentQuestion by remember { mutableStateOf<MathQuestion?>(null) }
     var answerInput by rememberSaveable { mutableStateOf("") }
-    var elapsedSeconds by rememberSaveable { mutableStateOf(0) }
-    var questionStartMs by remember { mutableStateOf(0L) }
+    var elapsedSeconds by rememberSaveable { mutableIntStateOf(0) }
+    var questionStartMs by remember { mutableLongStateOf(0L) }
     var lastResult by remember { mutableStateOf<MathAnswerResult?>(null) }
 
     // Transition from IDLE to SETTINGS on first composition.

@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,11 +75,11 @@ fun MemoryLanesGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val random = remember { Random(System.currentTimeMillis()) }
 
     var setupScreen by rememberSaveable { mutableStateOf(MemorySetupScreen.SETTINGS) }
-    var bankSize by rememberSaveable { mutableStateOf(defaultConfig.bankSize) }
-    var revealDuration by rememberSaveable { mutableStateOf(defaultConfig.revealDurationSeconds) }
+    var bankSize by rememberSaveable { mutableIntStateOf(defaultConfig.bankSize) }
+    var revealDuration by rememberSaveable { mutableIntStateOf(defaultConfig.revealDurationSeconds) }
     var labelStyle by rememberSaveable { mutableStateOf(defaultConfig.labelStyle) }
     var confirmWrong by rememberSaveable { mutableStateOf(defaultConfig.confirmWrong) }
-    var longestSequence by rememberSaveable { mutableStateOf(0) }
+    var longestSequence by rememberSaveable { mutableIntStateOf(0) }
     var gameState by remember { mutableStateOf<MemoryLanesGameState?>(null) }
 
     val settings = MemoryLanesSettings(bankSize, revealDuration, labelStyle, confirmWrong)

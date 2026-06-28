@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,7 +51,7 @@ fun PipesGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 8
         GameDifficulty.HARD   -> 11
     }
-    var selectedSize by remember { mutableStateOf(defaultSize) }
+    var selectedSize by remember { mutableIntStateOf(defaultSize) }
     var state by remember { mutableStateOf(controller.newGame(defaultSize)) }
 
     fun deal() {

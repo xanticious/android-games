@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,7 +85,7 @@ fun JigsawGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> controller.gridSizes[1]
         GameDifficulty.HARD -> controller.gridSizes[2]
     }
-    var selectedImageId by rememberSaveable { mutableStateOf(0) }
+    var selectedImageId by rememberSaveable { mutableIntStateOf(0) }
     var selectedGrid by rememberSaveable { mutableStateOf(defaultGrid) }
     var gameState by remember { mutableStateOf<JigsawState?>(null) }
     var selectedPieceId by remember { mutableStateOf<Int?>(null) }

@@ -35,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -91,7 +93,7 @@ fun FlashCardGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var session by remember { mutableStateOf<FlashCardSession?>(null) }
     var currentCard by remember { mutableStateOf<FlashCard?>(null) }
     var progressMap by remember { mutableStateOf<Map<String, FlashCardProgress>>(emptyMap()) }
-    var elapsedMs by remember { mutableStateOf(0L) }
+    var elapsedMs by remember { mutableLongStateOf(0L) }
     var lastResultCorrect by remember { mutableStateOf(false) }
     var reviewMissedMode by remember { mutableStateOf(false) }
     // Tracks which physical face of the card is shown first this draw.
@@ -386,10 +388,10 @@ private fun SettingsScreen(
     onStart: (showSide: ShowSide, mode: FlashCardMode, duration: FlashCardDuration) -> Unit,
     onBack: () -> Unit
 ) {
-    var showSideIdx by rememberSaveable { mutableStateOf(initialShowSide.ordinal) }
-    var modeIdx by rememberSaveable { mutableStateOf(initialMode.ordinal) }
+    var showSideIdx by rememberSaveable { mutableIntStateOf(initialShowSide.ordinal) }
+    var modeIdx by rememberSaveable { mutableIntStateOf(initialMode.ordinal) }
     var durationTypeIdx by rememberSaveable {
-        mutableStateOf(
+        mutableIntStateOf(
             when (initialDuration) {
                 is FlashCardDuration.FullDeck -> 0
                 is FlashCardDuration.NumberOfCards -> 1
@@ -398,12 +400,12 @@ private fun SettingsScreen(
         )
     }
     var durationCards by rememberSaveable {
-        mutableStateOf(
+        mutableIntStateOf(
             if (initialDuration is FlashCardDuration.NumberOfCards) initialDuration.n else 20
         )
     }
     var durationMinutes by rememberSaveable {
-        mutableStateOf(
+        mutableIntStateOf(
             if (initialDuration is FlashCardDuration.NumberOfMinutes) initialDuration.m else 5
         )
     }

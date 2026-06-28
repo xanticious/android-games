@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,10 +65,10 @@ fun SpaceDefenderGame(difficulty: GameDifficulty, onExit: () -> Unit) {
 
     var gameState by remember { mutableStateOf(SpaceDefenderState.initial()) }
     var joystickInput by remember { mutableStateOf(JoystickInput.NONE) }
-    var waveIntroCountdown by remember { mutableStateOf(0f) }
-    var waveCompleteTimer by remember { mutableStateOf(0f) }
-    var bestScore by remember { mutableStateOf(0) }
-    var damageFlashTimer by remember { mutableStateOf(0f) }
+    var waveIntroCountdown by remember { mutableFloatStateOf(0f) }
+    var waveCompleteTimer by remember { mutableFloatStateOf(0f) }
+    var bestScore by remember { mutableIntStateOf(0) }
+    var damageFlashTimer by remember { mutableFloatStateOf(0f) }
     var dragOriginX by remember { mutableStateOf<Float?>(null) }
 
     // Capture colors outside Canvas (DrawScope is not @Composable)

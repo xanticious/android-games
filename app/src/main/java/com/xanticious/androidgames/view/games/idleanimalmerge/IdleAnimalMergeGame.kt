@@ -60,6 +60,7 @@ import com.xanticious.androidgames.ui.theme.GameSuccess
 import com.xanticious.androidgames.view.common.GameHud
 import com.xanticious.androidgames.view.common.GameScaffold
 import kotlinx.coroutines.delay
+import java.util.Locale
 
 /**
  * Idle Animal Merge — entry composable.
@@ -113,7 +114,7 @@ fun IdleAnimalMergeGame(
             if (phase != IdleAnimalMergePhase.IDLE && phase != IdleAnimalMergePhase.HOW_TO_PLAY) {
                 val mins = gameState.secondsUntilNextSpawn / 60
                 val secs = gameState.secondsUntilNextSpawn % 60
-                val timerText = String.format("%02d:%02d", mins, secs)
+                val timerText = String.format(Locale.US, "%02d:%02d", mins, secs)
                 GameHud(
                     left = "🪙 ${gameState.coins}",
                     center = "Next: $timerText",

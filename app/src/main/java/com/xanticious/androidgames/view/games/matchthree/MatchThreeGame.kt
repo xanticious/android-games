@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,8 +60,8 @@ fun MatchThreeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.MEDIUM -> 7
         GameDifficulty.HARD -> 8
     }
-    var boardSize by remember { mutableStateOf(defaultSize) }
-    var gemTypes by remember { mutableStateOf(6) }
+    var boardSize by remember { mutableIntStateOf(defaultSize) }
+    var gemTypes by remember { mutableIntStateOf(6) }
     var gameState by remember {
         mutableStateOf(MatchThreeState(board = MatchThreeBoard.empty(defaultSize, defaultSize)))
     }
@@ -192,9 +193,9 @@ internal fun GemBoard(
     board: MatchThreeBoard,
     selectedCell: GridPos?,
     onCellTap: ((GridPos) -> Unit)?,
+    modifier: Modifier = Modifier,
     onCellDrag: ((GridPos) -> Unit)? = null,
-    onDragEnd: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onDragEnd: (() -> Unit)? = null
 ) {
     PuzzleBoard(
         rows = board.rows,

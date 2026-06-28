@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -76,7 +77,7 @@ fun DriftRacerGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var steeringInput  by remember { mutableStateOf(JoystickInput.NONE) }
     var throttleOn     by remember { mutableStateOf(false) }
     var brakeOn        by remember { mutableStateOf(false) }
-    var countdownTick  by remember { mutableStateOf(3) }
+    var countdownTick  by remember { mutableIntStateOf(3) }
 
     // Kick off the initial race.
     LaunchedEffect(Unit) { machine.startRace() }

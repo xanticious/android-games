@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,7 +106,7 @@ fun MelodyMasterGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var hitIndices by remember { mutableStateOf(setOf<Int>()) }
     var scoreState by remember { mutableStateOf(ScoreState()) }
     var flourishAllHit by remember { mutableStateOf(true) }
-    var countInBeat by remember { mutableStateOf(0) }
+    var countInBeat by remember { mutableIntStateOf(0) }
 
     val config = remember(selectedDifficulty) { MelodyConfig.configFor(selectedDifficulty) }
 

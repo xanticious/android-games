@@ -28,6 +28,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,17 +87,17 @@ fun MorseCodeGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     // ── Config state ────────────────────────────────────────────────────────
     var trainingMode by remember { mutableStateOf(TRAINING_MODE_DEFAULT) }
     var gameDifficulty by remember { mutableStateOf(difficulty) }
-    var seed by remember { mutableStateOf(System.currentTimeMillis()) }
+    var seed by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     // ── Phrase / word / letter progress ─────────────────────────────────────
     var phrase by remember { mutableStateOf(Phrase(emptyList())) }
-    var wordIndex by remember { mutableStateOf(0) }
-    var letterIndex by remember { mutableStateOf(0) }
+    var wordIndex by remember { mutableIntStateOf(0) }
+    var letterIndex by remember { mutableIntStateOf(0) }
     // Per-position mistake accumulator; survives word retries
     val perPositionMistakes = remember { mutableStateMapOf<Int, Int>() }
-    var wordRetries by remember { mutableStateOf(0) }
-    var wordStartMs by remember { mutableStateOf(0L) }
-    var letterStartMs by remember { mutableStateOf(0L) }
+    var wordRetries by remember { mutableIntStateOf(0) }
+    var wordStartMs by remember { mutableLongStateOf(0L) }
+    var letterStartMs by remember { mutableLongStateOf(0L) }
     var completedWordAttempts by remember { mutableStateOf(listOf<WordAttempt>()) }
     var completedLetters by remember { mutableStateOf(listOf<LetterAttempt>()) }
     var stats by remember { mutableStateOf<PhraseStats?>(null) }
@@ -432,7 +434,7 @@ private fun GameplayScreen(
     // Current Morse symbols being accumulated for the in-progress letter
     var currentSymbols by remember { mutableStateOf(listOf<Symbol>()) }
     var commitJob by remember { mutableStateOf<Job?>(null) }
-    var pressStartMs by remember { mutableStateOf(0L) }
+    var pressStartMs by remember { mutableLongStateOf(0L) }
     var isPressed by remember { mutableStateOf(false) }
 
     // Reset symbol buffer when letter/word changes

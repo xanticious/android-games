@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -90,9 +91,9 @@ fun FloodGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         GameDifficulty.HARD -> 8
     }
 
-    var selectedSize by rememberSaveable { mutableStateOf(defaultSize) }
-    var selectedColorCount by rememberSaveable { mutableStateOf(defaultColorCount) }
-    var selectedHandicap by rememberSaveable { mutableStateOf(4) }
+    var selectedSize by rememberSaveable { mutableIntStateOf(defaultSize) }
+    var selectedColorCount by rememberSaveable { mutableIntStateOf(defaultColorCount) }
+    var selectedHandicap by rememberSaveable { mutableIntStateOf(4) }
     var state by remember {
         mutableStateOf(controller.newGame(defaultSize, defaultColorCount, handicap = 4))
     }

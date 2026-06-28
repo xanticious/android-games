@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -128,7 +129,7 @@ fun TapRhythmGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     var lastJudgmentLeft by remember { mutableStateOf<Judgment?>(null) }
     var lastJudgmentRight by remember { mutableStateOf<Judgment?>(null) }
     var runResult by remember { mutableStateOf<RunResult?>(null) }
-    var countInValue by remember { mutableStateOf(3) }
+    var countInValue by remember { mutableIntStateOf(3) }
 
     // ── Open game on first composition ───────────────────────────────────────
     LaunchedEffect(Unit) { machine.openGame() }
