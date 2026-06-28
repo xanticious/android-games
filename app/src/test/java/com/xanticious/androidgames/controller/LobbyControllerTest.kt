@@ -28,11 +28,8 @@ class LobbyControllerTest {
     }
 
     @Test
-    fun visibleGames_appliesFavoritesAndSearch() {
-        val result = controller.visibleGames(
-            games,
-            LobbyFilter(searchQuery = "ana", onlyFavorites = true, onlyReleased = false)
-        )
-        assertEquals(listOf("Anagrams"), result.map { it.name })
+    fun visibleGames_defaultFilterShowsOnlyReleased() {
+        val result = controller.visibleGames(games, LobbyFilter())
+        assertEquals(listOf("Anagrams", "Chess"), result.map { it.name })
     }
 }

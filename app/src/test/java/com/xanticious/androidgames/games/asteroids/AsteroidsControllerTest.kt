@@ -127,7 +127,46 @@ class AsteroidsControllerTest {
         assertEquals(config.minShipSpeed, result.ship.velocity.length, 1e-4f)
     }
 
-    // ── step: ship movement ───────────────────────────────────────────────────
+    @Test
+    fun spawnAsteroids_levelStartsWithBeaconVisible() {
+        val result = controller.spawnAsteroids(AsteroidsState.initial(), config, seed)
+        assertNotNull(result.beacon)
+    }
+
+    @Test
+    fun spawnAsteroids_resetsBeaconCountToZero() {
+        val state = AsteroidsState.initial().copy(beaconsCollectedThisLevel = 3)
+        val result = controller.spawnAsteroids(state, config, seed)
+        assertEquals(0, result.beaconsCollectedThisLevel)
+    }
+
+    // ── step: continuous asteroid spawning ────────────────────────────────────
+
+    @Test
+    fun step_fieldEmptyWithBeaconsRemaining_replenishesAsteroids() {
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 10f),
+            asteroids = emptyList(),
+            beacon = null,
+            beaconsCollectedThisLevel = 2,
+            fireCooldown = 5f
+        )
+        val result = controller.step(state, config, 0.016f, noInput())
+        assertTrue(result.state.asteroids.isNotEmpty())
+    }
+
+    @Test
+    fun step_fieldEmptyAfterAllBeacons_doesNotReplenish() {
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 10f),
+            asteroids = emptyList(),
+            beacon = null,
+            beaconsCollectedThisLevel = AsteroidsState.BEACONS_PER_LEVEL,
+            fireCooldown = 5f
+        )
+        val result = controller.step(state, config, 0.016f, noInput())
+        assertTrue(result.state.asteroids.isEmpty())
+    }
 
     @Test
     fun step_accelerate_increasesShipSpeed() {
@@ -202,6 +241,57 @@ class AsteroidsControllerTest {
         )
         val result = controller.step(state, config, 0.016f, noInput())
         assertEquals(0, result.state.projectiles.size)
+    }
+
+    @Test
+    fun step_frozenField_doesNotAutofire() {
+        val asteroid = Asteroid(1, Vec2(0.5f, 0.2f), Vec2.ZERO, AsteroidSize.SMALL, 1)
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 10f),
+            asteroids = listOf(asteroid),
+            freezeTimer = 1f
+        )
+        val result = controller.step(state, config, 0.016f, noInput())
+        assertEquals(0, result.state.projectiles.size)
+    }
+
+    // ── step: projectile travel distance ──────────────────────────────────────
+
+    @Test
+    fun step_projectileExceedsMaxDistance_isRemoved() {
+        val proj = Projectile(
+            id = 9,
+            position = Vec2(0.5f, 0.5f),
+            velocity = Vec2(config.projectileSpeed, 0f),
+            age = 0f,
+            distanceTraveled = config.projectileMaxDistance - 0.001f
+        )
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 10f),
+            asteroids = emptyList(),
+            projectiles = listOf(proj),
+            fireCooldown = 5f
+        )
+        val result = controller.step(state, config, 0.1f, noInput())
+        assertEquals(0, result.state.projectiles.size)
+    }
+
+    @Test
+    fun step_projectileTracksDistanceTraveled() {
+        val proj = Projectile(
+            id = 9,
+            position = Vec2(0.5f, 0.5f),
+            velocity = Vec2(config.projectileSpeed, 0f),
+            age = 0f
+        )
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 10f),
+            asteroids = emptyList(),
+            projectiles = listOf(proj),
+            fireCooldown = 5f
+        )
+        val result = controller.step(state, config, 0.1f, noInput())
+        assertEquals(config.projectileSpeed * 0.1f, result.state.projectiles.first().distanceTraveled, 1e-4f)
     }
 
     // ── step: collision detection ─────────────────────────────────────────────
@@ -404,6 +494,40 @@ class AsteroidsControllerTest {
         )
         val result = controller.step(state, config, 0.016f, noInput())
         assertEquals(AsteroidsStepEvent.ALL_BEACONS_COLLECTED, result.event)
+    }
+
+    @Test
+    fun shipCollisionRadius_isTighterThanRenderRadius() {
+        assertTrue(Ship.COLLISION_RADIUS < Ship.RADIUS)
+    }
+
+    @Test
+    fun step_asteroidJustOutsideCollisionRadius_doesNotCrash() {
+        // Distance chosen to sit between the old render radius and the new collision radius.
+        val gap = Ship.COLLISION_RADIUS + Asteroid.RADIUS_SMALL + 0.005f
+        val asteroid = Asteroid(1, Vec2(0.5f + gap, 0.5f), Vec2.ZERO, AsteroidSize.SMALL, 1)
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(position = Vec2(0.5f, 0.5f), invincibilityTimer = 0f),
+            asteroids = listOf(asteroid),
+            fireCooldown = 5f
+        )
+        val result = controller.step(state, config, 0.016f, noInput())
+        assertEquals(AsteroidsStepEvent.NONE, result.event)
+    }
+
+    @Test
+    fun step_afterCollectingBeacon_nextBeaconAppearsNextFrame() {
+        val beacon = Beacon(Vec2(0.5f, 0.5f))
+        val state = AsteroidsState.initial().copy(
+            ship = Ship.initial().copy(invincibilityTimer = 0f),
+            asteroids = emptyList(),
+            beacon = beacon,
+            beaconsCollectedThisLevel = 0,
+            fireCooldown = 5f
+        )
+        val collected = controller.step(state, config, 0.016f, noInput())
+        val next = controller.step(collected.state, config, 0.016f, noInput())
+        assertNotNull(next.state.beacon)
     }
 
     // ── advanceLevel ──────────────────────────────────────────────────────────

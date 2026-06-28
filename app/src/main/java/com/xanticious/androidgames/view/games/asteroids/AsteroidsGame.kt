@@ -4,15 +4,19 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,9 +77,11 @@ import kotlin.math.PI
 @Composable
 fun AsteroidsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     val controller = remember { AsteroidsController() }
-    val config = remember(difficulty) { controller.configFor(difficulty) }
     val machine = remember { AsteroidsStateMachine() }
     val phase by machine.phase.collectAsState()
+
+    var selectedDifficulty by rememberSaveable { mutableStateOf(difficulty) }
+    val config = remember(selectedDifficulty) { controller.configFor(selectedDifficulty) }
 
     var state by remember { mutableStateOf(AsteroidsState.initial()) }
     var joystick by remember { mutableStateOf(JoystickInput.NONE) }
@@ -129,7 +136,10 @@ fun AsteroidsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         title = "Asteroids",
         onExit = onExit,
         hud = {
-            if (phase != AsteroidsPhase.SETUP && phase != AsteroidsPhase.IDLE) {
+            if (phase != AsteroidsPhase.SETUP &&
+                phase != AsteroidsPhase.HOW_TO_PLAY &&
+                phase != AsteroidsPhase.IDLE
+            ) {
                 GameHud(
                     left = hudLeft(state),
                     center = "${state.score}",
@@ -182,13 +192,18 @@ fun AsteroidsGame(difficulty: GameDifficulty, onExit: () -> Unit) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (phase == AsteroidsPhase.SETUP) {
                 AsteroidsSetup(
+                    difficulty = selectedDifficulty,
+                    onDifficulty = { selectedDifficulty = it },
                     knobPlacement = knobPlacement,
                     onKnobPlacement = { knobPlacement = it },
+                    onHowToPlay = machine::openHowToPlay,
                     onStart = { mode ->
                         state = AsteroidsState.initial(mode)
                         machine.confirmConfig()
                     }
                 )
+            } else if (phase == AsteroidsPhase.HOW_TO_PLAY) {
+                AsteroidsHowToPlay(onBack = machine::backToSetup)
             } else {
                 // ── Board canvas ──────────────────────────────────────────────
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -264,8 +279,11 @@ private const val DEFAULT_DURATION_SECONDS = 5 * 60
 
 @Composable
 private fun AsteroidsSetup(
+    difficulty: GameDifficulty,
+    onDifficulty: (GameDifficulty) -> Unit,
     knobPlacement: KnobPlacement,
     onKnobPlacement: (KnobPlacement) -> Unit,
+    onHowToPlay: () -> Unit,
     onStart: (AsteroidsMode) -> Unit
 ) {
     var selectedMode: AsteroidsMode by remember { mutableStateOf(AsteroidsMode.Classic) }
@@ -273,10 +291,22 @@ private fun AsteroidsSetup(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("Knob Placement", fontWeight = FontWeight.Bold)
+        Text("Difficulty", fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GameDifficulty.entries.forEach { level ->
+                FilterChip(
+                    selected = difficulty == level,
+                    onClick = { onDifficulty(level) },
+                    label = { Text(level.label) }
+                )
+            }
+        }
+
+        Text("Knob Placement", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KnobPlacement.entries.forEach { placement ->
                 FilterChip(
@@ -334,13 +364,81 @@ private fun AsteroidsSetup(
             AsteroidsMode.Classic -> Unit
         }
 
-        Button(
-            onClick = { onStart(selectedMode) },
-            modifier = Modifier.padding(top = 12.dp)
+        Row(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Start Game")
+            OutlinedButton(onClick = onHowToPlay) {
+                Text("How to Play")
+            }
+            Button(onClick = { onStart(selectedMode) }) {
+                Text("Start Game")
+            }
         }
     }
+}
+
+// ── How to Play screen ───────────────────────────────────────────────────────
+
+@Composable
+private fun AsteroidsHowToPlay(onBack: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text("Asteroids", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(
+            "In Asteroids, you are the pilot of a spacecraft trying to collect glowing " +
+                "yellow alien artifacts in the middle of an asteroid field. Your ship is " +
+                "equipped with an automatic asteroid busting weapon and omnidirectional " +
+                "propulsors."
+        )
+
+        HowToPlaySection("Objective") {
+            Text(
+                "Each level holds five beacons. Fly into a beacon to collect it — a new beacon " +
+                    "appears the moment you do, and asteroids keep arriving until all five are " +
+                    "collected. Gather every beacon to finish the level and move on to the next."
+            )
+            Text(
+                "In Classic Mode you have 3 lives; reach the highest level you can. " +
+                    "Level Challenge and Time Challenge give you infinite lives — race to clear " +
+                    "a set number of levels, or destroy as many asteroids as possible before the " +
+                    "clock runs out."
+            )
+        }
+
+        HowToPlaySection("Controls") {
+            Text("• The acceleration knob thrusts your ship in whatever direction you push it — full 360° control.")
+            Text("• Your ship is always drifting and auto-aligns its nose to its direction of travel.")
+            Text("• Choose the knob position (left thumb, right thumb, or floating) on the settings screen.")
+            Text("• Firing is automatic: your weapon always targets the nearest asteroid. Bullets fade after a short range.")
+        }
+
+        HowToPlaySection("Asteroids & Beacons") {
+            Text("• Large asteroids split into mediums, mediums split into smalls, and smalls are destroyed.")
+            Text("• Collecting a beacon sets off a blast that damages every asteroid nearby.")
+            Text("• Hitting an asteroid teleports you to a safe gap and briefly freezes the field; auto-fire pauses during the jump.")
+        }
+
+        Button(onClick = onBack, modifier = Modifier.padding(top = 12.dp)) {
+            Text("Back to Settings")
+        }
+    }
+}
+
+@Composable
+private fun HowToPlaySection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 }
 
 private fun KnobPlacement.label(): String = when (this) {

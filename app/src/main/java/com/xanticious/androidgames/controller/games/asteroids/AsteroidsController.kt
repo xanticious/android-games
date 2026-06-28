@@ -42,37 +42,58 @@ class AsteroidsController {
         config: AsteroidsConfig,
         random: Random = Random.Default
     ): AsteroidsState {
-        val count = (4 + state.level * 2).coerceAtMost(20)
-        val speedMult = min(
-            1f + config.asteroidSpeedGainPerLevel * (state.level - 1),
-            config.asteroidMaxSpeedMultiplier
+        val (asteroids, nextId) = largeAsteroidWave(
+            level = state.level,
+            config = config,
+            startId = state.nextId,
+            avoid = Vec2(0.5f, 0.5f),
+            random = random
         )
-        val speed = config.asteroidBaseSpeed * speedMult
 
-        var nextId = state.nextId
-        val asteroids = mutableListOf<Asteroid>()
-        repeat(count) {
-            asteroids += Asteroid(
-                id = nextId++,
-                position = safeSpawnPosition(Vec2(0.5f, 0.5f), 0.25f, random),
-                velocity = Vec2.fromAngle(random.nextFloat() * 2f * Math.PI.toFloat()) * speed,
-                size = AsteroidSize.LARGE,
-                hp = Asteroid.hpFor(AsteroidSize.LARGE)
-            )
-        }
-
+        val ship = Ship.initial(config.minShipSpeed).copy(invincibilityTimer = config.invincibilityDuration)
         return state.copy(
-            ship = Ship.initial(config.minShipSpeed).copy(invincibilityTimer = config.invincibilityDuration),
+            ship = ship,
             asteroids = asteroids,
             projectiles = emptyList(),
-            beacon = null,
+            // The level opens with a beacon already on the field (no spawn delay).
+            beacon = Beacon(safeSpawnPosition(ship.position, 0.2f, random)),
             beaconsCollectedThisLevel = 0,
-            beaconSpawnTimer = config.beaconSpawnDelay,
             freezeTimer = 0f,
             fireCooldown = 0f,
             nextId = nextId
         )
     }
+
+    /** Builds a fresh wave of large asteroids for [level], avoiding the [avoid] point. */
+    private fun largeAsteroidWave(
+        level: Int,
+        config: AsteroidsConfig,
+        startId: Int,
+        avoid: Vec2,
+        random: Random
+    ): Pair<List<Asteroid>, Int> {
+        val count = largeAsteroidCount(level)
+        val speedMult = min(
+            1f + config.asteroidSpeedGainPerLevel * (level - 1),
+            config.asteroidMaxSpeedMultiplier
+        )
+        val speed = config.asteroidBaseSpeed * speedMult
+
+        var nextId = startId
+        val asteroids = mutableListOf<Asteroid>()
+        repeat(count) {
+            asteroids += Asteroid(
+                id = nextId++,
+                position = safeSpawnPosition(avoid, 0.25f, random),
+                velocity = Vec2.fromAngle(random.nextFloat() * 2f * Math.PI.toFloat()) * speed,
+                size = AsteroidSize.LARGE,
+                hp = Asteroid.hpFor(AsteroidSize.LARGE)
+            )
+        }
+        return asteroids to nextId
+    }
+
+    private fun largeAsteroidCount(level: Int): Int = (4 + level * 2).coerceAtMost(20)
 
     /** Increments level counter (call before spawning asteroids for the next level). */
     fun advanceLevel(state: AsteroidsState): AsteroidsState =
@@ -124,15 +145,22 @@ class AsteroidsController {
             invincibilityTimer = invTimer
         )
 
-        // ── 2. Projectiles: age + move ─────────────────────────────────────────
+        // ── 2. Projectiles: age + move + track distance flown ──────────────────
         var nextId = state.nextId
         var projectiles = state.projectiles
-            .map { p -> p.copy(position = wrap(p.position + p.velocity * dt), age = p.age + dt) }
-            .filter { it.age < config.projectileLifetime }
+            .map { p ->
+                val step = p.velocity * dt
+                p.copy(
+                    position = wrap(p.position + step),
+                    age = p.age + dt,
+                    distanceTraveled = p.distanceTraveled + step.length
+                )
+            }
+            .filter { it.age < config.projectileLifetime && it.distanceTraveled < config.projectileMaxDistance }
 
-        // ── 3. Autofire toward the nearest asteroid ────────────────────────────
+        // ── 3. Autofire toward the nearest asteroid (paused during the freeze) ──
         var fireCooldown = (state.fireCooldown - dt).coerceAtLeast(0f)
-        if (fireCooldown <= 0f) {
+        if (fireCooldown <= 0f && !asteroidsFrozen) {
             val dir = nearestAsteroidDirection(ship.position, state.asteroids)
             if (dir != null) {
                 projectiles = projectiles + Projectile(
@@ -152,15 +180,10 @@ class AsteroidsController {
             state.asteroids.map { a -> a.copy(position = wrap(a.position + a.velocity * dt)) }
         }
 
-        // ── 5. Beacon spawn timer ──────────────────────────────────────────────
-        var beaconTimer = (state.beaconSpawnTimer - dt)
+        // ── 5. Beacon presence: always one on the field until all are collected ─
         var beacon = state.beacon
-        if (beacon == null
-            && beaconTimer <= 0f
-            && state.beaconsCollectedThisLevel < AsteroidsState.BEACONS_PER_LEVEL
-        ) {
+        if (beacon == null && state.beaconsCollectedThisLevel < AsteroidsState.BEACONS_PER_LEVEL) {
             beacon = Beacon(safeSpawnPosition(ship.position, 0.2f, random))
-            beaconTimer = 0f
         }
 
         // ── 6. Projectile–asteroid collisions ──────────────────────────────────
@@ -202,7 +225,7 @@ class AsteroidsController {
 
         if (!ship.isInvincible && !asteroidsFrozen) {
             val crashed = asteroids.any { a ->
-                wrappedDistance(ship.position, a.position) < Ship.RADIUS + Asteroid.radiusFor(a.size)
+                wrappedDistance(ship.position, a.position) < Ship.COLLISION_RADIUS + Asteroid.radiusFor(a.size)
             }
             if (crashed) {
                 if (!state.mode.infiniteLives) lives--
@@ -234,10 +257,16 @@ class AsteroidsController {
 
                 beacon = null
                 val allDone = beaconsCollected >= AsteroidsState.BEACONS_PER_LEVEL
-                beaconTimer = if (allDone) Float.MAX_VALUE else config.beaconSpawnDelay
                 event = if (allDone) AsteroidsStepEvent.ALL_BEACONS_COLLECTED
                         else AsteroidsStepEvent.BEACON_COLLECTED
             }
+        }
+
+        // ── 8b. Keep the field stocked until all beacons are collected ─────────
+        if (beaconsCollected < AsteroidsState.BEACONS_PER_LEVEL && asteroids.isEmpty()) {
+            val wave = largeAsteroidWave(state.level, config, nextId, ship.position, random)
+            asteroids = wave.first
+            nextId = wave.second
         }
 
         // ── 9. Time-challenge expiry ───────────────────────────────────────────
@@ -253,7 +282,6 @@ class AsteroidsController {
                 projectiles = projectiles,
                 beacon = beacon,
                 beaconsCollectedThisLevel = beaconsCollected,
-                beaconSpawnTimer = beaconTimer,
                 lives = lives,
                 score = score,
                 nextId = nextId,

@@ -19,6 +19,7 @@ import ru.nsk.kstatemachine.transition.onTriggered
 enum class AsteroidsPhase {
     IDLE,
     SETUP,
+    HOW_TO_PLAY,
     SPAWNING,
     PLAYING,
     LEVEL_COMPLETE,
@@ -28,6 +29,7 @@ enum class AsteroidsPhase {
 private sealed class NavState : DefaultState() {
     data object Idle : NavState()
     data object Setup : NavState()
+    data object HowToPlay : NavState()
     data object Spawning : NavState()
     data object Playing : NavState()
     data object LevelComplete : NavState()
@@ -37,6 +39,8 @@ private sealed class NavState : DefaultState() {
 private sealed interface AsteroidsEvent : Event {
     data object GameStarted : AsteroidsEvent
     data object ConfigConfirmed : AsteroidsEvent
+    data object OpenHowToPlay : AsteroidsEvent
+    data object BackToSetup : AsteroidsEvent
     data object FieldReady : AsteroidsEvent
     data object AllBeaconsCollected : AsteroidsEvent
     data object GameEnded : AsteroidsEvent
@@ -73,6 +77,16 @@ class AsteroidsStateMachine(
             transition<AsteroidsEvent.ConfigConfirmed> {
                 targetState = NavState.Spawning
                 onTriggered { _phase.value = AsteroidsPhase.SPAWNING }
+            }
+            transition<AsteroidsEvent.OpenHowToPlay> {
+                targetState = NavState.HowToPlay
+                onTriggered { _phase.value = AsteroidsPhase.HOW_TO_PLAY }
+            }
+        }
+        addState(NavState.HowToPlay) {
+            transition<AsteroidsEvent.BackToSetup> {
+                targetState = NavState.Setup
+                onTriggered { _phase.value = AsteroidsPhase.SETUP }
             }
         }
         addState(NavState.Spawning) {
@@ -111,6 +125,8 @@ class AsteroidsStateMachine(
 
     fun startGame() = machine.processEventByLaunch(AsteroidsEvent.GameStarted)
     fun confirmConfig() = machine.processEventByLaunch(AsteroidsEvent.ConfigConfirmed)
+    fun openHowToPlay() = machine.processEventByLaunch(AsteroidsEvent.OpenHowToPlay)
+    fun backToSetup() = machine.processEventByLaunch(AsteroidsEvent.BackToSetup)
     fun fieldReady() = machine.processEventByLaunch(AsteroidsEvent.FieldReady)
     fun allBeaconsCollected() = machine.processEventByLaunch(AsteroidsEvent.AllBeaconsCollected)
     fun gameEnded() = machine.processEventByLaunch(AsteroidsEvent.GameEnded)

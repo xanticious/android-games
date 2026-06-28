@@ -572,4 +572,107 @@ class BrickBreakerControllerTest {
         assertEquals(21, result.state.ballCount)
         assertTrue(result.state.droppingPowerUps.isEmpty())
     }
+
+    // ---- new behaviour: starting ball count ----
+
+    @Test
+    fun generateLevel_classic_startsWithOneBall() {
+        val config = controller.configFor(BrickBreakerVariant.CLASSIC, GameDifficulty.MEDIUM)
+        val state = controller.generateLevel(config, 1)
+        assertEquals(1, state.ballCount)
+    }
+
+    // ---- new behaviour: every 3rd classic row is sparse ----
+
+    @Test
+    fun generateClassicFeedBricks_everyThirdRow_isSparse() {
+        // i = 2 maps to on-screen row index (visible - 1) - 2 = 2 at level 5.
+        repeat(30) {
+            val sparse = controller.generateClassicFeedBricks(5).filter { it.row == 2 }
+            assertTrue(sparse.isNotEmpty())
+            assertTrue(sparse.size <= 2)
+        }
+    }
+
+    // ---- new behaviour: arcade power-ups are the strength multiplier only ----
+
+    @Test
+    fun generateLevel_arcade_powerUpsAreStrengthOnly() {
+        val config = controller.configFor(BrickBreakerVariant.ARCADE, GameDifficulty.HARD)
+        repeat(30) {
+            val pus = controller.generateLevel(config, 5).bricks.mapNotNull { it.powerUp }
+            assertTrue(pus.all { it == PowerUpType.EXTRA_STRENGTH })
+        }
+    }
+
+    // ---- new behaviour: cannon towers + gravity ----
+
+    @Test
+    fun generateLevel_cannon_bricksRestOnOrAboveGround() {
+        val config = controller.configFor(BrickBreakerVariant.CANNON, GameDifficulty.MEDIUM)
+        repeat(30) {
+            val state = controller.generateLevel(config, 4)
+            assertTrue(state.bricks.all { it.row in 0..BrickField.CANNON_BOTTOM_ROW })
+        }
+    }
+
+    @Test
+    fun settleCannonBricks_floatingBrick_fallsToGround() {
+        val settled = controller.settleCannonBricks(
+            listOf(Brick(col = 3, row = 0, hp = 1, maxHp = 1, type = BrickType.STANDARD)),
+        )
+        assertEquals(BrickField.CANNON_BOTTOM_ROW, settled.first().row)
+    }
+
+    @Test
+    fun settleCannonBricks_isIdempotent() {
+        val config = controller.configFor(BrickBreakerVariant.CANNON, GameDifficulty.MEDIUM)
+        val once = controller.generateLevel(config, 4).bricks
+        val twice = controller.settleCannonBricks(once)
+        assertEquals(
+            once.map { it.col to it.row }.toSet(),
+            twice.map { it.col to it.row }.toSet(),
+        )
+    }
+
+    @Test
+    fun settleCannonBricks_rigidRow_fallsTogether() {
+        val piece = listOf(
+            Brick(col = 2, row = 0, hp = 1, maxHp = 1, type = BrickType.STANDARD),
+            Brick(col = 3, row = 0, hp = 1, maxHp = 1, type = BrickType.STANDARD),
+            Brick(col = 4, row = 0, hp = 1, maxHp = 1, type = BrickType.STANDARD),
+        )
+        val settled = controller.settleCannonBricks(piece)
+        assertTrue(settled.all { it.row == BrickField.CANNON_BOTTOM_ROW })
+    }
+
+    // ---- new behaviour: cannon ball bounces off walls/ceiling, stops at ground ----
+
+    @Test
+    fun step_cannonBall_bouncesOffRightWallAfterManyBounces() {
+        val config = controller.configFor(BrickBreakerVariant.CANNON, GameDifficulty.EASY)
+        val ball = Ball(pos = Vec2(0.97f, 0.05f), vel = Vec2(0.5f, -0.1f), bounces = 5)
+        val state = BrickBreakerState(balls = listOf(ball))
+        val result = controller.step(state, config, 0.05f, BrickBreakerInput(aimAngleDeg = 45f))
+        val newBall = result.state.balls.firstOrNull()
+        assertNotNull(newBall)
+        assertTrue(newBall!!.vel.x < 0f)
+    }
+
+    @Test
+    fun step_cannonBall_removedWhenItReachesGround() {
+        val config = controller.configFor(BrickBreakerVariant.CANNON, GameDifficulty.EASY)
+        val ball = Ball(pos = Vec2(0.5f, BrickField.GROUND_Y + 0.01f), vel = Vec2(0.1f, 0.5f))
+        val state = BrickBreakerState(balls = listOf(ball))
+        val result = controller.step(state, config, 0.05f, BrickBreakerInput(aimAngleDeg = 45f))
+        assertTrue(result.state.balls.isEmpty())
+    }
+
+    @Test
+    fun trajectoryPreview_cannon_startsAtGroundLine() {
+        val config = controller.configFor(BrickBreakerVariant.CANNON, GameDifficulty.MEDIUM)
+        val pts = controller.trajectoryPreview(config, 45f)
+        assertTrue(pts.isNotEmpty())
+        assertTrue(kotlin.math.abs(pts.first().y - BrickField.GROUND_Y) < 0.1f)
+    }
 }

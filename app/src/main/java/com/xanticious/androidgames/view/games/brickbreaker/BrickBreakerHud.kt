@@ -38,6 +38,7 @@ fun BrickBreakerStatHud(
     ballCount: Int,
     strength: Int,
     modifier: Modifier = Modifier,
+    showBalls: Boolean = true,
     trailingLabel: String? = null,
     trailingValue: String? = null,
 ) {
@@ -50,7 +51,9 @@ fun BrickBreakerStatHud(
     ) {
         StatChip(label = "Score", value = "$score")
         StatChip(label = "Level", value = "$level")
-        StatChip(label = "Balls", value = "$ballCount", flashOnIncrease = true)
+        if (showBalls) {
+            StatChip(label = "Balls", value = "$ballCount", flashOnIncrease = true)
+        }
         StatChip(label = "Strength", value = "×$strength", flashOnIncrease = true)
         if (trailingLabel != null && trailingValue != null) {
             StatChip(label = trailingLabel, value = trailingValue)

@@ -82,6 +82,14 @@ object BrickField {
     const val POWERUP_RADIUS = 0.025f
     const val POWERUP_MAX_AGE = 3f
 
+    /** Slightly rounded brick corners; a ball grazing a corner bounces off at an angle. */
+    const val BRICK_CORNER_RADIUS = 0.012f
+
+    /** CANNON variants: lowest brick row; towers rest with this row on the ground. */
+    const val CANNON_BOTTOM_ROW = 9
+    /** CANNON variants: y of the ground line (~25% up from the bottom of the field). */
+    const val GROUND_Y = TOP_MARGIN + (CANNON_BOTTOM_ROW + 1) * ROW_HEIGHT
+
     /** CLASSIC: a level's row target is the level number, capped here. */
     const val CLASSIC_MAX_ROWS = 20
     /** CLASSIC: how many rows are on screen at the start of a level. */

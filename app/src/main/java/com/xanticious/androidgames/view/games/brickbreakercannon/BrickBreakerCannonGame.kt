@@ -40,6 +40,7 @@ import com.xanticious.androidgames.view.games.brickbreaker.drawBalls
 import com.xanticious.androidgames.view.games.brickbreaker.drawBricks
 import com.xanticious.androidgames.view.games.brickbreaker.drawCourt
 import com.xanticious.androidgames.view.games.brickbreaker.drawDroppingPowerUps
+import com.xanticious.androidgames.view.games.brickbreaker.drawGround
 import com.xanticious.androidgames.view.games.brickbreaker.drawLeftCannon
 import com.xanticious.androidgames.view.games.brickbreaker.drawTrajectory
 
@@ -138,7 +139,9 @@ fun BrickBreakerCannonGame(difficulty: GameDifficulty, onExit: () -> Unit) {
                                 modifier = Modifier.weight(2f),
                             )
                             Button(onClick = {
-                                state = controller.launchCannonBall(state, config)
+                                state = controller.launchCannonBall(
+                                    state.copy(cannonAngleDeg = aimAngleDeg), config,
+                                )
                                 machine.fireTapped()
                             }) { Text("Fire") }
                         }
@@ -190,6 +193,7 @@ fun BrickBreakerCannonGame(difficulty: GameDifficulty, onExit: () -> Unit) {
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCourt()
+            drawGround()
             drawBricks(state, textMeasurer)
             drawBalls(state)
             if (phase == BrickBreakerPhase.AIM_PHASE) {
